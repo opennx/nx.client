@@ -1,0 +1,5 @@
+{
+    "site_name" : "opennx",
+    "hive_host" : "localhost",
+    "hive_port" : 42000
+ }
