@@ -55,8 +55,7 @@ QTableView {
  background-color: #1a1a1a;
  alternate-background-color: #242424;
  selection-background-color: rgba(160, 160, 160, 160);
-
- color : #cdcdcd; 
+ color : #f9f9f9; 
 }
 
 

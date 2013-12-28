@@ -3,7 +3,7 @@ from assets_common import *
 from PySide.QtCore import *
 from PySide.QtGui  import *
 
-
+from utils import *
 
 class Asset(AssetPrototype):
     def __init__(self, id_asset=False, json=False):
@@ -16,6 +16,12 @@ class Asset(AssetPrototype):
     def format_display(self, key):
         if not key in self.meta:
             return ""
+
+        if key == "duration":
+            if self["fps"]:
+                return s2tc(self.get_duration(), self["fps"])
+            else:
+                return s2time(self.get_duration())
     
         mtype = meta_types[key]
         value = self[key]
@@ -34,5 +40,5 @@ class Asset(AssetPrototype):
 
     def format_foreground(self,key):
         if key == "title":
-            return QBrush([Qt.red, QColor("#e0e0e0"), Qt.yellow, Qt.black, Qt.black][self["status"]])
-        return None
+            return QBrush([Qt.red, QColor("#c0c0c0"), Qt.yellow, Qt.black, Qt.black][self["status"]])
+        return QColor("#c0c0c0")

@@ -17,6 +17,18 @@ class MetaType(object):
     def alias(self, lang='en-US'):
         return self.aliases.get(lang, self.title)
 
+    def pack(self):
+        return {
+                "title" : self.title,
+                "namespace": self.namespace,
+                "editable" : self.editable,
+                "searchable" : self.searchable,
+                "class" : self.class_,
+                "default" : self.default,
+                "settings" : self.settings,
+                "aliases" : self.aliases
+                }
+
 class MetaTypes(dict):
     def __init__(self):
         super(MetaTypes, self).__init__()
@@ -80,7 +92,6 @@ class MetaTypes(dict):
         elif mtype.class_ == PART:        return json.loads(value)
         elif mtype.class_ == BOOLEAN:     return int(value)
         elif mtype.class_ == STAR:        return int(value)
-
 
 meta_types = MetaTypes()
 

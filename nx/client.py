@@ -1,6 +1,7 @@
 from common import *
 from assets import *
 
+from PySide import QtNetwork
 
 import urllib, urllib2, json
 
@@ -28,38 +29,8 @@ def query(method, params={}):
 
     return 200, result
 
-
 ## Queries
 #######################################################################################################
-## Site settings
-
-def load_site_settings():
-    return
-    ret_code, result = query("site_settings")
-    if ret_code < 300:
-        config.update(result)
-    else:
-        critical_error("Unable to load site settigs")
-
-
-def load_meta_types():
-    ret_code, result = query("meta_types")
-    if ret_code < 300:  
-        for t in result:
-            m = MetaType(t["title"])
-            m.namespace   = t["namespace"]
-            m.editable    = t["editable"]
-            m.searchable  = t["searchable"]
-            m.class_      = t["class"]
-            m.default     = t["default"]
-            m.settings    = t["settings"]
-            m.aliases     = t["aliases"]
-            meta_types[t["title"]] = m
-    else:
-        critical_error("Unable to load meta types")
-
-## Site settings
-########################################################################
 ## Storages
 
 class Storage():
@@ -70,25 +41,8 @@ class Storage():
         if self.protocol == LOCAL:
             return self.path
 
-def load_storages():
-    pass
 
 
 
-
-
-class Firestarter():
-    def __init__(self):
-        self.tasks = [
-                        (load_site_settings,"Loading site settings"),
-                        (load_meta_types,"Loading meta types"),
-                        (messaging.init,"Initialising Seismic messaging"),
-                        (load_storages,"Loading storages")
-                     ]
-
-    def start(self, messageHandler=None):
-        for task, msg in self.tasks:
-            print msg
-            task()
 
 

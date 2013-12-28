@@ -3,7 +3,6 @@
 
 from firefly_common import *
 
-
 class BrowserModel(QAbstractTableModel):
     def __init__(self, parent):
         super(BrowserModel, self).__init__(parent)
@@ -34,24 +33,17 @@ class BrowserModel(QAbstractTableModel):
 
 
     def data(self, index, role): 
-        if not index.isValid():
+        if not index.isValid(): 
             return None 
 
         row   = index.row()
         asset = self.asset_data[row]
         tag   = self.header_data[index.column()]
                   
-        if role == Qt.DisplayRole:  
-            return asset.format_display(tag)
-        
-        elif role == Qt.ForegroundRole:
-            return asset.format_foreground(tag)
-
-        elif role == Qt.EditRole:     
-            pass
-
-        elif role == Qt.UserRole: 
-            return self.asset_data[row][tag] # sorting by raw data
+        if   role == Qt.DisplayRole:     return asset.format_display(tag)
+        elif role == Qt.ForegroundRole:  return asset.format_foreground(tag)
+        elif role == Qt.EditRole:        pass
+        elif role == Qt.UserRole:        return asset[tag] # sorting by raw data
         
         return None
 
@@ -76,7 +68,6 @@ class BrowserModel(QAbstractTableModel):
 
 class SortModel(QSortFilterProxyModel):
     pass
-
 
 class BrowserWidget(QTableView):
     def __init__(self, parent):
@@ -105,7 +96,6 @@ class BrowserWidget(QTableView):
         self.setShowGrid(False)
         self.setAlternatingRowColors(True)
         
-
     def browse(self,**kwargs):
         self.model.browse(**kwargs)
  
@@ -126,15 +116,15 @@ class BrowserWidget(QTableView):
 
  
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    f = Firestarter()
-    f.start()
+    app = Firestarter()
 
     wnd = QMainWindow()
     wnd.setStyleSheet(base_css)
     browser = BrowserWidget(wnd)
-    wnd.setCentralWidget(browser)
-    wnd.show()
+    wnd.setCentralWidget(browser)    
     browser.browse()
+    
+    wnd.show()
 
+    app.ready()
     app.exec_()
