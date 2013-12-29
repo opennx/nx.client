@@ -4,6 +4,12 @@ from nx import *
 import sys
 
 
+try:
+    app_state = json.loads(open(".app_state").read())
+except:
+    app_state = {}
+
+
 
 def get_pix(name):
     return QPixmap(os.path.join("images","%s.png" % name))
@@ -62,5 +68,12 @@ class Firestarter(QApplication):
     def load_storages(self):
         pass
 
-    def ready(self):
+    def save_app_state(self):
+        f = open(".app_state","w")
+        f.write(json.dumps(app_state))
+        f.close()
+
+    def start(self):
         self.splash.hide()
+        self.exec_()
+        self.save_app_state()

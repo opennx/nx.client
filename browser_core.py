@@ -10,10 +10,10 @@ class BrowserModel(QAbstractTableModel):
         self.asset_data  = []
         self.header_data = ["title", "role/performer", "duration"]
 
-    def rowCount(self,parent):    
+    def rowCount(self, parent):    
         return len(self.asset_data)   
 
-    def columnCount(self,parent): 
+    def columnCount(self, parent): 
         return len(self.header_data) 
 
     def browse(self, **kwargs):
@@ -59,7 +59,7 @@ class BrowserModel(QAbstractTableModel):
    
     def headerData(self, col, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole: 
-            return self.header_data[col]
+            return meta_types.col_alias(self.header_data[col], config.get("language","en-US"))
         #if orientation == Qt.Vertical   and role == Qt.DisplayRole and self.parent.parent.show_asset_ids: 
         #    return str(self.arraydata[col][0][0])
         return None
@@ -111,6 +111,12 @@ class BrowserWidget(QTableView):
         #    self.edit(mi)
         #return True  
 
+    def hideEvent(self, event):
+        col_sizes = {}
+        for id_column in range(self.model.columnCount(False)):
+            col_sizes[self.model.header_data[id_column]] = self.columnWidth(id_column)
+        app_state["col_sizes"] = col_sizes
+
 
 
 
@@ -126,5 +132,4 @@ if __name__ == "__main__":
     
     wnd.show()
 
-    app.ready()
-    app.exec_()
+    app.start()
