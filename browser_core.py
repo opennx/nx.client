@@ -95,6 +95,8 @@ class BrowserWidget(QTableView):
         self.setSelectionMode(self.ExtendedSelection)
         self.setShowGrid(False)
         self.setAlternatingRowColors(True)
+
+        self.browse()
         
     def browse(self,**kwargs):
         if self.model.header_data:
@@ -135,16 +137,81 @@ class BrowserWidget(QTableView):
 
 
 
- 
+
+#####################################
+## Odsud dolu presunout do browser.py
+
+
+class BrowserTabs(QTabWidget):
+    def __init__(self, parent=None):
+        super(BrowserTabs, self).__init__()  
+
+        self.action_new_tab = QAction('New tab', self)  
+        self.action_new_tab.setShortcut('Ctrl+T')
+        self.action_new_tab.setStatusTip('New browser tab')
+        self.action_new_tab.triggered.connect(self.new_tab)
+        self.addAction(self.action_new_tab)
+
+        self.action_close_tab = QAction('Close tab', self)  
+        self.action_close_tab.setShortcut('Ctrl+W')
+        self.action_close_tab.setStatusTip('Close current browser tab')
+        self.action_close_tab.triggered.connect(self.close_tab)
+        self.addAction(self.action_close_tab)
+
+        self.action_next_tab = QAction('Next tab', self)  
+        self.action_next_tab.setShortcut('Ctrl+TAB')
+        self.action_next_tab.setStatusTip('Next tab')
+        self.action_next_tab.triggered.connect(self.next_tab)
+        self.addAction(self.action_next_tab)
+
+        self.action_prev_tab = QAction('Previous tab', self)  
+        self.action_prev_tab.setShortcut('Ctrl+Shift+TAB')
+        self.action_prev_tab.setStatusTip('Previous tab')
+        self.action_prev_tab.triggered.connect(self.prev_tab)
+        self.addAction(self.action_prev_tab)
+
+        self.new_tab()
+
+    def new_tab(self, evt=None):
+        idx = self.addTab(BrowserWidget(self), "Browser")
+        self.setTabText(idx, "Browse %d" % idx )
+        self.setCurrentIndex(idx)
+
+    def close_tab(self, evt=None):
+        self.removeTab(self.currentIndex())
+
+    def next_tab(self, evt=None):
+        cnt = self.count()
+        idx = self.currentIndex()
+        if idx == cnt-1: idx = -1
+        self.setCurrentIndex(idx+1)
+
+    def prev_tab(self, evt=None):
+        cnt = self.count()
+        idx = self.currentIndex()
+        if idx == 0: idx = cnt
+        self.setCurrentIndex(idx-1)
+
+class BrowserDock(QDockWidget):
+    """ Dockable variant for rundown window """
+    def __init__(self, parent=None, draggable=False):
+        super(BrowserDock, self).__init__()
+        self.parent = parent
+        self.setWindowTitle("Asset browser")
+        self.tabs = BrowserTabs ()
+        self.setWidget(self.tabs)
+        if not draggable:
+            self.setTitleBarWidget(QWidget())  
+
+
 if __name__ == "__main__":
     app = Firestarter()
 
     wnd = QMainWindow()
     wnd.setStyleSheet(base_css)
-    browser = BrowserWidget(wnd)
-    wnd.setCentralWidget(browser)    
-    browser.browse()
-    
+    brw = BrowserTabs(wnd)
+    wnd.setCentralWidget(brw)    
     wnd.show()
+
 
     app.start()

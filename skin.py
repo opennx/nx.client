@@ -5,18 +5,18 @@ base_css = """
 
 QMainWindow, QDialog{
  background-color:#242424;
- color: #cccccc;
+ color: #c0c0c0;
 } 
 
 QStatusBar{
  background-color:#242424;
- color: #cccccc;
+ color: #c0c0c0;
 } 
 
 
 QToolBar{
  background-color:#242424;
- color: #cccccc;
+ color: #c0c0c0;
 } 
 
 QTableView{
@@ -27,14 +27,14 @@ QTableView{
 QLineEdit{
  background-color: #161616;
  border:1px solid #646464;
- color: #d3d3d3;
+ color: #c0c0c0;
  height: 24px;
 }
 
 QTextEdit{
  background-color: #161616;
  border:1px solid #646464;
- color: #d3d3d3;
+ color: #c0c0c0;
 }
 
 
@@ -55,14 +55,14 @@ QTableView {
  background-color: #1a1a1a;
  alternate-background-color: #242424;
  selection-background-color: rgba(160, 160, 160, 160);
- color : #f9f9f9; 
+ color : #c0c0c0; 
 }
 
 
 
 
 QLabel {
- color: #d3d3d3;
+ color: #c0c0c0;
 }
 
 
@@ -72,7 +72,7 @@ QHeaderView {
 
 QHeaderView::section {
  background-color: #161616;
- color: #cccccc;
+ color: #c0c0c0;
  font-weight: bold;
  border: 1px solid black;
  padding: 3px;
@@ -85,6 +85,51 @@ QTableCornerButton::section{
 }
 
 
+/**********************************************************************/
+
+
+QTabWidget {
+  border : 0;
+}
+
+ QTabWidget::pane { /* The tab widget frame */
+    border-top: 0;
+    padding-bottom: 3px;
+ }
+
+ QTabWidget::tab-bar {
+    left: 5px; /* move to the right by 5px */
+    color : #c0c0c0; 
+ }
+
+ QTabBar::tab {
+    background: #161616;
+    color : #c0c0c0; 
+    /*font-weight: bold;*/
+
+    border: 1px solid #242424;
+    border-bottom-color: #161616;
+    padding : 6px;
+    min-width: 12ex;
+ }
+
+ QTabBar::tab:selected, QTabBar::tab:hover {
+    background: #161616;
+    color : #f0f0f0; 
+ }
+
+ QTabBar::tab:selected {
+    border-bottom: 2px solid #729fcf;
+ }
+
+/*
+ QTabBar::close-button {
+     image: url(close.png)
+     subcontrol-position: left;
+ }
+ QTabBar::close-button:hover {
+     image: url(close-hover.png)
+ }*/
 
 /**********************************************************************/
 
