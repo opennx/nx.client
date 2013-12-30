@@ -14,7 +14,7 @@ class Asset(AssetPrototype):
             pass
 
     def format_display(self, key):
-        if not key in self.meta:
+        if not key in self.meta: 
             return ""
 
         if key == "duration":
@@ -23,6 +23,9 @@ class Asset(AssetPrototype):
             else:
                 return s2time(self.get_duration())
     
+        if not key in meta_types:
+            return self[key]
+
         mtype = meta_types[key]
         value = self[key]
 

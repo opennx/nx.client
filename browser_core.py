@@ -8,7 +8,7 @@ class BrowserModel(QAbstractTableModel):
         super(BrowserModel, self).__init__(parent)
         self.parent = parent
         self.asset_data  = []
-        self.header_data = ["title", "role/performer", "duration"]
+        self.header_data = []
 
     def rowCount(self, parent):    
         return len(self.asset_data)   
@@ -25,7 +25,6 @@ class BrowserModel(QAbstractTableModel):
             if "asset_data" in data:
                 for a in data["asset_data"]:
                     self.asset_data.append(Asset(json = a))
-                
                 self.header_data = ["title", "role/performer", "duration", "file/size"]
 
         self.endResetModel()
@@ -67,7 +66,11 @@ class BrowserModel(QAbstractTableModel):
 
 
 class SortModel(QSortFilterProxyModel):
-    pass
+    def __init__(self, model):
+        super(SortModel, self).__init__()
+        self.setSourceModel(model)
+        self.setDynamicSortFilter(True)
+        self.setSortRole(Qt.UserRole)
 
 class BrowserWidget(QTableView):
     def __init__(self, parent):
@@ -78,14 +81,11 @@ class BrowserWidget(QTableView):
         self.editor_closed_at = 0 
         self.activated.connect(self.on_activate)
   
-        self.model = BrowserModel(self) 
-
-        self.proxyModel = SortModel()
-        self.proxyModel.setSourceModel(self.model)
-        self.proxyModel.setDynamicSortFilter(True)
-        self.proxyModel.setSortRole(Qt.UserRole)
-        self.setModel(self.proxyModel)
+        self.model      = BrowserModel(self) 
+        self.sortModel  = SortModel(self.model)
+        self.setModel(self.sortModel)
   
+        self.verticalHeader().hide()
         self.setWordWrap(False)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setSortingEnabled(True)
@@ -97,7 +97,10 @@ class BrowserWidget(QTableView):
         self.setAlternatingRowColors(True)
         
     def browse(self,**kwargs):
+        if self.model.header_data:
+            self.saveColumnWidths()
         self.model.browse(**kwargs)
+        self.loadColumnWidths()
  
     def on_activate(self,mi):
         print "activated"
@@ -111,12 +114,24 @@ class BrowserWidget(QTableView):
         #    self.edit(mi)
         #return True  
 
-    def hideEvent(self, event):
-        col_sizes = {}
+    def loadColumnWidths(self):
         for id_column in range(self.model.columnCount(False)):
-            col_sizes[self.model.header_data[id_column]] = self.columnWidth(id_column)
-        app_state["col_sizes"] = col_sizes
+            col_tag = self.model.header_data[id_column]
+            w = app_state.get("col_widths",{}).get(col_tag,False)
+            if w:
+                self.setColumnWidth(id_column, w) 
+            else:
+                self.resizeColumnToContents(id_column)
 
+    def saveColumnWidths(self):
+        if not "col_widths" in app_state:
+            app_state["col_widths"] = {}
+
+        for id_column in range(self.model.columnCount(False)):
+            app_state["col_widths"][self.model.header_data[id_column]] = self.columnWidth(id_column)
+        
+    def hideEvent(self, event):
+        self.saveColumnWidths()
 
 
 
