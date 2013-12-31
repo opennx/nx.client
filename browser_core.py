@@ -19,8 +19,9 @@ class BrowserModel(QAbstractTableModel):
     def browse(self, **kwargs):
         self.beginResetModel()
         result, data = query("browse",kwargs)
+        self.asset_data = []
         if result >= 300:
-            self.asset_data = []
+            print "error message"
         else:
             if "asset_data" in data:
                 for a in data["asset_data"]:
@@ -72,36 +73,80 @@ class SortModel(QSortFilterProxyModel):
         self.setDynamicSortFilter(True)
         self.setSortRole(Qt.UserRole)
 
-class BrowserWidget(QTableView):
+
+class SearchBox(QWidget):
+    def __init__(self,parent):
+        super(SearchBox, self).__init__()
+        self.parent = parent
+
+        self.line_edit =  QLineEdit()
+        self.line_edit.setPlaceholderText ("Search in view (CTRL + Enter for extend search)")
+        self.line_edit.keyPressEvent = self.line_keyPressEvent
+
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0,4,0,0)
+        layout.setSpacing(2)
+
+        layout.addWidget(self.line_edit,1)
+        self.setLayout(layout)
+
+    def line_keyPressEvent(self, event):
+        if event.key() in [Qt.Key_Return,Qt.Key_Enter]:
+            if event.modifiers() & Qt.ControlModifier:
+                print "extend search"
+                #self.parent.OnSearch(extend=True)
+            else:
+                self.parent.search_query["fulltext"] = self.line_edit.text()
+                self.parent.browse()
+            return True
+        return QLineEdit.keyPressEvent(self.line_edit, event)
+
+
+class BrowserWidget(QWidget):
     def __init__(self, parent):
         super(BrowserWidget, self).__init__(parent)
         self.parent = parent
 
         self.is_editing = False
         self.editor_closed_at = 0 
-        self.activated.connect(self.on_activate)
-  
+        
+        self.search_query = {}
+
+        self.view = QTableView()
+        self.view.setStyleSheet(base_css)
+        self.view.activated.connect(self.on_activate)
+
         self.model      = BrowserModel(self) 
         self.sortModel  = SortModel(self.model)
-        self.setModel(self.sortModel)
+        self.view.setModel(self.sortModel)
   
-        self.verticalHeader().hide()
-        self.setWordWrap(False)
-        self.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.setSortingEnabled(True)
-        self.setDragEnabled(True)
-        self.setAcceptDrops(True)
-        self.setDropIndicatorShown(True)
-        self.setSelectionMode(self.ExtendedSelection)
-        self.setShowGrid(False)
-        self.setAlternatingRowColors(True)
+        self.search_box = SearchBox(self)
+
+        self.view.verticalHeader().hide()
+        self.view.setWordWrap(False)
+        self.view.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.view.setSortingEnabled(True)
+        self.view.setDragEnabled(True)
+        self.view.setAcceptDrops(True)
+        self.view.setDropIndicatorShown(True)
+        self.view.setSelectionMode(self.view.ExtendedSelection)
+        self.view.setShowGrid(False)
+        self.view.setAlternatingRowColors(True)
+
+        layout = QVBoxLayout()
+        layout.setContentsMargins(5,0,5,5)
+        layout.setSpacing(5)
+        layout.addWidget(self.search_box, 0)
+        layout.addWidget(self.view, 1)
+        self.setLayout(layout)
 
         self.browse()
         
     def browse(self,**kwargs):
         if self.model.header_data:
             self.saveColumnWidths()
-        self.model.browse(**kwargs)
+        self.search_query.update(kwargs)
+        self.model.browse(**self.search_query)
         self.loadColumnWidths()
  
     def on_activate(self,mi):
@@ -121,16 +166,16 @@ class BrowserWidget(QTableView):
             col_tag = self.model.header_data[id_column]
             w = app_state.get("col_widths",{}).get(col_tag,False)
             if w:
-                self.setColumnWidth(id_column, w) 
+                self.view.setColumnWidth(id_column, w) 
             else:
-                self.resizeColumnToContents(id_column)
+                self.view.resizeColumnToContents(id_column)
 
     def saveColumnWidths(self):
         if not "col_widths" in app_state:
             app_state["col_widths"] = {}
 
         for id_column in range(self.model.columnCount(False)):
-            app_state["col_widths"][self.model.header_data[id_column]] = self.columnWidth(id_column)
+            app_state["col_widths"][self.model.header_data[id_column]] = self.view.columnWidth(id_column)
         
     def hideEvent(self, event):
         self.saveColumnWidths()
@@ -212,6 +257,7 @@ if __name__ == "__main__":
     brw = BrowserTabs(wnd)
     wnd.setCentralWidget(brw)    
     wnd.show()
+    wnd.resize(690,450)
 
 
     app.start()
