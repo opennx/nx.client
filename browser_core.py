@@ -42,7 +42,7 @@ class BrowserModel(QAbstractTableModel):
                   
         if   role == Qt.DisplayRole:     return asset.format_display(tag)
         elif role == Qt.ForegroundRole:  return asset.format_foreground(tag)
-        elif role == Qt.EditRole:        pass
+        elif role == Qt.EditRole:        return asset.format_edit(tag)
         elif role == Qt.UserRole:        return asset[tag] # sorting by raw data
         
         return None
@@ -52,7 +52,7 @@ class BrowserModel(QAbstractTableModel):
         if index.isValid():
             if self.asset_data[index.row()].id_asset:
              #if self.parent.parent.edit_mode: 
-             #   flags |= Qt.ItemIsEditable
+             flags |= Qt.ItemIsEditable
              flags |= Qt.ItemIsDragEnabled # Itemy se daji dragovat
         return flags
    
@@ -64,6 +64,34 @@ class BrowserModel(QAbstractTableModel):
         #    return str(self.arraydata[col][0][0])
         return None
  
+      
+    def setData(self, index, data, role):
+        print "set data >>", data
+
+        asset = self.asset_data[index.row()]
+        tag = self.headerdata[index.column()]
+
+        if index.model().data(index, Qt.EditRole)[3] == data: 
+            return True
+
+        if not id_asset in self.changes: 
+            self.changes[id_asset] = {}
+          
+        if type(data) in [int,bool]:
+           self.changes[id_asset][tag] = str(int(data))
+        else:
+           self.changes[id_asset][tag] = data
+             
+        d = self.arraydata[index.row()]
+        if adata: 
+            d[0][adata] = data
+        else:     
+            d[1][tag] = data
+        
+        self.arraydata[index.row()] = d
+
+        return True
+
 
 
 class SortModel(QSortFilterProxyModel):
@@ -106,14 +134,12 @@ class BrowserWidget(QWidget):
     def __init__(self, parent):
         super(BrowserWidget, self).__init__(parent)
         self.parent = parent
-
-        self.is_editing = False
-        self.editor_closed_at = 0 
         
         self.search_query = {}
 
         self.view = QTableView()
         self.view.setStyleSheet(base_css)
+        self.view.editor_closed_at = time.time()
         self.view.activated.connect(self.on_activate)
 
         self.model      = BrowserModel(self) 
@@ -121,6 +147,8 @@ class BrowserWidget(QWidget):
         self.view.setModel(self.sortModel)
   
         self.search_box = SearchBox(self)
+
+        self.view.setItemDelegate(MetaEditItemDelegate(self.view))
 
         self.view.verticalHeader().hide()
         self.view.setWordWrap(False)
@@ -157,8 +185,8 @@ class BrowserWidget(QWidget):
         #   self.parent.OpenDetail(id_asset)
         #   return False   
         #else:
-        #if time.time() - self.editor_closed_at > 0.2:
-        #    self.edit(mi)
+        if time.time() - self.view.editor_closed_at > 0.2:
+            self.view.edit(mi)
         #return True  
 
     def loadColumnWidths(self):
@@ -247,7 +275,6 @@ class BrowserDock(QDockWidget):
         self.setWidget(self.tabs)
         if not draggable:
             self.setTitleBarWidget(QWidget())  
-
 
 if __name__ == "__main__":
     app = Firestarter()

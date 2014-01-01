@@ -45,3 +45,11 @@ class Asset(AssetPrototype):
         if key == "title":
             return QBrush([Qt.red, QColor("#c0c0c0"), Qt.yellow, Qt.black, Qt.black][self["status"]])
         return QColor("#c0c0c0")
+
+
+    def format_edit(self, key):
+        if key in meta_types and meta_types[key].editable:
+            return key, meta_types[key].class_, meta_types[key].settings, self[key]
+        else:
+            print "%s is not editable"
+            return key, "NOEDIT", False, False 

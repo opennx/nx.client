@@ -4,7 +4,7 @@ from skin   import *
 from nebula_utils  import *
 from syntaxhl import *
 
-
+from nx.constants import *
 
 class NXE_timecode(QLineEdit):
     def __init__(self, parent, default=0):
@@ -143,63 +143,58 @@ class NXE_blob(QDialog):
 
 ########################################################################
 
-
-
-
-
 class MetaEditItemDelegate(QStyledItemDelegate):
     def __init__(self, parent=None):
-        super(NItemDelegate, self).__init__(parent)
+        super(MetaEditItemDelegate, self).__init__(parent)
         self.parent = parent
 
     def createEditor(self, parent, styleOption, index):
         self.parent.is_editing = True  
         try:
-            col, method, default_value = index.model().data(index, Qt.EditRole)
+            tag, class_, ops, default_value = index.model().data(index, Qt.EditRole)
         except:
+            print "hovno"
             return None
         
+        print "EDIT:", tag, ">>", class_ , ops
+
         if default_value == "None": 
             default_value = ""
         
-        if method == "datetime":
-            editor = NDateTime(parent)
+        if class_ == DATETIME:
+            editor = NXE_datetime(parent)
             if not default_value: 
                 editor.default = int(time())
             else: 
                 editor.default = int(default_value)
             editor.editingFinished.connect(self.commitAndCloseEditor)
          
-        elif method == "date":
-            editor = NDate(parent)
+        elif class_ == DATE:
+            editor = NXE_date(parent)
             if not default_value: 
                 editor.default = int(time())
             else: 
                 editor.default = int(default_value)
             editor.editingFinished.connect(self.commitAndCloseEditor)
         
-        elif method == "clock":
+        elif class_ == TIME:
             editor = QLineEdit(parent)
             editor.setInputMask("99:99")
             editor.default = strftime("%H:%M",localtime(default_value))
             editor.editingFinished.connect(self.commitAndCloseEditor)
+
+        elif class_ == SELECT:
+            editor = NOption(parent,ops,default_value)
          
-        elif method[0] == "option":
-            editor = NOption(parent,method[1],default_value)
-         
-        elif method == "text":
+        elif class_ == TEXT:
             editor = QLineEdit(parent)
             editor.default = default_value
             editor.editingFinished.connect(self.commitAndCloseEditor)
          
-        elif method == "blob":
+        elif class_ == BLOB:
             self.parent.text_editor = wndTextEdit(index, default_value)
             return None
         
-        elif method[0] == "script":
-            self.parent.text_editor = wndTextEdit(index, default_value,method[1])
-            return None
-
         else:
             editor = None
 
@@ -211,14 +206,13 @@ class MetaEditItemDelegate(QStyledItemDelegate):
          editor = self.sender()
          self.commitData.emit(editor)
          self.closeEditor.emit(editor, QAbstractItemDelegate.NoHint)
-         self.parent.is_editing = False
-         self.parent.editor_closed_at = time()
+         self.parent.editor_closed_at = time.time()
 
      #######################################################################
      
     def setEditorData(self, editor, index):
-        if isinstance(editor,NDateTime) or isinstance(editor, NDate):
-            editor.SetTimestamp(editor.default)
+        if isinstance(editor,NXE_datetime) or isinstance(editor, NXE_date):
+            editor.set_timestamp(editor.default)
        
         elif isinstance(editor, QLineEdit) or isinstance(editor, QTextEdit) or isinstance(editor, wndTextEdit):
             editor.setText(editor.default)
@@ -226,7 +220,7 @@ class MetaEditItemDelegate(QStyledItemDelegate):
      #######################################################################
      
     def setModelData(self, editor, model, index):
-        if isinstance(editor,NDateTime) or isinstance(editor,NDate):
+        if isinstance(editor,NXE_datetime) or isinstance(editor,NXE_date):
             val = editor.GetTimestamp()
             if val != editor.default: 
                 model.setData(index, val)
