@@ -43,7 +43,7 @@ class BrowserModel(QAbstractTableModel):
         if   role == Qt.DisplayRole:     return asset.format_display(tag)
         elif role == Qt.ForegroundRole:  return asset.format_foreground(tag)
         elif role == Qt.EditRole:        return asset.format_edit(tag)
-        elif role == Qt.UserRole:        return asset[tag] # sorting by raw data
+        elif role == Qt.UserRole:        return asset.format_sort(tag)
         
         return None
 
@@ -108,7 +108,7 @@ class SearchBox(QWidget):
         self.parent = parent
 
         self.line_edit =  QLineEdit()
-        self.line_edit.setPlaceholderText ("Search in view (CTRL + Enter for extend search)")
+        self.line_edit.setPlaceholderText ("type something...")
         self.line_edit.keyPressEvent = self.line_keyPressEvent
 
         layout = QHBoxLayout()
@@ -127,6 +127,10 @@ class SearchBox(QWidget):
                 self.parent.search_query["fulltext"] = self.line_edit.text()
                 self.parent.browse()
             return True
+        elif event.key() == Qt.Key_Escape:
+            self.line_edit.setText("")
+        elif event.key() == Qt.Key_Down:
+            self.parent.view.setFocus()
         return QLineEdit.keyPressEvent(self.line_edit, event)
 
 
@@ -134,6 +138,7 @@ class BrowserWidget(QWidget):
     def __init__(self, parent):
         super(BrowserWidget, self).__init__(parent)
         self.parent = parent
+        self.statusbar = False
         
         self.search_query = {}
 
@@ -208,6 +213,10 @@ class BrowserWidget(QWidget):
     def hideEvent(self, event):
         self.saveColumnWidths()
 
+    def showMessage(self, message, message_type=INFO):
+        print message # todo - show in status bar
+        if self.statusbar and message_type > DEBUG:
+            pass
 
 
 

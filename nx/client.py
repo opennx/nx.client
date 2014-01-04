@@ -16,7 +16,7 @@ def query(method, params={}):
                                    "params" : params
                                    })
     
-    result = urllib2.urlopen(url, post_data, timeout=3).read()
+    result = urllib2.urlopen(url, post_data, timeout=10).read()
     #try:
     #    result = urllib2.urlopen(url, post_data, timeout=3).read()
     #except urllib2.URLError as e:

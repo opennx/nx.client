@@ -13,6 +13,7 @@ class Asset(AssetPrototype):
         elif id_asset:
             pass
 
+
     def format_display(self, key):
         if not key in self.meta: 
             return ""
@@ -53,3 +54,20 @@ class Asset(AssetPrototype):
         else:
             print "%s is not editable"
             return key, "NOEDIT", False, False 
+
+
+    def format_sort(self, key):
+        if not key in self.meta: 
+            return ""
+        if not key in meta_types:
+            return self[key]
+
+        mtype = meta_types[key]
+        value = self[key]
+
+        if mtype.class_   in [INTEGER, NUMERIC, DATE, TIME, DATETIME, DURATION, STATUS, STATE, FILESIZE, PART, BOOLEAN, STAR]: return value
+        elif mtype.class_ in [TEXT, BLOB]: return unaccent(value)
+        elif mtype.class_ in [SELECT, ISELECT, LIST, COMBO, FOLDER]: return unaccent(self.format_sort(key))
+        
+        return ""
+        #REGION, REGIONS, 
