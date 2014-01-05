@@ -23,7 +23,10 @@ class Asset(AssetPrototype):
                 return s2tc(self.get_duration(), self["fps"])
             else:
                 return s2time(self.get_duration())
-    
+        if key == "content_type":
+            return ""
+
+
         if not key in meta_types:
             return self[key]
 
@@ -61,7 +64,8 @@ class Asset(AssetPrototype):
             return ""
         if not key in meta_types:
             return self[key]
-
+        if key == "content_type":
+            return self[key]
         mtype = meta_types[key]
         value = self[key]
 
@@ -71,3 +75,10 @@ class Asset(AssetPrototype):
         
         return ""
         #REGION, REGIONS, 
+
+
+    def format_decoration(self, key):
+        if key == "content_type":
+            return ["text", "video-camera", "volume-up", "picture-o"][self[key]]
+
+        return None

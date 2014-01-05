@@ -14,6 +14,23 @@ except:
 def get_pix(name):
     return QPixmap(os.path.join("images","%s.png" % name))
 
+class Pixlib(object):
+    def __init__(self):
+        self.data = {}
+        #self.load()
+
+    def load(self):
+        self.data = {}
+        for f in os.listdir("images"):
+            basename = os.path.splitext(f)[0]
+            self.data[basename] = get_pix(basename)# QPixmap(os.path.join("images",f))
+
+    def __getitem__(self, key):
+        return self.data.get(key, None)
+
+pixlib = Pixlib()
+
+
 
 
 class Firestarter(QApplication):
@@ -21,6 +38,7 @@ class Firestarter(QApplication):
         super(Firestarter, self).__init__(sys.argv)
 
         splash_pix = get_pix('splash')
+        pixlib.load()
         self.splash = QSplashScreen(splash_pix)
         self.splash.show()
 

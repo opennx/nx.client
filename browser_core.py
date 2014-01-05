@@ -26,7 +26,7 @@ class BrowserModel(QAbstractTableModel):
             if "asset_data" in data:
                 for a in data["asset_data"]:
                     self.asset_data.append(Asset(json = a))
-                self.header_data = ["title", "role/performer", "duration", "file/size"]
+                self.header_data = ["content_type", "title", "role/performer", "duration", "file/size"]
 
         self.endResetModel()
         print "got %d assets" % len(self.asset_data)
@@ -44,6 +44,7 @@ class BrowserModel(QAbstractTableModel):
         elif role == Qt.ForegroundRole:  return asset.format_foreground(tag)
         elif role == Qt.EditRole:        return asset.format_edit(tag)
         elif role == Qt.UserRole:        return asset.format_sort(tag)
+        elif role == Qt.DecorationRole:  return pixlib[asset.format_decoration(tag)]
         
         return None
 
