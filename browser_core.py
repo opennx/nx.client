@@ -51,7 +51,7 @@ class BrowserModel(QAbstractTableModel):
     def flags(self,index):
         flags = super(BrowserModel, self).flags(index)
         if index.isValid():
-            if self.asset_data[index.row()].id_asset:
+            if self.asset_data[index.row()]["id_object"]:
              #if self.parent.parent.edit_mode: 
              flags |= Qt.ItemIsEditable
              flags |= Qt.ItemIsDragEnabled # Itemy se daji dragovat
@@ -60,7 +60,8 @@ class BrowserModel(QAbstractTableModel):
    
     def headerData(self, col, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole: 
-            return meta_types.col_alias(self.header_data[col], config.get("language","en-US"))
+            #return meta_types.col_alias(self.header_data[col], config.get("language","en-US"))
+            return format_header(self.header_data[col])
         #if orientation == Qt.Vertical   and role == Qt.DisplayRole and self.parent.parent.show_asset_ids: 
         #    return str(self.arraydata[col][0][0])
         return None
@@ -71,6 +72,7 @@ class BrowserModel(QAbstractTableModel):
 
         asset = self.asset_data[index.row()]
         tag = self.headerdata[index.column()]
+        id_asset = asset["id_object"]
 
         if index.model().data(index, Qt.EditRole)[3] == data: 
             return True

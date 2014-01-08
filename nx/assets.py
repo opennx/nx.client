@@ -82,3 +82,14 @@ class Asset(AssetPrototype):
             return ["text", "video-camera", "volume-up", "picture-o"][self[key]]
 
         return None
+
+
+
+
+def format_header(key):
+    if key == "id_asset": 
+        return "#"
+    elif key in ["content_type"]:
+        return ""
+    else:
+        return meta_types.col_alias(key, config.get("language","en-US"))
