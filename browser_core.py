@@ -24,8 +24,8 @@ class BrowserModel(QAbstractTableModel):
             print "error message"
         else:
             if "asset_data" in data:
-                for a in data["asset_data"]:
-                    self.asset_data.append(Asset(json = a))
+                for adata in data["asset_data"]:
+                    self.asset_data.append(Asset(from_data=adata))
                 self.header_data = ["content_type", "title", "role/performer", "duration", "file/size"]
 
         self.endResetModel()

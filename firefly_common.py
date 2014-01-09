@@ -1,14 +1,16 @@
-from firefly_widgets import *
-from nx import *
-
 import sys
+
+from nx import *
+from nx.metadata import meta_types
+from nx.assets import *
+
+from firefly_widgets import *
 
 
 try:
     app_state = json.loads(open(".app_state").read())
 except:
     app_state = {}
-
 
 
 def get_pix(name):
@@ -63,25 +65,12 @@ class Firestarter(QApplication):
         if ret_code < 300:
             config.update(result)
         else:
-            critical_error("Unable to load site settigs")
+            critical_error("Unable to load site settings")
 
     def load_meta_types(self):
         self.splash_message("Loading metadata types")
-        ret_code, result = query("meta_types")
-        if ret_code < 300:  
-            for t in result:
-                m = MetaType(t["title"])
-                m.namespace   = t["namespace"]
-                m.editable    = t["editable"]
-                m.searchable  = t["searchable"]
-                m.class_      = t["class"]
-                m.default     = t["default"]
-                m.settings    = t["settings"]
-                m.aliases     = t["aliases"]
-                meta_types[t["title"]] = m
-        else:
-            critical_error("Unable to load meta types")
-
+        if not meta_types.load():
+            critical_error("Unable to load meta types")            
 
     def load_storages(self):
         pass

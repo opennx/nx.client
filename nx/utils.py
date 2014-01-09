@@ -4,13 +4,12 @@
 import os
 import unicodedata
 
-######################################################################## 
-## Time formating
-
-
 def unaccent(instr,encoding="utf-8"):
     #return unicodedata.normalize('NFKD', unicode(instr,encoding)).encode('ascii', 'ignore')
     return unicodedata.normalize('NFKD', instr).encode('ascii', 'ignore')
+
+######################################################################## 
+## Time formating
 
 def s2time(secs):
     """Converts seconds to time"""
@@ -42,8 +41,11 @@ def f2tc(f,base=25):
  
 def s2tc(s,base=25):
     """Converts seconds to timecode"""
-    try:    f = int(s*base)
-    except: return "--:--:--:--"
+    f = int(s*base)
+    try:    
+        pass
+    except: 
+        return "--:--:--:--"
     hh = (f / base) / 3600
     hhd = (hh%24)
     mm = ((f / base) / 60) - (hh*60)

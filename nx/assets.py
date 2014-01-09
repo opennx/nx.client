@@ -1,31 +1,32 @@
-from assets_common import *
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-from PySide.QtCore import *
+from common import *
+from connection import *
+
+from nxobject import NXObject, AssetBase
+from metadata import meta_types
+
+from PySide.QtCore  import *
 from PySide.QtGui  import *
-
 from utils import *
 
-class Asset(AssetPrototype):
-    def __init__(self, id_asset=False, json=False):
-        if json:
-            self.meta = json
-            self.id_asset = self["id_asset"]
-        elif id_asset:
-            pass
+__all__ = ["Asset", "format_header"]
 
+class Asset(NXObject, AssetBase):
 
     def format_display(self, key):
         if not key in self.meta: 
             return ""
 
         if key == "duration":
-            if self["fps"]:
-                return s2tc(self.get_duration(), self["fps"])
-            else:
+        # FIXME
+        #    if self["video/fps"]:
+        #        return s2tc(self.get_duration(), self["video/fps"])
+        #    else:
                 return s2time(self.get_duration())
         if key == "content_type":
             return ""
-
 
         if not key in meta_types:
             return self[key]
@@ -42,7 +43,7 @@ class Asset(AssetPrototype):
             for x in ['bytes','KB','MB','GB','TB']:
                 if value < 1024.0: return "%3.1f %s" % (value, x)
                 value /= 1024.0
-        else: return "E %s" %value
+        else: return "E %s" %value 
 
 
     def format_foreground(self,key):
@@ -50,14 +51,12 @@ class Asset(AssetPrototype):
             return QBrush([Qt.red, QColor("#c0c0c0"), Qt.yellow, Qt.black, Qt.black][self["status"]])
         return QColor("#c0c0c0")
 
-
     def format_edit(self, key):
         if key in meta_types and meta_types[key].editable:
             return key, meta_types[key].class_, meta_types[key].settings, self[key]
         else:
             print "%s is not editable"
             return key, "NOEDIT", False, False 
-
 
     def format_sort(self, key):
         if not key in self.meta: 
@@ -69,12 +68,11 @@ class Asset(AssetPrototype):
         mtype = meta_types[key]
         value = self[key]
 
-        if mtype.class_   in [INTEGER, NUMERIC, DATE, TIME, DATETIME, DURATION, STATUS, STATE, FILESIZE, PART, BOOLEAN, STAR]: return value
+        if mtype.class_   in [INTEGER, NUMERIC, DATE, TIME, DATETIME, DURATION, STATUS, STATE, FILESIZE, PART, BOOLEAN, STAR]: return value #FIXME
         elif mtype.class_ in [TEXT, BLOB]: return unaccent(value)
-        elif mtype.class_ in [SELECT, ISELECT, LIST, COMBO, FOLDER]: return unaccent(self.format_sort(key))
+        elif mtype.class_ in [SELECT, ISELECT, LIST, COMBO, FOLDER]: return unaccent(self.format_display(key))
         
         return ""
-        #REGION, REGIONS, 
 
 
     def format_decoration(self, key):
@@ -83,7 +81,8 @@ class Asset(AssetPrototype):
 
         return None
 
-
+	## END OF ASSET CLASS
+    #######################
 
 
 def format_header(key):
@@ -92,4 +91,4 @@ def format_header(key):
     elif key in ["content_type"]:
         return ""
     else:
-        return meta_types.col_alias(key, config.get("language","en-US"))
+        return meta_types.col_alias(key, config.get("language","en-US")) 
