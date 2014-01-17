@@ -1,8 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import sys
 
-from nx import *
-from nx.metadata import meta_types
-from nx.assets import *
+from nx.common import *
+from nx.common.metadata import meta_types
+from nx.connection import *
 
 from firefly_widgets import *
 
@@ -13,24 +16,20 @@ except:
     app_state = {}
 
 
+
+
 def get_pix(name):
     return QPixmap(os.path.join("images","%s.png" % name))
 
-class Pixlib(object):
-    def __init__(self):
-        self.data = {}
-        #self.load()
-
-    def load(self):
-        self.data = {}
-        for f in os.listdir("images"):
-            basename = os.path.splitext(f)[0]
-            self.data[basename] = get_pix(basename)# QPixmap(os.path.join("images",f))
-
+class Pixlib(dict):
     def __getitem__(self, key):
-        return self.data.get(key, None)
+        if not key in self:
+            self[key] = get_pix(key)
+        return self.get(key, None)
 
 pixlib = Pixlib()
+
+
 
 
 
@@ -39,9 +38,7 @@ class Firestarter(QApplication):
     def __init__(self):
         super(Firestarter, self).__init__(sys.argv)
 
-        splash_pix = get_pix('splash')
-        pixlib.load()
-        self.splash = QSplashScreen(splash_pix)
+        self.splash = QSplashScreen(pixlib['splash'])
         self.splash.show()
 
         self.tasks = [

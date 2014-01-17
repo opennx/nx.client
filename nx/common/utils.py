@@ -4,12 +4,12 @@
 import os
 import unicodedata
 
-def unaccent(instr,encoding="utf-8"):
-    #return unicodedata.normalize('NFKD', unicode(instr,encoding)).encode('ascii', 'ignore')
-    return unicodedata.normalize('NFKD', instr).encode('ascii', 'ignore')
-
 ######################################################################## 
 ## Time formating
+
+
+def unaccent(instr,encoding="utf-8"):
+    return unicodedata.normalize('NFKD', instr).encode('ascii', 'ignore')
 
 def s2time(secs):
     """Converts seconds to time"""
@@ -32,26 +32,23 @@ def f2tc(f,base=25):
         f = int(f)
     except:
         return "--:--:--.--"
-    hh = (f / base) / 3600
-    mm = ((f / base) / 60) - (hh*60)
-    ss = (f/base) - (hh*3600) - (mm*60)
-    ff = f - (hh*3600*base) - (mm*60*base) - (ss*base)
+    hh = int((f / base) / 3600)
+    mm = int(((f / base) / 60) - (hh*60))
+    ss = int((f/base) - (hh*3600) - (mm*60))
+    ff = int(f - (hh*3600*base) - (mm*60*base) - (ss*base))
     return "%.2d:%.2d:%.2d:%.2d" % (hh,mm,ss,ff) 
  
  
 def s2tc(s,base=25):
     """Converts seconds to timecode"""
-    f = int(s*base)
-    try:    
-        pass
-    except: 
-        return "--:--:--:--"
-    hh = (f / base) / 3600
-    hhd = (hh%24)
-    mm = ((f / base) / 60) - (hh*60)
-    ss = (f/base) - (hh*3600) - (mm*60)
-    ff = f - (hh*3600*base) - (mm*60*base) - (ss*base)
-    return "%.2d:%.2d:%.2d:%.2d" % (hhd,mm,ss,ff) 
+    try:    f = int(s*base)
+    except: return "--:--:--:--"
+    hh  = int((f / base) / 3600)
+    hhd = int((hh%24))
+    mm  = int(((f / base) / 60) - (hh*60))
+    ss  = int((f/base) - (hh*3600) - (mm*60))
+    ff  = int(f - (hh*3600*base) - (mm*60*base) - (ss*base))
+    return "%02d:%02d:%02d:%02d" % (hhd,mm,ss,ff) 
  
  
 def s2words(s):

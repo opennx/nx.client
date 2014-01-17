@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from common import *
-from connection import *
+from nx.common import *
 
-from nxobject import NXObject, AssetBase
-from metadata import meta_types
+from nx.common.nxobject import NXObject, AssetBase
+from nx.common.metadata import meta_types, fract2float
+from nx.common.utils import *
+
+from nx.connection import *
 
 from PySide.QtCore  import *
 from PySide.QtGui  import *
-from utils import *
 
-__all__ = ["Asset", "format_header"]
+
+__all__ = ["Asset"]
+
 
 class Asset(NXObject, AssetBase):
 
@@ -20,10 +23,9 @@ class Asset(NXObject, AssetBase):
             return ""
 
         if key == "duration":
-        # FIXME
-        #    if self["video/fps"]:
-        #        return s2tc(self.get_duration(), self["video/fps"])
-        #    else:
+            if self["video/fps"]:
+                return s2tc(self.get_duration(),  fract2float(self["video/fps"]))
+            else:
                 return s2time(self.get_duration())
         if key == "content_type":
             return ""
@@ -80,15 +82,3 @@ class Asset(NXObject, AssetBase):
             return ["text", "video-camera", "volume-up", "picture-o"][self[key]]
 
         return None
-
-	## END OF ASSET CLASS
-    #######################
-
-
-def format_header(key):
-    if key == "id_asset": 
-        return "#"
-    elif key in ["content_type"]:
-        return ""
-    else:
-        return meta_types.col_alias(key, config.get("language","en-US")) 

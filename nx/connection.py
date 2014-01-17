@@ -1,5 +1,8 @@
-from common import *
-import urllib, urllib2, json
+from nx.common import *
+
+import urllib
+import urllib2
+import json
 
 connection_type = "client"
 
@@ -21,10 +24,10 @@ def query(method, params={}):
     #except urllib2.URLError as e:
     #    return 500, None
 
-    #try:
-    result = json.loads(result)
-    #except:
-    #    return 500, None
+    try:
+        result = json.loads(result)
+    except:
+        return 500, None
 
     return 200, result
 

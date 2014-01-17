@@ -1,108 +1,37 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from firefly_common import *
+from firefly_view import *
+from nx.assets import *
 
-class BrowserModel(QAbstractTableModel):
-    def __init__(self, parent):
-        super(BrowserModel, self).__init__(parent)
-        self.parent = parent
-        self.asset_data  = []
-        self.header_data = []
 
-    def rowCount(self, parent):    
-        return len(self.asset_data)   
-
-    def columnCount(self, parent): 
-        return len(self.header_data) 
-
+class BrowserModel(NXViewModel):
     def browse(self, **kwargs):
+        start_time = time.time()
         self.beginResetModel()
         result, data = query("browse",kwargs)
-        self.asset_data = []
+        self.object_data = []
         if result >= 300:
             print "error message"
         else:
             if "asset_data" in data:
                 for adata in data["asset_data"]:
-                    self.asset_data.append(Asset(from_data=adata))
+                    self.object_data.append(Asset(from_data=adata))
                 self.header_data = ["content_type", "title", "role/performer", "duration", "file/size"]
 
         self.endResetModel()
-        print "got %d assets" % len(self.asset_data)
+        self.parent.showMessage("Got %d assets in %.03f seconds." % (len(self.object_data), time.time()-start_time))
 
-
-    def data(self, index, role): 
-        if not index.isValid(): 
-            return None 
-
-        row   = index.row()
-        asset = self.asset_data[row]
-        tag   = self.header_data[index.column()]
-                  
-        if   role == Qt.DisplayRole:     return asset.format_display(tag)
-        elif role == Qt.ForegroundRole:  return asset.format_foreground(tag)
-        elif role == Qt.EditRole:        return asset.format_edit(tag)
-        elif role == Qt.UserRole:        return asset.format_sort(tag)
-        elif role == Qt.DecorationRole:  return pixlib[asset.format_decoration(tag)]
-        
-        return None
 
     def flags(self,index):
         flags = super(BrowserModel, self).flags(index)
         if index.isValid():
-            if self.asset_data[index.row()]["id_object"]:
+            if self.object_data[index.row()]["id_object"]:
              #if self.parent.parent.edit_mode: 
              flags |= Qt.ItemIsEditable
              flags |= Qt.ItemIsDragEnabled # Itemy se daji dragovat
         return flags
-   
-   
-    def headerData(self, col, orientation, role):
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole: 
-            #return meta_types.col_alias(self.header_data[col], config.get("language","en-US"))
-            return format_header(self.header_data[col])
-        #if orientation == Qt.Vertical   and role == Qt.DisplayRole and self.parent.parent.show_asset_ids: 
-        #    return str(self.arraydata[col][0][0])
-        return None
- 
-      
-    def setData(self, index, data, role):
-        print "set data >>", data
 
-        asset = self.asset_data[index.row()]
-        tag = self.headerdata[index.column()]
-        id_asset = asset["id_object"]
-
-        if index.model().data(index, Qt.EditRole)[3] == data: 
-            return True
-
-        if not id_asset in self.changes: 
-            self.changes[id_asset] = {}
-          
-        if type(data) in [int,bool]:
-           self.changes[id_asset][tag] = str(int(data))
-        else:
-           self.changes[id_asset][tag] = data
-             
-        d = self.arraydata[index.row()]
-        if adata: 
-            d[0][adata] = data
-        else:     
-            d[1][tag] = data
-        
-        self.arraydata[index.row()] = d
-
-        return True
-
-
-
-class SortModel(QSortFilterProxyModel):
-    def __init__(self, model):
-        super(SortModel, self).__init__()
-        self.setSourceModel(model)
-        self.setDynamicSortFilter(True)
-        self.setSortRole(Qt.UserRole)
 
 
 class SearchBox(QWidget):
@@ -137,6 +66,7 @@ class SearchBox(QWidget):
         return QLineEdit.keyPressEvent(self.line_edit, event)
 
 
+
 class BrowserWidget(QWidget):
     def __init__(self, parent):
         super(BrowserWidget, self).__init__(parent)
@@ -144,30 +74,18 @@ class BrowserWidget(QWidget):
         self.statusbar = False
         
         self.search_query = {}
-
-        self.view = QTableView()
-        self.view.setStyleSheet(base_css)
-        self.view.editor_closed_at = time.time()
-        self.view.activated.connect(self.on_activate)
-
-        self.model      = BrowserModel(self) 
-        self.sortModel  = SortModel(self.model)
-        self.view.setModel(self.sortModel)
-  
         self.search_box = SearchBox(self)
 
-        self.view.setItemDelegate(MetaEditItemDelegate(self.view))
-
-        self.view.verticalHeader().hide()
-        self.view.setWordWrap(False)
-        self.view.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.view = NXView(self)
         self.view.setSortingEnabled(True)
-        self.view.setDragEnabled(True)
-        self.view.setAcceptDrops(True)
-        self.view.setDropIndicatorShown(True)
-        self.view.setSelectionMode(self.view.ExtendedSelection)
-        self.view.setShowGrid(False)
-        self.view.setAlternatingRowColors(True)
+        self.view.setItemDelegate(MetaEditItemDelegate(self.view))
+        self.view.activated.connect(self.on_activate)
+
+        self.editor_closed_at = time.time()
+
+        self.model      = BrowserModel(self) 
+        self.sortModel  = NXSortModel(self.model)
+        self.view.setModel(self.sortModel)
 
         layout = QVBoxLayout()
         layout.setContentsMargins(5,0,5,5)
@@ -197,6 +115,8 @@ class BrowserWidget(QWidget):
             self.view.edit(mi)
         #return True  
 
+
+
     def loadColumnWidths(self):
         for id_column in range(self.model.columnCount(False)):
             col_tag = self.model.header_data[id_column]
@@ -216,6 +136,7 @@ class BrowserWidget(QWidget):
     def hideEvent(self, event):
         self.saveColumnWidths()
 
+
     def showMessage(self, message, message_type=INFO):
         print message # todo - show in status bar
         if self.statusbar and message_type > DEBUG:
@@ -223,8 +144,7 @@ class BrowserWidget(QWidget):
 
 
 
-#####################################
-## Odsud dolu presunout do browser.py
+
 
 
 class BrowserTabs(QTabWidget):
@@ -287,6 +207,8 @@ class BrowserDock(QDockWidget):
         self.setWidget(self.tabs)
         if not draggable:
             self.setTitleBarWidget(QWidget())  
+
+
 
 if __name__ == "__main__":
     app = Firestarter()

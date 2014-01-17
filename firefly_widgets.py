@@ -1,10 +1,13 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import time
 
-from skin   import *
-from nebula_utils  import *
-from syntaxhl import *
+from firefly_skin   import *
+from firefly_syntaxhl import *
 
-from nx.constants import *
+from nx.common.constants import *
+
 
 class NXE_timecode(QLineEdit):
     def __init__(self, parent, default=0):
