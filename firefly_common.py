@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
-
 from nx.common import *
 from nx.common.metadata import meta_types
 from nx.connection import *
@@ -53,7 +51,6 @@ class Firestarter(QApplication):
         self.splash_message("Loading user workspace...")
 
     def splash_message(self, msg):
-        print msg
         self.splash.showMessage(msg,alignment=Qt.AlignBottom|Qt.AlignLeft, color=Qt.white)
 
     def load_site_settings(self):

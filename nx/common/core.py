@@ -8,7 +8,7 @@ import json
 import time
 
 from xml.etree import ElementTree as ET
-from constants import *
+from nx.common.constants import *
 
 if __name__ == "__main__":
     sys.exit(-1)
@@ -31,7 +31,7 @@ def critical_error(message):
     try: 
         logging.error(message)
     except: 
-        print "CRITICAL ERROR: %s" % message
+        print ("CRITICAL ERROR: %s" % message)
     sys.exit(-1)
 
 ########################################################################
@@ -101,9 +101,9 @@ class Logging():
 
     def _send(self,msgtype,message):
         try:
-            print self._typeformat(msgtype).ljust(10), config['user'].ljust(15), message
+            print (self._typeformat(msgtype).ljust(10), config['user'].ljust(15), message)
         except:
-            print message.encode("utf-8")
+            print (message.encode("utf-8"))
         messaging.send("LOG",[config['user'], msgtype, message])
 
     def debug   (self,msg): self._send(DEBUG,msg) 

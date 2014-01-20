@@ -78,11 +78,7 @@ class NXBaseObject(object):
 
 class NXServerObject(NXBaseObject):
     def _load(self):
-        try:
-            self.meta = json.loads(cache.load("%s%d" % (self.ns_prefix, self.id)))
-            if not self.meta:
-                raise Exception
-        except:
+        if not _load_from_cache():
             if not self.db:
                 self.db = DB()
             db = self.db
@@ -105,6 +101,13 @@ class NXServerObject(NXBaseObject):
                 self[tag] = value
 
             self._save_to_cache()
+
+    def _load_from_cache(self):
+        self.meta = json.loads(cache.load("%s%d" % (self.ns_prefix, self.id)))
+        if self.meta:
+            return True
+        return False
+
 
     def _save_to_cache(self):
         return cache.save("%s%d" % (self.ns_prefix, self["id_object"]), json.dumps(self.meta))

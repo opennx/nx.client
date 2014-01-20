@@ -12,7 +12,7 @@ class BrowserModel(NXViewModel):
         result, data = query("browse",kwargs)
         self.object_data = []
         if result >= 300:
-            print "error message"
+            print ("error message")
         else:
             if "asset_data" in data:
                 for adata in data["asset_data"]:
@@ -53,7 +53,7 @@ class SearchBox(QWidget):
     def line_keyPressEvent(self, event):
         if event.key() in [Qt.Key_Return,Qt.Key_Enter]:
             if event.modifiers() & Qt.ControlModifier:
-                print "extend search"
+                print ("extend search")
                 #self.parent.OnSearch(extend=True)
             else:
                 self.parent.search_query["fulltext"] = self.line_edit.text()
@@ -104,7 +104,7 @@ class BrowserWidget(QWidget):
         self.loadColumnWidths()
  
     def on_activate(self,mi):
-        print "activated"
+        print ("activated")
         #if not self.parent.edit_mode:
         #   row =  self.proxyModel.mapToSource(mi).row()
         #   id_asset = self.model.arraydata[row][0][0]
@@ -138,7 +138,7 @@ class BrowserWidget(QWidget):
 
 
     def showMessage(self, message, message_type=INFO):
-        print message # todo - show in status bar
+        print (message) # todo - show in status bar
         if self.statusbar and message_type > DEBUG:
             pass
 
@@ -146,7 +146,7 @@ class BrowserWidget(QWidget):
 
 
 
-
+"""
 class BrowserTabs(QTabWidget):
     def __init__(self, parent=None):
         super(BrowserTabs, self).__init__()  
@@ -197,8 +197,9 @@ class BrowserTabs(QTabWidget):
         if idx == 0: idx = cnt
         self.setCurrentIndex(idx-1)
 
+
+
 class BrowserDock(QDockWidget):
-    """ Dockable variant for rundown window """
     def __init__(self, parent=None, draggable=False):
         super(BrowserDock, self).__init__()
         self.parent = parent
@@ -207,6 +208,39 @@ class BrowserDock(QDockWidget):
         self.setWidget(self.tabs)
         if not draggable:
             self.setTitleBarWidget(QWidget())  
+"""
+
+
+
+class BrowserDock2(QDockWidget):
+    def __init__(self, *args):
+        super(BrowserDock2, self).__init__(*args)
+        self.browser = BrowserWidget(self)
+        self.setWidget(self.browser)
+        self.setAllowedAreas(Qt.AllDockWidgetAreas)
+        self.setStyleSheet(base_css)
+        self.show()
+
+
+class RundownDock(QDockWidget):
+    def __init__(self, *args):
+        super(RundownDock, self).__init__(*args)
+        w = QWidget()
+        w.setStyleSheet("background-color : #cc00cc;")
+        self.setWidget(w)
+        self.setAllowedAreas(Qt.AllDockWidgetAreas)
+        self.setStyleSheet(base_css)
+        self.show()
+
+class DetailDock(QDockWidget):
+    def __init__(self, *args):
+        super(DetailDock, self).__init__(*args)
+        w = QWidget()
+        w.setStyleSheet("background-color : #00cccc;")
+        self.setWidget(w)
+        self.setAllowedAreas(Qt.AllDockWidgetAreas)
+        self.setStyleSheet(base_css)
+        self.show()
 
 
 
@@ -215,8 +249,27 @@ if __name__ == "__main__":
 
     wnd = QMainWindow()
     wnd.setStyleSheet(base_css)
-    brw = BrowserTabs(wnd)
-    wnd.setCentralWidget(brw)    
+    wnd.setTabPosition(Qt.AllDockWidgetAreas, QTabWidget.South)
+    
+    wnd.setAnimated(False)
+    #wnd.setDocumentMode (True)
+    wnd.setDockNestingEnabled(True)
+
+   # w = QWidget()
+   # w.setStyleSheet("background-color : #cc00cc;")
+    wnd.setCentralWidget(None)    
+    
+    b1 = BrowserDock2("B1",wnd)
+    b1.setFloating(True)
+    b2 = BrowserDock2("B2", wnd)
+    b2.setFloating(True)
+
+    b3 = RundownDock("RUNDOWN", wnd)
+    b3.setFloating(True)
+
+    b4 = DetailDock("DETAIL", wnd)
+    b4.setFloating(True)
+
     wnd.show()
     wnd.resize(690,450)
 

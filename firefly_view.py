@@ -4,6 +4,7 @@
 from firefly_common import *
 
 
+
 def format_header(key):
     if key == "id_asset": 
         return "#"
@@ -44,7 +45,7 @@ class NXViewModel(QAbstractTableModel):
         tag = self.header_data[index.column()]
                   
         if   role == Qt.DisplayRole:     return obj.format_display(tag)
-        elif role == Qt.ForegroundRole:  return obj.format_foreground(tag)
+        elif role == Qt.ForegroundRole:  return QColor(obj.format_foreground(tag))
         elif role == Qt.EditRole:        return obj.format_edit(tag)
         elif role == Qt.UserRole:        return obj.format_sort(tag)
         elif role == Qt.DecorationRole:  return pixlib[obj.format_decoration(tag)]
@@ -86,6 +87,7 @@ class NXSortModel(QSortFilterProxyModel):
         super(NXSortModel, self).__init__()
         self.setSourceModel(model)
         self.setDynamicSortFilter(True)
+        self.setSortLocaleAware(True)
         self.setSortRole(Qt.UserRole)
 
 

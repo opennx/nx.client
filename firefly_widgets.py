@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import time
-
-from firefly_skin   import *
-from firefly_syntaxhl import *
-
 from nx.common.constants import *
+from firefly_skin   import *
+
+
+#from firefly_syntaxhl import *
+
+
 
 
 class NXE_timecode(QLineEdit):
@@ -56,7 +58,6 @@ class NXE_datetime(QLineEdit):
             t = time.strptime (self.text(), "%Y-%m-%d %H:%M:%S")
             return mktime(t)
         except:
-            print "Wrong time format"
             return self.default
 
 
@@ -78,7 +79,7 @@ class NXE_date(QLineEdit):
              t = strptime (self.text(), "%Y-%m-%d")
              return time.mktime(t)
         except:
-             print "Wrong time format"
+             #print "Wrong time format"
              return self.default
 
 
@@ -131,7 +132,7 @@ class NXE_blob(QDialog):
         self.edit.setFocus()
         
     def closeEvent(self,evt):
-        print self.index.model().setData(self.index,self.toPlainText())
+        print (self.index.model().setData(self.index,self.toPlainText()))
         
     def setText(self,text):
         self.edit.setText(text)
@@ -156,10 +157,10 @@ class MetaEditItemDelegate(QStyledItemDelegate):
         try:
             tag, class_, ops, default_value = index.model().data(index, Qt.EditRole)
         except:
-            print "hovno"
+            #print "hovno"
             return None
         
-        print "EDIT:", tag, ">>", class_ , ops
+       # print "EDIT:", tag, ">>", class_ , ops
 
         if default_value == "None": 
             default_value = ""
