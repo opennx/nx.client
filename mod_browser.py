@@ -50,6 +50,9 @@ class SearchBox(QWidget):
         layout.addWidget(self.line_edit,1)
         self.setLayout(layout)
 
+    def setText(self, text):
+        self.line_edit.setText(text)
+
     def line_keyPressEvent(self, event):
         if event.key() in [Qt.Key_Return,Qt.Key_Enter]:
             if event.modifiers() & Qt.ControlModifier:
@@ -67,13 +70,15 @@ class SearchBox(QWidget):
 
 
 
-class BrowserWidget(QWidget):
+class Browser(QWidget):
     def __init__(self, parent):
-        super(BrowserWidget, self).__init__(parent)
+        super(Browser, self).__init__(parent)
         self.parent = parent
         self.statusbar = False
         
         self.search_query = {}
+        self.column_widths = {}
+
         self.search_box = SearchBox(self)
 
         self.view = NXView(self)
@@ -94,7 +99,6 @@ class BrowserWidget(QWidget):
         layout.addWidget(self.view, 1)
         self.setLayout(layout)
 
-        self.browse()
         
     def browse(self,**kwargs):
         if self.model.header_data:
@@ -116,22 +120,36 @@ class BrowserWidget(QWidget):
         #return True  
 
 
+    def getState(self):
+        self.saveColumnWidths()
+        state = {}
+        state["window_class"]  = "browser"
+        state["search_query"]  = self.search_query
+        state["column_widths"] = self.column_widths
+        return state
+
+
+    def setState(self, state):
+        self.search_query = state.get("search_query", {})
+        self.column_widths = state.get("column_widths", {})
+        q = self.search_query.get("fulltext","")
+        if q:
+            self.search_box.setText(q)
+        self.browse()
+
 
     def loadColumnWidths(self):
         for id_column in range(self.model.columnCount(False)):
             col_tag = self.model.header_data[id_column]
-            w = app_state.get("col_widths",{}).get(col_tag,False)
+            w = self.column_widths.get(col_tag,False)
             if w:
                 self.view.setColumnWidth(id_column, w) 
-            else:
+            else: 
                 self.view.resizeColumnToContents(id_column)
 
     def saveColumnWidths(self):
-        if not "col_widths" in app_state:
-            app_state["col_widths"] = {}
-
         for id_column in range(self.model.columnCount(False)):
-            app_state["col_widths"][self.model.header_data[id_column]] = self.view.columnWidth(id_column)
+            self.column_widths[self.model.header_data[id_column]] = self.view.columnWidth(id_column)
         
     def hideEvent(self, event):
         self.saveColumnWidths()
@@ -144,134 +162,3 @@ class BrowserWidget(QWidget):
 
 
 
-
-
-"""
-class BrowserTabs(QTabWidget):
-    def __init__(self, parent=None):
-        super(BrowserTabs, self).__init__()  
-
-        self.action_new_tab = QAction('New tab', self)  
-        self.action_new_tab.setShortcut('Ctrl+T')
-        self.action_new_tab.setStatusTip('New browser tab')
-        self.action_new_tab.triggered.connect(self.new_tab)
-        self.addAction(self.action_new_tab)
-
-        self.action_close_tab = QAction('Close tab', self)  
-        self.action_close_tab.setShortcut('Ctrl+W')
-        self.action_close_tab.setStatusTip('Close current browser tab')
-        self.action_close_tab.triggered.connect(self.close_tab)
-        self.addAction(self.action_close_tab)
-
-        self.action_next_tab = QAction('Next tab', self)  
-        self.action_next_tab.setShortcut('Ctrl+TAB')
-        self.action_next_tab.setStatusTip('Next tab')
-        self.action_next_tab.triggered.connect(self.next_tab)
-        self.addAction(self.action_next_tab)
-
-        self.action_prev_tab = QAction('Previous tab', self)  
-        self.action_prev_tab.setShortcut('Ctrl+Shift+TAB')
-        self.action_prev_tab.setStatusTip('Previous tab')
-        self.action_prev_tab.triggered.connect(self.prev_tab)
-        self.addAction(self.action_prev_tab)
-
-        self.new_tab()
-
-    def new_tab(self, evt=None):
-        idx = self.addTab(BrowserWidget(self), "Browser")
-        self.setTabText(idx, "Browse %d" % idx )
-        self.setCurrentIndex(idx)
-
-    def close_tab(self, evt=None):
-        self.removeTab(self.currentIndex())
-
-    def next_tab(self, evt=None):
-        cnt = self.count()
-        idx = self.currentIndex()
-        if idx == cnt-1: idx = -1
-        self.setCurrentIndex(idx+1)
-
-    def prev_tab(self, evt=None):
-        cnt = self.count()
-        idx = self.currentIndex()
-        if idx == 0: idx = cnt
-        self.setCurrentIndex(idx-1)
-
-
-
-class BrowserDock(QDockWidget):
-    def __init__(self, parent=None, draggable=False):
-        super(BrowserDock, self).__init__()
-        self.parent = parent
-        self.setWindowTitle("Asset browser")
-        self.tabs = BrowserTabs ()
-        self.setWidget(self.tabs)
-        if not draggable:
-            self.setTitleBarWidget(QWidget())  
-"""
-
-
-
-class BrowserDock2(QDockWidget):
-    def __init__(self, *args):
-        super(BrowserDock2, self).__init__(*args)
-        self.browser = BrowserWidget(self)
-        self.setWidget(self.browser)
-        self.setAllowedAreas(Qt.AllDockWidgetAreas)
-        self.setStyleSheet(base_css)
-        self.show()
-
-
-class RundownDock(QDockWidget):
-    def __init__(self, *args):
-        super(RundownDock, self).__init__(*args)
-        w = QWidget()
-        w.setStyleSheet("background-color : #cc00cc;")
-        self.setWidget(w)
-        self.setAllowedAreas(Qt.AllDockWidgetAreas)
-        self.setStyleSheet(base_css)
-        self.show()
-
-class DetailDock(QDockWidget):
-    def __init__(self, *args):
-        super(DetailDock, self).__init__(*args)
-        w = QWidget()
-        w.setStyleSheet("background-color : #00cccc;")
-        self.setWidget(w)
-        self.setAllowedAreas(Qt.AllDockWidgetAreas)
-        self.setStyleSheet(base_css)
-        self.show()
-
-
-
-if __name__ == "__main__":
-    app = Firestarter()
-
-    wnd = QMainWindow()
-    wnd.setStyleSheet(base_css)
-    wnd.setTabPosition(Qt.AllDockWidgetAreas, QTabWidget.South)
-    
-    wnd.setAnimated(False)
-    #wnd.setDocumentMode (True)
-    wnd.setDockNestingEnabled(True)
-
-   # w = QWidget()
-   # w.setStyleSheet("background-color : #cc00cc;")
-    wnd.setCentralWidget(None)    
-    
-    b1 = BrowserDock2("B1",wnd)
-    b1.setFloating(True)
-    b2 = BrowserDock2("B2", wnd)
-    b2.setFloating(True)
-
-    b3 = RundownDock("RUNDOWN", wnd)
-    b3.setFloating(True)
-
-    b4 = DetailDock("DETAIL", wnd)
-    b4.setFloating(True)
-
-    wnd.show()
-    wnd.resize(690,450)
-
-
-    app.start()
