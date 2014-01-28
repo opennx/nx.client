@@ -78,6 +78,6 @@ class Asset(NXObject, AssetBase):
 
     def format_decoration(self, key):
         if key == "content_type":
-            return ["text", "video-camera", "volume-up", "picture-o"][self[key]]
+            return ["text", "video", "audio", "image"][self[key]]
 
         return None

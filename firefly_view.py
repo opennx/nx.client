@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from firefly_common import *
-
-
+from firefly_widgets import *
 
 def format_header(key):
     if key == "id_asset": 

@@ -1,0 +1,129 @@
+QMainWindow, QDialog, QLineEdit, QTextEdit, QComboBox, QLabel {
+    background-color : #242424;
+    color : #c0c0c0;
+    } 
+
+
+QStatusBar, QToolBar, QHeaderView{
+    background-color : #161616;
+    color : #c0c0c0;
+    border : 0;
+    }
+
+QTableView {
+    border : 0;
+    background-color: #1a1a1a;
+    alternate-background-color: #242424;
+    selection-background-color: rgba(160, 160, 160, 160);
+    color : #c0c0c0; 
+    }
+
+
+
+
+
+QHeaderView::section {
+    background-color: #161616;
+    color: #c0c0c0;
+    font-weight: bold;
+    border: 1px solid black;
+    padding: 3px;
+    }
+
+QTableCornerButton::section{
+    background-color: #242424;
+    }
+
+
+
+QDockWidget {
+    background-color : #242424;
+    color : #000000;
+    padding-top: 6px;
+    font-weight: bold;
+}
+
+QDockWidget::title {
+    background-color: #646464;
+    padding: 3px;
+    }
+
+
+
+
+
+QLineEdit, QTextEdit, QComboBox, QPushButton {
+    border : 1px solid #646464;
+    }
+
+
+QComboBox::drop-down {
+    border-width:1px;
+    }
+
+
+QLineEdit, QComboBox, QPushButton {
+    height: 24px;
+    }
+
+
+QPushButton{
+    width: 45px;
+    }
+
+QPushButton:hover{
+    color : #fff;
+    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #505050,  stop: 1 #545454);
+    }
+
+
+
+
+
+
+
+.NXE_timecode {
+    font: 12px "Courier"; 
+    font-weight: bold;
+    min-width : 88px;
+    max-width : 88px;
+}
+
+
+
+
+/**********************************************************************
+                SCROLL BARS
+**********************************************************************/
+
+QScrollBar:horizontal {
+    border: 2px solid #242424;
+    background: #161616;
+    height: 15px;
+    margin:0;
+    }
+
+QScrollBar:vertical {
+    margin:0;
+    margin-top: 23px;
+    border: 2px solid #242424;
+    background: #161616;
+    width: 15px;
+    }
+
+QScrollBar::handle:horizontal {
+    background: gray;
+    min-width: 15px;
+    }
+
+QScrollBar::handle:vertical {
+    background: gray;
+    min-height: 15 px;
+ }
+ 
+QScrollBar::add-line:horizontal,  QScrollBar::add-line:vertical { background: none; }
+QScrollBar::sub-line:horizontal,  QScrollBar::sub-line:vertical { background: none; }
+QScrollBar::left-arrow:horizontal,QScrollBar::right-arrow:horizontal,QScrollBar:left-arrow:vertical, QScrollBar::right-arrow:vertical { background: none; }
+QScrollBar::add-page:horizontal,  QScrollBar::sub-page:horizontal,QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: none; }
+
+

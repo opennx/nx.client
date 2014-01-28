@@ -20,7 +20,7 @@ class BrowserModel(NXViewModel):
                 self.header_data = ["content_type", "title", "role/performer", "duration", "file/size"]
 
         self.endResetModel()
-        self.parent.showMessage("Got %d assets in %.03f seconds." % (len(self.object_data), time.time()-start_time))
+        self.parent.status("Got %d assets in %.03f seconds." % (len(self.object_data), time.time()-start_time))
 
 
     def flags(self,index):
@@ -44,8 +44,8 @@ class SearchBox(QWidget):
         self.line_edit.keyPressEvent = self.line_keyPressEvent
 
         layout = QHBoxLayout()
-        layout.setContentsMargins(0,4,0,0)
         layout.setSpacing(2)
+        layout.setContentsMargins(0,4,0,0)
 
         layout.addWidget(self.line_edit,1)
         self.setLayout(layout)
@@ -70,11 +70,12 @@ class SearchBox(QWidget):
 
 
 
-class Browser(QWidget):
+class Browser(BaseWidget):
     def __init__(self, parent):
         super(Browser, self).__init__(parent)
         self.parent = parent
-        self.statusbar = False
+
+#        self.parent.setWindowTitle("Browser")
         
         self.search_query = {}
         self.column_widths = {}
@@ -93,7 +94,7 @@ class Browser(QWidget):
         self.view.setModel(self.sortModel)
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(5,0,5,5)
+        layout.setContentsMargins(0,0,0,0)
         layout.setSpacing(5)
         layout.addWidget(self.search_box, 0)
         layout.addWidget(self.view, 1)
@@ -123,7 +124,7 @@ class Browser(QWidget):
     def getState(self):
         self.saveColumnWidths()
         state = {}
-        state["window_class"]  = "browser"
+        state["class"]  = "browser"
         state["search_query"]  = self.search_query
         state["column_widths"] = self.column_widths
         return state
@@ -155,10 +156,6 @@ class Browser(QWidget):
         self.saveColumnWidths()
 
 
-    def showMessage(self, message, message_type=INFO):
-        print (message) # todo - show in status bar
-        if self.statusbar and message_type > DEBUG:
-            pass
 
 
 

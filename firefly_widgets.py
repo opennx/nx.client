@@ -1,20 +1,14 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import time
+
+from qt_common import *
 from nx.common.constants import *
-from firefly_skin   import *
-
-
 #from firefly_syntaxhl import *
-
-
 
 
 class NXE_timecode(QLineEdit):
     def __init__(self, parent, default=0):
-        super(NTimeCode,self).__init__(parent)
-        self.setInputMask("99:99:99.99")
+        super(NXE_timecode,self).__init__(parent)
+        self.setInputMask("99:99:99:99")
         if default:  
             self.SetSeconds(default)
         else:
@@ -157,7 +151,6 @@ class MetaEditItemDelegate(QStyledItemDelegate):
         try:
             tag, class_, ops, default_value = index.model().data(index, Qt.EditRole)
         except:
-            #print "hovno"
             return None
         
        # print "EDIT:", tag, ">>", class_ , ops
