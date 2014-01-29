@@ -1,4 +1,5 @@
 import uuid
+import socket
 
 from nx.common import *
 from nx.common.metadata import meta_types
@@ -9,7 +10,7 @@ from qt_common import *
 
 
 def ffsettings():
-    return QSettings(".ffstate", QSettings.IniFormat)
+    return QSettings(".state.%s.nxsettings" % socket.gethostname(), QSettings.IniFormat)
 
 def get_pix(name):
     return QPixmap(os.path.join("images","%s.png" % name))
@@ -66,6 +67,11 @@ class BaseWidget(QWidget):
     def setState(self):
         pass
 
+
+class ToolBarStretcher(QWidget):
+    def __init__(self, parent):
+        super(ToolBarStretcher, self).__init__(parent)
+        self.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
 
 
 pixlib = Pixlib()

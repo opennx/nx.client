@@ -1,14 +1,35 @@
-QMainWindow, QDialog, QLineEdit, QTextEdit, QComboBox, QLabel {
+/**********************************************************************
+                MAIN WINDOW
+**********************************************************************/
+
+QMainWindow, QDialog {
     background-color : #242424;
     color : #c0c0c0;
     } 
 
 
-QStatusBar, QToolBar, QHeaderView{
+QStatusBar, QToolBar, QHeaderView, QMenuBar {
     background-color : #161616;
     color : #c0c0c0;
-    border : 0;
+    border: 0;
     }
+
+
+QMenuBar::item {
+    background-color: transparent;
+}
+
+
+QMenuBar::item:selected {
+    background-color: #242424;
+}
+
+
+
+/**********************************************************************
+                TABLES
+**********************************************************************/
+
 
 QTableView {
     border : 0;
@@ -17,10 +38,6 @@ QTableView {
     selection-background-color: rgba(160, 160, 160, 160);
     color : #c0c0c0; 
     }
-
-
-
-
 
 QHeaderView::section {
     background-color: #161616;
@@ -36,6 +53,11 @@ QTableCornerButton::section{
 
 
 
+/**********************************************************************
+                DOCKS
+**********************************************************************/
+
+
 QDockWidget {
     background-color : #242424;
     color : #000000;
@@ -49,10 +71,14 @@ QDockWidget::title {
     }
 
 
-
+/**********************************************************************
+                WIDGETS
+**********************************************************************/
 
 
 QLineEdit, QTextEdit, QComboBox, QPushButton {
+    background-color : #242424;
+    color : #c0c0c0;
     border : 1px solid #646464;
     }
 
@@ -78,7 +104,12 @@ QPushButton:hover{
 
 
 
-
+.RundownDate {
+    background-color:  transparent;
+    color : #c0c0c0;
+    margin-right: 10px;
+    font: 16px;
+}
 
 
 

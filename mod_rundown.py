@@ -6,6 +6,11 @@ from firefly_view import *
 
 
 
+class RundownDate(QLabel):
+    pass
+
+
+
 def rundown_toolbar(parent):
     toolbar = QToolBar(parent)
 
@@ -20,6 +25,7 @@ def rundown_toolbar(parent):
     action_now.setStatusTip('Go to now')
     action_now.triggered.connect(parent.on_now)
     toolbar.addAction(action_now)
+
 
     action_calendar = QAction(QIcon(pixlib["calendar"]), '&Calendar', parent)        
     action_calendar.setShortcut('Ctrl+D')
@@ -41,8 +47,13 @@ def rundown_toolbar(parent):
     action_scheduler.triggered.connect(parent.on_scheduler)
     toolbar.addAction(action_scheduler)
 
-    return toolbar
 
+    toolbar.addWidget(ToolBarStretcher(parent))
+
+    parent.date_display = RundownDate()
+    toolbar.addWidget(parent.date_display)
+
+    return toolbar
 
 
 
@@ -81,8 +92,17 @@ class Rundown(BaseWidget):
     def update_header(self):
         syy,smm,sdd = [int(i) for i in self.current_date.split("-")]
         t = datetime.date(syy, smm, sdd)
+
+        if t < datetime.date.today():
+            s = " color='red'"
+        elif t > datetime.date.today():
+            s = " color='green'"
+        else:
+            s = ""
+
         t = t.strftime("%A %Y-%m-%d")
         self.parent.setWindowTitle("Rundown %s" % t)
+        self.date_display.setText("<font %s>%s</font>" % (s, t))
 
     ################################################################
     ## Navigation

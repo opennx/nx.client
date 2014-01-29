@@ -75,7 +75,7 @@ class Browser(BaseWidget):
         super(Browser, self).__init__(parent)
         self.parent = parent
 
-#        self.parent.setWindowTitle("Browser")
+        self.parent.setWindowTitle("Browser")
         
         self.search_query = {}
         self.column_widths = {}
@@ -86,8 +86,9 @@ class Browser(BaseWidget):
         self.view.setSortingEnabled(True)
         self.view.setItemDelegate(MetaEditItemDelegate(self.view))
         self.view.activated.connect(self.on_activate)
+        self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
-        self.editor_closed_at = time.time()
+        self.view.editor_closed_at = time.time()
 
         self.model      = BrowserModel(self) 
         self.sortModel  = NXSortModel(self.model)

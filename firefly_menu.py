@@ -68,3 +68,9 @@ def create_menu(wnd):
 
 
     menuWorkspace = menubar.addMenu('&Workspace')
+
+    action_workspace_lock = QAction('&Lock', wnd)        
+    action_workspace_lock.setShortcut('Ctrl+L')
+    action_workspace_lock.setStatusTip('Lock workspace')
+    action_workspace_lock.triggered.connect(wnd.on_workspace_lock)
+    menuWorkspace.addAction(action_workspace_lock)    

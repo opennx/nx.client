@@ -36,6 +36,9 @@ class Firefly(QMainWindow):
         self.workspace = workspace
         settings = ffsettings()
 
+
+        self.workspace_locked = settings.value("%s/locked" % workspace, False)
+
         if "%s/docks" % workspace in settings.allKeys():
             docks_data = json.loads(settings.value("%s/docks" % workspace))
             for dock_data in docks_data:
@@ -52,6 +55,10 @@ class Firefly(QMainWindow):
         if "%s/state" % workspace in settings.allKeys():
             self.restoreState(settings.value("%s/state" % workspace))
 
+        if self.workspace_locked:
+            print ("locking workspace")
+            self.on_workspace_lock(True)
+
 
     def save_workspace(self,workspace=False):
         if not workspace:
@@ -62,6 +69,7 @@ class Firefly(QMainWindow):
         for dock in self.docks:
             docks.append(dock.getState())
 
+        settings.setValue("%s/locked"   % self.workspace, self.workspace_locked)
         settings.setValue("%s/docks"    % self.workspace, json.dumps(docks))
         settings.setValue("%s/state"    % self.workspace, self.saveState())
         settings.setValue("%s/geometry" % self.workspace, self.saveGeometry())
@@ -84,10 +92,10 @@ class Firefly(QMainWindow):
             self.resize(tw, th)
             
 
-    #def changeEvent(self, evt):
-    #    if self.isMaximized():
-    #        self.showNormal()
-    #        self.fake_maximize()
+    def changeEvent(self, evt):
+        if self.isMaximized():
+            self.showNormal()
+            self.fake_maximize()
 
 
     def closeEvent(self, evt):
@@ -146,6 +154,19 @@ class Firefly(QMainWindow):
     def on_debug(self):
         self.load_workspace()
 
+
+    def on_workspace_lock(self, force = False):
+        if self.workspace_locked and not force:
+            self.workspace_locked = False
+            wdgt = BaseDock(self).titleBarWidget()
+            for dock in self.docks:
+                if not dock.isFloating():
+                    dock.setTitleBarWidget(wdgt)
+        else:
+            for dock in self.docks:
+                if not dock.isFloating():
+                    dock.setTitleBarWidget(QWidget())
+            self.workspace_locked = True
 
 
 
