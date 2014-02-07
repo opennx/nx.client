@@ -34,25 +34,47 @@ class NXE_timecode(QLineEdit):
         return secs
 
 
+
+
 class NXE_datetime(QLineEdit):
-    def __init__(self, parent, default=0):
-        super(NDateTime,self).__init__(parent)
-        self.setInputMask("9999-99-99 99:99:99")
+    def __init__(self, parent, base_date=False, default=0, show_seconds=False):
+        super(NXE_datetime,self).__init__(parent)
+        self.show_seconds = show_seconds
+        self.base_date    = base_date
+
+        mask = "99:99"
+        tfmt = "%H:%M"
+        if not self.base_date:
+            mask = "9999-99-99 " + mask
+            tfmt = "%Y-%m-%d " + tfmt
+        if self.show_seconds:
+            mask = mask + ":99"
+            tfmt = tfmt + ":%s"
+        
+        self.setInputMask(mask)
+        self.tfmt = tfmt
         self.set_timestamp(default)
         self.default = default
       
     def set_timestamp(self, timestamp):
-        if timestamp: 
-            self.setText (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp)))
+        if timestamp:
+            tt = time.localtime(timestamp)
         else:
-            self.setText (time.strftime("%Y-%m-%d %H:%M:%S"))
-      
+            tt = time.localtime(time.time())
+        self.setText(time.strftime(self.tfmt, tt))
+
     def get_timestamp(self):
-        try:
-            t = time.strptime (self.text(), "%Y-%m-%d %H:%M:%S")
-            return mktime(t)
-        except:
-            return self.default
+        ttext = self.text()
+        if self.base_date:
+            ttext = "{} {}".format(time.strftime("%Y-%m-%d",time.localtime(self.base_date)), ttext)
+        if not self.show_seconds:
+            ttext = "{}:00".format(ttext)
+        t = time.strptime(ttext, "%Y-%m-%d %H:%M:%S")
+        return time.mktime(t)
+        
+
+
+
 
 
 class NXE_date(QLineEdit):
@@ -100,7 +122,7 @@ class NXE_select(QComboBox):
 
 class NXE_blob(QDialog):    
     def __init__(self, index, default, syntax=False):
-        super(wndTextEdit, self).__init__()
+        super(NXE_blob, self).__init__()
         self.setWindowTitle('Text editor: Press ESC to discard, Alt+F4 to Save and close')
         self.setModal(True)
         self.setStyleSheet(base_css)
@@ -145,27 +167,68 @@ class MetaEditItemDelegate(QStyledItemDelegate):
     def __init__(self, parent=None):
         super(MetaEditItemDelegate, self).__init__(parent)
         self.parent = parent
+        self.settings = {}
 
     def createEditor(self, parent, styleOption, index):
         self.parent.is_editing = True  
         try:
-            tag, class_, ops, default_value = index.model().data(index, Qt.EditRole)
+            tag, class_, msettings, default_value = index.model().data(index, Qt.EditRole)
         except:
             return None
-        
-       # print "EDIT:", tag, ">>", class_ , ops
 
+        settings = self.settings
+
+        if isinstance(msettings, dict):
+            settings.update(msettings)
+        
         if default_value == "None": 
             default_value = ""
         
+        #########################################################################
+
         if class_ == DATETIME:
-            editor = NXE_datetime(parent)
+            if settings:
+                base_date = settings.get("base_date", False)
+            else:
+                base_date = False
+
+            editor = NXE_datetime(parent, base_date)
+
             if not default_value: 
                 editor.default = int(time())
             else: 
                 editor.default = int(default_value)
             editor.editingFinished.connect(self.commitAndCloseEditor)
+
+        #########################################################################
+
+        
+#        elif class_ == TIME:
+#            editor = QLineEdit(parent)
+#            editor.setInputMask("99:99")
+#            editor.default = strftime("%H:%M",localtime(default_value))
+#            editor.editingFinished.connect(self.commitAndCloseEditor)
+#            dt = datetime.datetime.fromtimestamp(self.arraydata[0]["Start"])
+#            
+#            try:
+#                hh,mm = data.split(":")
+#                hh = int(hh)%24
+#                mm = int(mm)%60
+#            except:
+#                print "wrong time format"
+#                return False
+#            
+#            dt = dt.replace(hour=int(hh))
+#            dt = dt.replace(minute=int(mm))
          
+#            self.arraydata[index.row()][tag] = mktime(dt.timetuple())
+#            
+#            print "time edit finished"
+
+
+
+
+
         elif class_ == DATE:
             editor = NXE_date(parent)
             if not default_value: 
@@ -173,15 +236,9 @@ class MetaEditItemDelegate(QStyledItemDelegate):
             else: 
                 editor.default = int(default_value)
             editor.editingFinished.connect(self.commitAndCloseEditor)
-        
-        elif class_ == TIME:
-            editor = QLineEdit(parent)
-            editor.setInputMask("99:99")
-            editor.default = strftime("%H:%M",localtime(default_value))
-            editor.editingFinished.connect(self.commitAndCloseEditor)
 
         elif class_ == SELECT:
-            editor = NOption(parent,ops,default_value)
+            editor = NOption(parent, settings, default_value)
          
         elif class_ == TEXT:
             editor = QLineEdit(parent)
@@ -189,7 +246,7 @@ class MetaEditItemDelegate(QStyledItemDelegate):
             editor.editingFinished.connect(self.commitAndCloseEditor)
          
         elif class_ == BLOB:
-            self.parent.text_editor = wndTextEdit(index, default_value)
+            self.parent.text_editor = NXE_blob(index, default_value)
             return None
         
         else:
@@ -218,7 +275,7 @@ class MetaEditItemDelegate(QStyledItemDelegate):
      
     def setModelData(self, editor, model, index):
         if isinstance(editor,NXE_datetime) or isinstance(editor,NXE_date):
-            val = editor.GetTimestamp()
+            val = editor.get_timestamp()
             if val != editor.default: 
                 model.setData(index, val)
           
@@ -232,7 +289,7 @@ class MetaEditItemDelegate(QStyledItemDelegate):
            
         elif isinstance(editor, NOption):
             if editor.GetValue() != editor.default: 
-                model.setData(index, editor.GetValue()) 
+                model.setData(index, editor.get_value()) 
           
-        elif editor == "boolean":
-            model.setData(index, str(int(not bool(int(model.data(index,Qt.DisplayRole)))))) 
+        elif editor in ["boolean", "star"]:
+            model.setData(index, int(not bool(int(model.data(index, Qt.SortRole )))))

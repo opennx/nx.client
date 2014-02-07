@@ -15,13 +15,15 @@ class NXBaseObject(object):
         self.ns_tags   = meta_types.ns_tags(self.ns_prefix)
         self.id = id_object
         self.meta = {}
+        self._loaded = False
 
         if from_data:
             self.meta = from_data
         else:
             self.db = db
             if self.id:
-                self._load()
+                if self._load():
+                    self._loaded = True
             else:
                 self._new()
 
@@ -42,6 +44,9 @@ class NXBaseObject(object):
             self["mtime"] = time.time()
         self._save()
 
+    def delete(self):
+        pass
+
     def __getitem__(self, key):
         key = key.lower().strip()
         if not key in self.meta:
@@ -50,10 +55,12 @@ class NXBaseObject(object):
 
     def __setitem__(self, key, value):
         key = key.lower().strip()
-        if not value:
+        if str(value):
+            self.meta[key] = meta_types.format(key,value)
+        else:
             del self[key]
-            return True
-        self.meta[key] = meta_types.format(key,value)
+        return True
+        
 
     def __delitem__(self, key):
         key = key.lower().strip()
@@ -67,30 +74,32 @@ class NXBaseObject(object):
         try:
             title = self.meta.get("title","")
             if title: 
-                title = " (%s)" % title
-            return "%s ID:%d%s" % (self.object_type, self.id, title)
+                title = " ({})".format(title)
+            return "{0} ID:{1}{2}".format(self.object_type, self.id, title)
         except:
-            return "%s ID:%d" % (self.object_type, self.id)
+            return "{0} ID:{1}".format(self.object_type, self.id)
 
+    def __len__(self):
+        return self._loaded
 
 
 
 
 class NXServerObject(NXBaseObject):
     def _load(self):
-        if not _load_from_cache():
+        if not self._load_from_cache():
             if not self.db:
                 self.db = DB()
             db = self.db
 
-            logging.debug("Loading %s from DB" % self)
+            logging.debug("Loading {!r} from DB".format(self))
 
             qcols = ", ".join(self.ns_tags)
-            db.query("SELECT %s FROM nx_%ss WHERE id_object = %d" % (qcols, self.object_type, self.id))
+            db.query("SELECT {0} FROM nx_{1}s WHERE id_object={2}".format(qcols, self.object_type, self.id))
             try:
                 result = db.fetchall()[0]
             except:
-                logging.error("Unable to load %s" % self)
+                logging.error("Unable to load {!r}".format(self))
                 return False
 
             for tag, value in zip(self.ns_tags, result):
@@ -101,16 +110,21 @@ class NXServerObject(NXBaseObject):
                 self[tag] = value
 
             self._save_to_cache()
+        return True
 
     def _load_from_cache(self):
-        self.meta = json.loads(cache.load("%s%d" % (self.ns_prefix, self.id)))
-        if self.meta:
-            return True
-        return False
+        try:
+            self.meta = json.loads(cache.load("{0}{1}".format(self.ns_prefix, self.id)))
+        except:
+            return False
+        else:
+            if self.meta:
+                return True
+            return False
 
 
     def _save_to_cache(self):
-        return cache.save("%s%d" % (self.ns_prefix, self["id_object"]), json.dumps(self.meta))
+        return cache.save("{0}{1}".format(self.ns_prefix, self["id_object"]), json.dumps(self.meta))
 
     def _save(self):
         if not self.db:
@@ -118,23 +132,24 @@ class NXServerObject(NXBaseObject):
         db = self.db
      
         if self["id_object"]:
-            q = "UPDATE nx_%ss SET %s WHERE id_object = %d" % (self.object_type,
-                                                               ", ".join("%s = %%s" % tag for tag in self.ns_tags if tag != "id_object"),
-                                                               self["id_object"]
-                                                               )
+            q = "UPDATE nx_{0}s SET {1} WHERE id_object = {2}".format(self.object_type,
+                                                                  ", ".join("{} = %s".format(tag) for tag in self.ns_tags if tag != "id_object"),
+                                                                  self["id_object"]
+                                                                  )
             v = [self[tag] for tag in self.ns_tags if tag != "id_object"]
             db.query(q, v)
         else:
             self["ctime"] = time.time()
-            q = "INSERT INTO nx_%ss (%s) VALUES (%s)" % ( self.object_type,  
+            q = "INSERT INTO nx_{0}s ({1}) VALUES ({2})".format( self.object_type,  
                                                           ", ".join(tag for tag in self.ns_tags if tag != 'id_object'),
                                                           ", ".join(["%s"]*(len(self.ns_tags)-1)) 
                                                         )
             v = [self[tag] for tag in self.ns_tags if tag != "id_object"]
             db.query(q, v)
-            self["id_object"] = db.lastid()
+            self["id_object"] = self.id = db.lastid()
 
-        db.query("DELETE FROM nx_meta WHERE id_object = %d and object_type = %d" % (self["id_object"], self.id_object_type()))
+
+        db.query("DELETE FROM nx_meta WHERE id_object = {0} and object_type = {1}".format(self["id_object"], self.id_object_type()))
         for tag in self.meta:
             if tag in self.ns_tags:
                 continue
@@ -148,7 +163,18 @@ class NXServerObject(NXBaseObject):
             return True
         else:
             db.rollback()
+            return False
 
+    def delete(self):
+        if not self.db:
+            self.db = DB()
+        db = self.db
+        db.query("DELETE FROM nx_meta WHERE id_object = %s and object_type = %s", [self.id, self.id_object_type()] )
+        db.query("DELETE FROM nx_{}s WHERE id_object = %s".format(self.object_type), [self.id])
+        db.commit()
+        cache.delete("{0}{1}".format(self.ns_prefix, self.id))
+
+        
 
 
 class NXClientObject(NXBaseObject):

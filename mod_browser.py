@@ -110,16 +110,8 @@ class Browser(BaseWidget):
         self.loadColumnWidths()
  
     def on_activate(self,mi):
-        print ("activated")
-        #if not self.parent.edit_mode:
-        #   row =  self.proxyModel.mapToSource(mi).row()
-        #   id_asset = self.model.arraydata[row][0][0]
-        #   self.parent.OpenDetail(id_asset)
-        #   return False   
-        #else:
         if time.time() - self.view.editor_closed_at > 0.2:
             self.view.edit(mi)
-        #return True  
 
 
     def getState(self):
@@ -153,6 +145,7 @@ class Browser(BaseWidget):
         for id_column in range(self.model.columnCount(False)):
             self.column_widths[self.model.header_data[id_column]] = self.view.columnWidth(id_column)
         
+
     def hideEvent(self, event):
         self.saveColumnWidths()
 

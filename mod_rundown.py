@@ -4,6 +4,8 @@ import datetime
 from firefly_common import *
 from firefly_view import *
 
+from dlg_scheduler import Scheduler
+
 
 
 class RundownDate(QLabel):
@@ -101,8 +103,8 @@ class Rundown(BaseWidget):
             s = ""
 
         t = t.strftime("%A %Y-%m-%d")
-        self.parent.setWindowTitle("Rundown %s" % t)
-        self.date_display.setText("<font %s>%s</font>" % (s, t))
+        self.parent.setWindowTitle("Rundown {}".format(t))
+        self.date_display.setText("<font{}>{}</font>".format(s, t))
 
     ################################################################
     ## Navigation
@@ -136,4 +138,5 @@ class Rundown(BaseWidget):
         pass
 
     def on_scheduler(self):
-        pass
+        scheduler = Scheduler(self, self.current_date)
+        scheduler.exec_()

@@ -73,4 +73,10 @@ def create_menu(wnd):
     action_workspace_lock.setShortcut('Ctrl+L')
     action_workspace_lock.setStatusTip('Lock workspace')
     action_workspace_lock.triggered.connect(wnd.on_workspace_lock)
-    menuWorkspace.addAction(action_workspace_lock)    
+    menuWorkspace.addAction(action_workspace_lock)   
+
+    action_fullscreen = QAction('&Full screen', wnd)        
+    action_fullscreen.setShortcut('F11')
+    action_fullscreen.setStatusTip('Toggle fullscreen')
+    action_fullscreen.triggered.connect(wnd.on_fullscreen)
+    menuWorkspace.addAction(action_fullscreen)    

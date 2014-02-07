@@ -5,9 +5,9 @@ from firefly_common import *
 from firefly_widgets import *
 
 def format_header(key):
-    if key == "id_asset": 
+    if key == "id_object": 
         return "#"
-    elif key in ["content_type"]:
+    elif key in ["content_type", "promoted"]:
         return ""
     else:
         return meta_types.col_alias(key, config.get("language","en-US")) 
@@ -28,10 +28,7 @@ class NXViewModel(QAbstractTableModel):
 
     def headerData(self, col, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole: 
-            #return meta_types.col_alias(self.header_data[col], config.get("language","en-US"))
             return format_header(self.header_data[col])
-        #if orientation == Qt.Vertical   and role == Qt.DisplayRole and self.parent.parent.show_asset_ids: 
-        #    return str(self.arraydata[col][0][0])
         return None
 
 
@@ -52,33 +49,14 @@ class NXViewModel(QAbstractTableModel):
         return None
 
 
-
-    def setData(self, index, data, role):
-        obj = self.object_data[index.row()]
-        tag = self.header_data[index.column()]
-        id_object = obj.id
-
-        if index.model().data(index, Qt.EditRole)[3] == data: 
-            return True
-
- #       if not id_asset in self.changes: 
- #           self.changes[id_asset] = {}
- #         
- #       if type(data) in [int,bool]:
- #          self.changes[id_asset][tag] = str(int(data))
- #       else:
- #          self.changes[id_asset][tag] = data
- #            
- #       d = self.arraydata[index.row()]
- #       if adata: 
- #           d[0][adata] = data
- #       else:     
- #           d[1][tag] = data
- #       
- #       self.arraydata[index.row()] = d
-
+    def setData(self, index, data, role=False):
+        tag = self.header_data[index.column()] 
+        self.object_data[index.row()][tag] = data
+        self.refresh()
         return True
 
+    def refresh(self):
+        pass
 
 
 class NXSortModel(QSortFilterProxyModel):

@@ -23,11 +23,8 @@ class Firefly(QMainWindow):
         create_menu(self)
         self.parent = parent
         self.status("")
-
         self.setStyleSheet(base_css)
- 
         self.docks = []
-
         self.show()
         self.load_workspace()
 
@@ -77,19 +74,15 @@ class Firefly(QMainWindow):
 
 
     def fake_maximize(self):
-            geo = self.parent.desktop().availableGeometry()
-            self.move(geo.topLeft())
-
-            tw = geo.width()
-            th = geo.height()
-
-            fw = self.frameGeometry().width()
-            fh = self.frameGeometry().height()
-
-            tw -= fw - self.geometry().width()
-            th -= fh - self.geometry().height()
-
-            self.resize(tw, th)
+        geo = self.parent.desktop().availableGeometry()
+        self.move(geo.topLeft())
+        tw = geo.width()
+        th = geo.height()
+        fw = self.frameGeometry().width()
+        fh = self.frameGeometry().height()
+        tw -= fw - self.geometry().width()
+        th -= fh - self.geometry().height()
+        self.resize(tw, th)
             
 
     def changeEvent(self, evt):
@@ -124,17 +117,18 @@ class Firefly(QMainWindow):
         self.docks.append(wnd)
         wnd.show()
 
+
     def on_wnd_rundown(self):
         wnd = BaseDock(self)
         wnd.setState(Rundown, {})
         self.docks.append(wnd)
         wnd.show()
 
+
     def on_wnd_detail(self):
         for d in self.docks: # Only one detail instance allowed
             if d.getState()["class"] == "detail":
                 return
-
         wnd = BaseDock(self)
         wnd.setState(Detail, {})
         self.docks.append(wnd)
@@ -144,8 +138,10 @@ class Firefly(QMainWindow):
     def on_new_asset(self):
         pass
 
+
     def on_logout(self):
         pass
+
 
     def on_exit(self):
         self.close()
@@ -167,6 +163,13 @@ class Firefly(QMainWindow):
                 if not dock.isFloating():
                     dock.setTitleBarWidget(QWidget())
             self.workspace_locked = True
+
+
+    def on_fullscreen(self):
+        if self.isFullScreen():
+            self.showNormal()
+        else:
+            self.showFullScreen()
 
 
 
