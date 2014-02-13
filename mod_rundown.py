@@ -4,13 +4,38 @@ import datetime
 from firefly_common import *
 from firefly_view import *
 
+from nx.objects import Item, Bin, Event
+
 from dlg_scheduler import Scheduler
+
+
+
+class RundownModel(NXViewModel):
+    def load(self, id_channel, date):
+        self.beginResetModel()
+        self.object_data = []
+
+        res, data = query("rundown",{"id_channel":id_channel,"date":date})
+        if success(res) and data: 
+            
+            for edata in data["data"]:
+                evt = Event(from_data=edata["event_meta"])
+                evt.bin = Bin(from_data=edata["bin_meta"])
+
+                self.object_data.append(evt)
+
+                for idata, adata in edata["items"]:
+                    item = Item(from_data=idata)
+                    item.asset = Asset(from_data=adata)
+
+                    self.object_data.append(item)
+        
+        self.endResetModel()
 
 
 
 class RundownDate(QLabel):
     pass
-
 
 
 def rundown_toolbar(parent):
@@ -68,18 +93,32 @@ class Rundown(BaseWidget):
         toolbar = rundown_toolbar(self)
         
         self.current_date = time.strftime("%Y-%m-%d")
-        self.id_channel   = False # TODO (get default from playout config, overide in setState)
-        self.update_header()
+        self.id_channel   = 1 # TODO (get default from playout config, overide in setState)
 
-        self.rundown_view = NXView(self)
+
+        self.view = NXView(self)
+        self.model = RundownModel(self)
+        self.model.header_data = ["rundown_symbol","title"]
+
+        self.delegate = MetaEditItemDelegate(self.view)
+        self.delegate.settings["base_date"] = datestr2ts(self.current_date)
+
+        self.view.setModel(self.model)
+        self.view.setItemDelegate(self.delegate)
+        
+        self.view.activated.connect(self.on_activate)
+        self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)       
+        
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
         layout.setSpacing(2)
         layout.addWidget(toolbar, 0)
-        layout.addWidget(self.rundown_view, 1)
+        layout.addWidget(self.view, 1)
 
         self.setLayout(layout)
+
+        self.model.load(self.id_channel, self.current_date)
 
 
     def getState(self):
@@ -107,12 +146,22 @@ class Rundown(BaseWidget):
         self.date_display.setText("<font{}>{}</font>".format(s, t))
 
     ################################################################
+    ## 
+
+    def on_activate(self, mi):
+        pass
+
+
+
+
+    ################################################################
     ## Navigation
 
 
     def set_date(self, date):
         self.current_date = date
         self.update_header()
+        self.model.load(self.id_channel, self.current_date)
         #TODO: refresh
 
     def on_day_prev(self):

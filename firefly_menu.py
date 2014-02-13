@@ -60,9 +60,9 @@ def create_menu(wnd):
     menuWindow.addAction(action_wnd_rundown)    
 
     action_wnd_onair = QAction('&OnAir controls', wnd)        
-    #action_wnd_onair.setShortcut('Ctrl+R')
+    action_wnd_onair.setShortcut('Ctrl+R')
     action_wnd_onair.setStatusTip('Open OnAir window')
-    #action_wnd_onair.triggered.connect(wnd.on_wnd_rundown)
+    action_wnd_onair.triggered.connect(wnd.on_wnd_onair)
     menuWindow.addAction(action_wnd_onair)    
 
 

@@ -4,7 +4,7 @@ import json
 
 connection_type = "client"
 
-__all__ = ["connection_type", "query"]
+__all__ = ["connection_type", "query", "success"]
 
 AUTH_KEY = "dev"
 
@@ -13,7 +13,8 @@ import sys
 PYTHON_GEN = sys.version_info[0]
 
 
-
+def success(retcode):
+    return retcode < 300
 
 
 if PYTHON_GEN == 3:

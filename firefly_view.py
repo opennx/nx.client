@@ -5,12 +5,7 @@ from firefly_common import *
 from firefly_widgets import *
 
 def format_header(key):
-    if key == "id_object": 
-        return "#"
-    elif key in ["content_type", "promoted"]:
-        return ""
-    else:
-        return meta_types.col_alias(key, config.get("language","en-US")) 
+    return meta_types.col_alias(key, config.get("language","en-US")) 
 
 
 class NXViewModel(QAbstractTableModel):
@@ -19,6 +14,7 @@ class NXViewModel(QAbstractTableModel):
         self.parent = parent
         self.object_data  = []
         self.header_data = []
+
 
     def rowCount(self, parent):    
         return len(self.object_data)   
@@ -42,6 +38,7 @@ class NXViewModel(QAbstractTableModel):
                   
         if   role == Qt.DisplayRole:     return obj.format_display(tag)
         elif role == Qt.ForegroundRole:  return QColor(obj.format_foreground(tag))
+        elif role == Qt.BackgroundRole:  return QColor(obj.format_background(tag)) if obj.format_background(tag) else None
         elif role == Qt.EditRole:        return obj.format_edit(tag)
         elif role == Qt.UserRole:        return obj.format_sort(tag)
         elif role == Qt.DecorationRole:  return pixlib[obj.format_decoration(tag)]
@@ -84,5 +81,5 @@ class NXView(QTableView):
         self.setSelectionMode(self.ExtendedSelection)
         self.setShowGrid(False)
         self.setAlternatingRowColors(True)
-
+        self.editor_closed_at = time.time() 
 

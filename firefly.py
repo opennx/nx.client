@@ -53,7 +53,6 @@ class Firefly(QMainWindow):
             self.restoreState(settings.value("%s/state" % workspace))
 
         if self.workspace_locked:
-            print ("locking workspace")
             self.on_workspace_lock(True)
 
 
@@ -133,6 +132,9 @@ class Firefly(QMainWindow):
         wnd.setState(Detail, {})
         self.docks.append(wnd)
         wnd.show()
+
+    def on_wnd_onair(self):
+        pass
 
 
     def on_new_asset(self):

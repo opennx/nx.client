@@ -2,22 +2,20 @@
 # -*- coding: utf-8 -*-
 
 from firefly_view import *
-from nx.assets import *
+from nx.objects import Asset
 
 
 class BrowserModel(NXViewModel):
     def browse(self, **kwargs):
         start_time = time.time()
         self.beginResetModel()
-        result, data = query("browse",kwargs)
+        res, data = query("browse",kwargs)
         self.object_data = []
-        if result >= 300:
-            print ("error message")
-        else:
-            if "asset_data" in data:
-                for adata in data["asset_data"]:
-                    self.object_data.append(Asset(from_data=adata))
-                self.header_data = ["content_type", "title", "role/performer", "duration", "file/size"]
+        
+        if success(res) and "asset_data" in data:    
+            for adata in data["asset_data"]:
+                self.object_data.append(Asset(from_data=adata))
+            self.header_data = ["content_type", "title", "role/performer", "duration", "file/size","promoted"]
 
         self.endResetModel()
         self.parent.status("Got %d assets in %.03f seconds." % (len(self.object_data), time.time()-start_time))
@@ -87,8 +85,6 @@ class Browser(BaseWidget):
         self.view.setItemDelegate(MetaEditItemDelegate(self.view))
         self.view.activated.connect(self.on_activate)
         self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)
-
-        self.view.editor_closed_at = time.time()
 
         self.model      = BrowserModel(self) 
         self.sortModel  = NXSortModel(self.model)

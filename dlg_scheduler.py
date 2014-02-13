@@ -4,7 +4,7 @@ import datetime
 from firefly_common import *
 from firefly_view import *
 
-from nx.items import Event
+from nx.objects import Event
 
 
 class SchedulerModel(NXViewModel):        
@@ -96,8 +96,7 @@ class Scheduler(QDialog):
 
         self.view.setItemDelegate(self.delegate)
         self.view.activated.connect(self.on_activate)
-        self.view.editor_closed_at = time.time()
-
+        
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
         layout.setSpacing(5)
