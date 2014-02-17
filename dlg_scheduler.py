@@ -145,8 +145,7 @@ class Scheduler(QDialog):
 
 
     def on_activate(self,mi):
-        if time.time() - self.view.editor_closed_at > 0.2:
-            self.view.edit(mi)
+        self.view.do_edit(mi)
 
 
     def on_add_event(self):

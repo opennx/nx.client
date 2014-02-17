@@ -9,13 +9,14 @@ class BrowserModel(NXViewModel):
     def browse(self, **kwargs):
         start_time = time.time()
         self.beginResetModel()
-        res, data = query("browse",kwargs)
+
         self.object_data = []
+        self.header_data = ["content_type", "title", "role/performer", "duration", "file/size","promoted"]
         
+        res, data = query("browse",kwargs)
         if success(res) and "asset_data" in data:    
             for adata in data["asset_data"]:
                 self.object_data.append(Asset(from_data=adata))
-            self.header_data = ["content_type", "title", "role/performer", "duration", "file/size","promoted"]
 
         self.endResetModel()
         self.parent.status("Got %d assets in %.03f seconds." % (len(self.object_data), time.time()-start_time))
@@ -29,6 +30,31 @@ class BrowserModel(NXViewModel):
              flags |= Qt.ItemIsEditable
              flags |= Qt.ItemIsDragEnabled # Itemy se daji dragovat
         return flags
+
+
+    def mimeTypes(self):
+        return ["application/nx.asset"]
+     
+   
+    def mimeData(self, indexes):
+        data        = [self.object_data[i] for i in set(index.row() for index in indexes if index.isValid())]
+        encodedData = json.dumps([a.meta for a in data])
+        mimeData = QMimeData()
+        mimeData.setData("application/nx.asset", encodedData)
+
+        try:
+            urls =[QUrl.fromLocalFile(asset.get_file_path()) for asset in data]
+            mimeData.setUrls(urls)
+        except:
+            pass
+
+        return mimeData
+
+    def dropMimeData(self, data, action, row, column, parent):
+        #TODO: UPLOAD
+        return False
+   
+
 
 
 
@@ -87,6 +113,7 @@ class Browser(BaseWidget):
         self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         self.model      = BrowserModel(self) 
+
         self.sortModel  = NXSortModel(self.model)
         self.view.setModel(self.sortModel)
 
@@ -106,8 +133,7 @@ class Browser(BaseWidget):
         self.loadColumnWidths()
  
     def on_activate(self,mi):
-        if time.time() - self.view.editor_closed_at > 0.2:
-            self.view.edit(mi)
+        self.view.do_edit(mi)
 
 
     def getState(self):

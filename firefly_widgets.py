@@ -202,32 +202,6 @@ class MetaEditItemDelegate(QStyledItemDelegate):
 
         #########################################################################
 
-        
-#        elif class_ == TIME:
-#            editor = QLineEdit(parent)
-#            editor.setInputMask("99:99")
-#            editor.default = strftime("%H:%M",localtime(default_value))
-#            editor.editingFinished.connect(self.commitAndCloseEditor)
-#            dt = datetime.datetime.fromtimestamp(self.arraydata[0]["Start"])
-#            
-#            try:
-#                hh,mm = data.split(":")
-#                hh = int(hh)%24
-#                mm = int(mm)%60
-#            except:
-#                print "wrong time format"
-#                return False
-#            
-#            dt = dt.replace(hour=int(hh))
-#            dt = dt.replace(minute=int(mm))
-         
-#            self.arraydata[index.row()][tag] = mktime(dt.timetuple())
-#            
-#            print "time edit finished"
-
-
-
-
 
         elif class_ == DATE:
             editor = NXE_date(parent)
@@ -249,6 +223,11 @@ class MetaEditItemDelegate(QStyledItemDelegate):
             self.parent.text_editor = NXE_blob(index, default_value)
             return None
         
+        elif class_ in [BOOLEAN, STAR]:
+            model = index.model()
+            model.setData(index, int(not default_value))
+            return None
+
         else:
             editor = None
 
@@ -291,5 +270,3 @@ class MetaEditItemDelegate(QStyledItemDelegate):
             if editor.GetValue() != editor.default: 
                 model.setData(index, editor.get_value()) 
           
-        elif editor in ["boolean", "star"]:
-            model.setData(index, int(not bool(int(model.data(index, Qt.SortRole )))))

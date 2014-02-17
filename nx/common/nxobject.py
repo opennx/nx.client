@@ -19,6 +19,7 @@ class NXBaseObject(object):
 
         if from_data:
             self.meta = from_data
+            self.id = self.meta.get("id_object", False)
         else:
             self.db = db
             if self.id:
@@ -55,7 +56,7 @@ class NXBaseObject(object):
 
     def __setitem__(self, key, value):
         key = key.lower().strip()
-        if str(value):
+        if value or type(key) in (float, int, bool):
             self.meta[key] = meta_types.format(key,value)
         else:
             del self[key]

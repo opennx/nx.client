@@ -12,7 +12,7 @@ from nx.connection import *
 from nx.cellformat import NXCellFormat, super_tags
 from nx.colors import *
 
-__all__ = ["Asset", "Item", "Bin", "Event"]
+__all__ = ["Asset", "Item", "Bin", "Event", "Dummy"]
 
 
 class Asset(NXObject, AssetBase, NXCellFormat):
@@ -39,6 +39,15 @@ class Asset(NXObject, AssetBase, NXCellFormat):
         elif mtype.class_ in [SELECT, ISELECT, LIST, COMBO, FOLDER]: return unaccent(self.format_display(key))
         
         return ""
+
+
+class Dummy(NXCellFormat):
+    object_type = "dummy"
+    id = False
+    def __init__(self, title=""):
+        self.meta = {"title":title}
+    def __getitem__(self, key):
+        return self.meta.get(key,"")
 
 
 class Item(NXObject, NXCellFormat):

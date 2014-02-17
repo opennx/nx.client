@@ -29,6 +29,8 @@ class SuperTags():
             else:
                 if role == ROLE_DECORATION:
                     value = "folder_{}".format(obj["id_folder"])
+                elif role == ROLE_DISPLAY:
+                    value = ""
 
 
         ## TODO: PLUGINIZE THIS        
@@ -84,7 +86,7 @@ class NXCellFormat():
         elif mtype.class_ in [INTEGER, NUMERIC]:   return ["%.3f","%d"][float(value).is_integer()] % value
         elif mtype.class_ == DATE:                 return time.strftime("%Y-%m-%d",time.localtime(value))
         elif mtype.class_ == TIME:                 return time.strftime("%H:%M",time.localtime(value))
-        elif mtype.class_ == STAR:                 return None
+        elif mtype.class_ in [STAR, BOOLEAN]:      return None
         elif mtype.class_ == DATETIME:
             if "base_date" in self.format_settings:
                 return time.strftime("%H:%M",time.localtime(value))
