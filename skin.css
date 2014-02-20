@@ -35,9 +35,14 @@ QTableView {
     border : 0;
     background-color: #1a1a1a;
     alternate-background-color: #242424;
-    selection-background-color: rgba(160, 160, 160, 160);
+    selection-background-color : rgba(110, 110, 110, 170);
     color : #c0c0c0; 
     }
+
+QTableView::item:focus { 
+    background-color: rgba(160, 160, 160, 160);
+}
+
 
 QHeaderView::section {
     background-color: #161616;
@@ -150,6 +155,10 @@ QPushButton:hover{
     font-weight: bold;
     min-width : 88px;
     max-width : 88px;
+}
+
+#VideoPreview {
+    background-color: #000000;
 }
 
 

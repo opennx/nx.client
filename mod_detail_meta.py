@@ -18,14 +18,21 @@ class MetaView(QTextEdit):
     def load(self, objects):
         txt = ""
 
-        for obj in objects:
+        tags = set([tag for obj in objects for tag in obj.meta])
 
-            for tag in sorted(obj.meta):
+        for tag in sorted(tags):
+            s = set([obj[tag] for obj in objects])
+            s = list(s)
+            if len(s) == 1:
                 try:
-                    value = str(obj[tag])
+                    value = str(s[0])
                 except:
-                    value = obj[tag].encode("utf-8")
-                txt += "{0:<25} {1}\n".format(tag, value)
-            txt+= "-------------------------------------\n"
+                    value = s[0].encode("utf-8")
+            else:
+                value = ">>>MULTIPLE VALUES<<<"
+
+            txt += "{0:<25} {1}\n".format(tag, value)
+
+
             
         self.setText(txt)
