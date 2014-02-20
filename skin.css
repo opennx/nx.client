@@ -2,7 +2,7 @@
                 MAIN WINDOW
 **********************************************************************/
 
-QMainWindow, QDialog {
+QMainWindow, QDialog, QWidget {
     background-color : #242424;
     color : #c0c0c0;
     } 
@@ -75,12 +75,44 @@ QDockWidget::title {
                 WIDGETS
 **********************************************************************/
 
+QTabWidget {
+    padding: 0;
+}
+
+QTabWidget::pane {
+    border: 0;
+}
+
+
+
+QTabBar::tab {
+    background-color: #242424;
+    padding: 5px;
+    margin-bottom: 5px;
+}
+
+QTabBar::tab:selected {
+    background-color: #161616;   
+    padding: 5px;
+    margin-bottom: 5px;
+    color: #ffffff;
+}
+
+
+
 
 QLineEdit, QTextEdit, QComboBox, QPushButton {
     background-color : #242424;
     color : #c0c0c0;
     border : 1px solid #646464;
     }
+
+
+QTextEdit {
+    /*background-color: #272822;*/ 
+    color : #f8f8f2;
+    font: 9pt "Courier";
+}
 
 
 QComboBox::drop-down {

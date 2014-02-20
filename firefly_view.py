@@ -28,13 +28,13 @@ class NXViewModel(QAbstractTableModel):
     def columnCount(self, parent): 
         return len(self.header_data) 
 
-    def headerData(self, col, orientation, role):
+    def headerData(self, col, orientation=Qt.Horizontal, role=Qt.DisplayRole):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole: 
             return format_header(self.header_data[col])
         return None
 
 
-    def data(self, index, role): 
+    def data(self, index, role=Qt.DisplayRole): 
         if not index.isValid(): 
             return None 
 
@@ -83,12 +83,8 @@ class NXSortModel(QSortFilterProxyModel):
 class NXView(QTableView):
     def __init__(self, parent):
         super(NXView, self).__init__(parent)
-
         self.setStyleSheet(base_css)
-
-        self.verticalHeader().setResizeMode(QHeaderView.Fixed)
-
-
+        self.verticalHeader().setVisible(False)
         self.setWordWrap(False)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setDragEnabled(True)

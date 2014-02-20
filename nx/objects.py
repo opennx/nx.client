@@ -48,10 +48,29 @@ class Dummy(NXCellFormat):
         self.meta = {"title":title}
     def __getitem__(self, key):
         return self.meta.get(key,"")
+    def __setitem__(self, key, value):
+        self.meta[key] = value
 
 
 class Item(NXObject, NXCellFormat):
     object_type = "item"
+    asset = False
+    def __getitem__(self, key):
+        key = key.lower().strip()
+        if key == "id_object":
+            return self.id
+        if not key in self.meta:
+            if self.get_asset():
+                return self.get_asset()[key]
+            else:
+                return False
+        return self.meta[key]
+
+    def get_asset(self):
+        if (not self.asset) and self["id_asset"]:
+            self.asset = Asset(self["id_asset"])
+        return self.asset
+
 
 class Bin(NXObject, NXCellFormat):
     object_type = "bin"

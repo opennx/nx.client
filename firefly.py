@@ -174,6 +174,26 @@ class Firefly(QMainWindow):
             self.showFullScreen()
 
 
+    ## Global actions
+    ###############################################################################
+    ## SEISMIC
+
+
+    def focus(self, objects):
+        for d in self.docks:
+            if d.getState()["class"] == "detail" and objects:
+                d.main_widget.focus(objects)
+        
+
+
+    def handle_messaging(self, data):
+        if data.method == "rundown_change":
+            for dock in self.docks:
+                if dock.getState()["class"] == "rundown":
+                    if [dock.main_widget.id_channel, dock.main_widget.current_date] in data.data["rundowns"] and dock.objectName() != data.data["sender"]:
+                        dock.main_widget.refresh()
+
+
 
 
 if __name__ == "__main__":

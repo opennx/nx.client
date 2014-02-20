@@ -1,11 +1,11 @@
 from firefly_common import *
 from firefly_widgets import *
 
+from mod_detail_video import VideoPreview
+from mod_detail_meta import MetaView
 
-class VideoPreview(QWidget):
-    def __init__(self, parent):
-        super(VideoPreview, self).__init__(parent)
-        self.setStyleSheet("background-color : #000000; border: 1px solid green;")
+
+
 
 
 
@@ -13,12 +13,18 @@ class VideoPreview(QWidget):
 
 
 def navigation_toolbar(parent):
-
     toolbar = QToolBar(parent)
     toolbar.setStyleSheet("background-color:transparent;")
 
     ################################
     ## Hidden actions
+
+    action_toggle_view = QAction('Toggle view', parent)        
+    action_toggle_view.setShortcut('F3')
+    action_toggle_view.triggered.connect(parent.toggle_view)
+    parent.addAction(action_toggle_view)
+
+
 
     action_goto_in = QAction('Go to IN', parent)        
     action_goto_in.setShortcut('Q')
@@ -29,7 +35,6 @@ def navigation_toolbar(parent):
     action_goto_out.setShortcut('W')
     action_goto_out.triggered.connect(parent.on_goto_out)
     parent.addAction(action_goto_out)
-
 
 
 
@@ -114,6 +119,12 @@ class Detail(BaseWidget):
         
         self.parent.setWindowTitle("Asset detail")
 
+
+        self.tabs = QTabWidget()
+
+        ####################################
+        ## Video preview
+
         self.ddur  = NXE_timecode(self)
         self.dpos  = NXE_timecode(self)
         self.din   = NXE_timecode(self)
@@ -133,8 +144,8 @@ class Detail(BaseWidget):
         self.timeline = QWidget()
         self.buttons = navigation_toolbar(self)
 
-
         layout = QGridLayout()
+        layout.setContentsMargins(0,0,0,0)
         layout.addWidget(self.din  , 0, 0)
         layout.addWidget(QWidget() , 0, 1)
         layout.addWidget(self.dout , 0, 2)
@@ -152,7 +163,25 @@ class Detail(BaseWidget):
         layout.setColumnStretch(1,1)
         layout.setColumnStretch(2,0)
 
+        video_preview = QWidget()
+        video_preview.setLayout(layout)
+
+        
+        ## Video preview
+        ####################################
+
+        self.meta = MetaView(self)
+
+
+        self.tabs.addTab(video_preview, "Preview")
+        self.tabs.addTab(self.meta, "Metadata")
+
+
+        layout = QVBoxLayout()
+        layout.setContentsMargins(2,2,2,2)
+        layout.addWidget(self.tabs)
         self.setLayout(layout)
+
 
 
 
@@ -167,7 +196,14 @@ class Detail(BaseWidget):
         pass
 
 
+    def toggle_view(self):
+        self.tabs.setCurrentIndex(int(not self.tabs.currentIndex()))
 
+    def focus(self, objects):
+        if self.tabs.currentIndex() == 1:
+            self.meta.load(objects)
+        else:
+            print ("OPEN VIDEO PREVIEW")
 
 
     ###############################################
@@ -205,4 +241,3 @@ class Detail(BaseWidget):
 
     def on_goto_out(self):
         self.status("on_goto_out")
-

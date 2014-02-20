@@ -13,29 +13,45 @@ from dlg_scheduler import Scheduler
 
 class RundownModel(NXViewModel):
     def load(self, id_channel, date):
+        self.id_channel = id_channel
+        self.date = date
+
         self.beginResetModel()
         self.object_data = []
-        self.header_data = ["rundown_symbol", "title"]
+        self.header_data = ["rundown_symbol", "title", "id_object", "id_magic", "id_asset"]
 
         res, data = query("rundown",{"id_channel":id_channel,"date":date})
         if success(res) and data: 
-            
+            row = 0
+            current_bin = False
             for edata in data["data"]:
                 evt = Event(from_data=edata["event_meta"])
                 evt.bin = Bin(from_data=edata["bin_meta"])
+                current_bin = evt.bin.id
 
+                evt["rundown_bin"] = current_bin
+                evt["rundown_row"] = row
                 self.object_data.append(evt)
+                row += 1
 
                 if not edata["items"]:
-                    self.object_data.append(Dummy("(no item)"))                    
+                    dummy = Dummy("(no item)")
+                    dummy["rundown_bin"] = current_bin
+                    dummy["rundown_row"] = row
+                    self.object_data.append(dummy)                    
+                    row += 1
 
                 for idata, adata in edata["items"]:
                     item = Item(from_data=idata)
                     item.asset = Asset(from_data=adata)
-
+                    item["rundown_bin"] = current_bin
+                    item["rundown_row"] = row
                     self.object_data.append(item)
+                    row += 1
         
         self.endResetModel()
+
+
 
 
     def flags(self,index):
@@ -79,16 +95,91 @@ class RundownModel(NXViewModel):
         if row < 1:
             return False
         
+        drop_objects = []
         
         if data.hasFormat("application/nx.item"):
-            print "Dropped item"
-
+            iformat = ITEM
+            items = json.loads(str(data.data("application/nx.item")))
+            if not items or items[0].get("rundown_row","") in [row, row-1]:
+                return False
+            for obj in items:
+                drop_objects.append(Item(from_data=obj))
+            
         elif data.hasFormat("application/nx.asset"):
-            print "Dropped asset"            
+            iformat = ASSET
+            items = json.loads(str(data.data("application/nx.asset")))
+            for obj in items:
+                drop_objects.append(Asset(from_data=obj))
+
+        else:
+            return False
+        
 
 
-        return False
+        pre_items = []
+        dbg = []
+        i = row-1   
+        to_bin = self.object_data[i]["rundown_bin"]
+        
+        while i >= 1:
+            if self.object_data[i].object_type != "item" or self.object_data[i]["rundown_bin"] != to_bin: break
+            p_item = self.object_data[i].id
+            
+            if not p_item in [item.id for item in drop_objects]: 
+                pre_items.append({"object_type" : ITEM, "id_object" : p_item, "params" : {}})
+                dbg.append(self.object_data[i].id)
+            i-=1
+        pre_items.reverse()
+     
+        
+        for obj in drop_objects: 
+            if data.hasFormat("application/nx.item"):  
+                pre_items.append({"object_type" : ITEM, "id_object" : obj.id, "params" : {}})
+                dbg.append(obj.id)
 
+            elif data.hasFormat("application/nx.asset"): 
+                mark_in = mark_out = False
+
+               # subclips = json.loads(item[1].get("Subclips","[]"))
+               # if subclips:
+               #     print "Requesting subclip for item %s" %item[0][0]
+               #     mark_in, mark_out = SelectSubclip(subclips)
+               # elif item[0][0] == -1:
+               #  
+               #     print "Requesting live item duration"
+               #     mark_in = 0
+               #     mark_out = GetTc("Enter live item duration")
+               #     if not mark_out: return False
+               #
+               # else:
+                mark_in  = obj["mark_in"]
+                mark_out = obj["mark_out"]
+                
+                params = {} 
+                if mark_in:  params["mark_in"]  = mark_in
+                if mark_out: params["mark_out"] = mark_out
+                
+                pre_items.append({"object_type" : ASSET, "id_object" : obj.id, "params" : params}) 
+
+        i = row
+        while i < len(self.object_data):
+            if self.object_data[i].object_type != "item" or self.object_data[i]["rundown_bin"] != to_bin: break
+            p_item = self.object_data[i].id
+
+            if not p_item in [item.id for item in drop_objects]: 
+                pre_items.append({"object_type" : ITEM, "id_object" : p_item, "params" : {}})
+                dbg.append(self.object_data[i].id)
+            i+=1
+        
+        if pre_items:
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            try:
+                query("bin_order",params={"id_bin":to_bin, "order":pre_items, "sender":self.parent.parent.objectName() })
+            except:
+                return False
+            self.load(self.id_channel, self.date)
+            QApplication.restoreOverrideCursor()
+        return True
 
 
 

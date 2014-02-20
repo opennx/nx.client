@@ -83,7 +83,7 @@ class NXCellFormat():
         value = self[key]
 
         if   mtype.class_ in [TEXT, BLOB]:         return value
-        elif mtype.class_ in [INTEGER, NUMERIC]:   return ["%.3f","%d"][float(value).is_integer()] % value
+        elif mtype.class_ in [INTEGER, NUMERIC]:   return ["%.3f","%d"][float(value).is_integer()] % value if value else 0
         elif mtype.class_ == DATE:                 return time.strftime("%Y-%m-%d",time.localtime(value))
         elif mtype.class_ == TIME:                 return time.strftime("%H:%M",time.localtime(value))
         elif mtype.class_ in [STAR, BOOLEAN]:      return None

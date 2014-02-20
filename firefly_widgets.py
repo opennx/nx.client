@@ -2,7 +2,7 @@ import time
 
 from qt_common import *
 from nx.common.constants import *
-#from firefly_syntaxhl import *
+from dlg_texteditor import TextEditor
 
 
 class NXE_timecode(QLineEdit):
@@ -120,45 +120,6 @@ class NXE_select(QComboBox):
 
 
 
-class NXE_blob(QDialog):    
-    def __init__(self, index, default, syntax=False):
-        super(NXE_blob, self).__init__()
-        self.setWindowTitle('Text editor: Press ESC to discard, Alt+F4 to Save and close')
-        self.setModal(True)
-        self.setStyleSheet(base_css)
-          
-        self.edit = QTextEdit(self)
-        if syntax == "python": 
-            hl = PythonHL(self.edit)
-        self.edit.setStyleSheet("font: 9pt \"Courier\";")
-          
-        self.default = default
-        self.setText(default)
-          
-        self.index = index
-          
-        layout = QVBoxLayout()
-        layout.addWidget(self.edit)
-          
-        self.setLayout(layout)
-        self.resize(640,640)
-        self.show()
-        self.raise_()
-        self.edit.activateWindow()
-        self.edit.setFocus()
-        
-    def closeEvent(self,evt):
-        print (self.index.model().setData(self.index,self.toPlainText()))
-        
-    def setText(self,text):
-        self.edit.setText(text)
-
-    def toPlainText(self):
-        return self.edit.toPlainText()
-
-
-
-
 
 
 ########################################################################
@@ -220,7 +181,7 @@ class MetaEditItemDelegate(QStyledItemDelegate):
             editor.editingFinished.connect(self.commitAndCloseEditor)
          
         elif class_ == BLOB:
-            self.parent.text_editor = NXE_blob(index, default_value)
+            self.parent.text_editor = TextEditor(default_value, index)
             return None
         
         elif class_ in [BOOLEAN, STAR]:
@@ -247,7 +208,7 @@ class MetaEditItemDelegate(QStyledItemDelegate):
         if isinstance(editor,NXE_datetime) or isinstance(editor, NXE_date):
             editor.set_timestamp(editor.default)
        
-        elif isinstance(editor, QLineEdit) or isinstance(editor, QTextEdit) or isinstance(editor, wndTextEdit):
+        elif isinstance(editor, QLineEdit) or isinstance(editor, QTextEdit) or isinstance(editor, TextEditor):
             editor.setText(editor.default)
 
      #######################################################################

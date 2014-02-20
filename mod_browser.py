@@ -114,11 +114,12 @@ class Browser(BaseWidget):
 
         self.model      = BrowserModel(self) 
 
-        self.sortModel  = NXSortModel(self.model)
-        self.view.setModel(self.sortModel)
+        self.sort_model  = NXSortModel(self.model)
+        self.view.setModel(self.sort_model)
+        self.view.selectionChanged = self.selectionChanged
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(0,0,0,0)
+        layout.setContentsMargins(2,2,2,2)
         layout.setSpacing(5)
         layout.addWidget(self.search_box, 0)
         layout.addWidget(self.view, 1)
@@ -173,5 +174,30 @@ class Browser(BaseWidget):
 
 
 
+    def selectionChanged(self, selected, deselected):     
+        objects = []
+        rows = []
+        tot_dur = 0
 
+        for idx in self.view.selectionModel().selectedIndexes():
+            row      =  self.sort_model.mapToSource(idx).row()
+            if row in rows: 
+                continue
+            rows.append(row)
+            objects.append(self.model.object_data[row])
+            
+
+#            data = self.browser_view.model.arraydata[row]
+#            dur      = float(data[1].get("Duration",0))
+#            mark_in  = float(data[1].get("MarkIn",0))
+#            mark_out = float(data[1].get("MarkOut",0))
+#            if not dur: continue
+#            if mark_out > 0: dur -= dur - mark_out
+#            if mark_in  > 0: dur -= mark_in
+#            tot_dur += dur
+
+        if objects:
+            self.parent.parent.focus(objects)
+
+        super(NXView, self.view).selectionChanged(selected, deselected)
 

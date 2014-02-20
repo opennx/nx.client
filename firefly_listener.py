@@ -36,15 +36,14 @@ class SeismicListener(QThread):
             except (socket.error):
                 pass
             else:
-              #  try:
+                try:
                     message = SeismicMessage(json.loads(data))
-                    #print message
                     if message.site_name == self.site_name:
                         message.address = addr
                         self.signal.sig.emit(message)
-              #  except:
-              #      print ("Malformed seismic message detected:")
-              #      print (data)
+                except:
+                    print ("Malformed seismic message detected:")
+                    print (data)
         print ("Listener halted")
         self.halted = True
 
@@ -52,6 +51,6 @@ class SeismicListener(QThread):
         self._halt = True
       
     def add_handler(self, handler):
-        self.signal.connect(handler)
+        self.signal.sig.connect(handler)
 
 
