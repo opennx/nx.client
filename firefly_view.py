@@ -54,16 +54,20 @@ class NXViewModel(QAbstractTableModel):
 
 
     def setData(self, index, data, role=False):
+        self.beginResetModel()
         tag = self.header_data[index.column()] 
         id_object = self.object_data[index.row()].id
         self.object_data[index.row()][tag] = data
         
         if not id_object in self.changed_objects:
             self.changed_objects.append(id_object)
+        self.endResetModel()
 
         self.refresh()
-        self.emit(SIGNAL("layoutChanged(QModelIndex,QModelIndex)"), index, index)
-        self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"), index, index)
+        #self.emit(SIGNAL("layoutChanged(QModelIndex,QModelIndex)"), index, index)
+        #self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"), index, index)
+        #self.layoutChanged.emit()
+        #self.dataChanged.emit(index, index)
         return True
 
     def refresh(self):
@@ -97,5 +101,5 @@ class NXView(QTableView):
 
 
     def do_edit(self, mi):
-        if time.time() - self.editor_closed_at > 0.2:
+        if time.time() - self.editor_closed_at > 0.1:
             self.edit(mi)

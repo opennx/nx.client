@@ -176,7 +176,7 @@ class Scheduler(QDialog):
         
         self.model.refresh()
 
-        print self.model.deleted
+        #print self.model.deleted
 
 
 

@@ -8,8 +8,6 @@ class VideoPreview(QWidget):
 
 
 
-
-
 def navigation_toolbar(parent):
 
     action_goto_in = QAction('Go to IN', parent)        

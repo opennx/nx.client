@@ -6,14 +6,14 @@ from nx.common.metadata import meta_types
 from nx.connection import *
 
 from qt_common import *
-
+from firefly_rc import *
 
 
 def ffsettings():
     return QSettings(".state.%s.nxsettings" % socket.gethostname(), QSettings.IniFormat)
 
 def get_pix(name):
-    return QPixmap(os.path.join("images","%s.png" % name))
+    return QPixmap(":/images/{}.png".format(name))
 
 class Pixlib(dict):
     def __getitem__(self, key):

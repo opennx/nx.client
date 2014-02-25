@@ -2,13 +2,13 @@
                 MAIN WINDOW
 **********************************************************************/
 
-QMainWindow, QDialog, QWidget {
+QMainWindow, QDialog, QWidget, QToolBar {
     background-color : #242424;
     color : #c0c0c0;
     } 
 
 
-QStatusBar, QToolBar, QHeaderView, QMenuBar {
+QStatusBar, QHeaderView, QMenuBar {
     background-color : #161616;
     color : #c0c0c0;
     border: 0;

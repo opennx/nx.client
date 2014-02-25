@@ -1,5 +1,4 @@
-from PySide.QtCore import *
-from PySide.QtGui  import *
+from qt_common import *
 
 
 def format(color, style=''):

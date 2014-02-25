@@ -37,7 +37,7 @@ class SeismicListener(QThread):
                 pass
             else:
                 try:
-                    message = SeismicMessage(json.loads(data))
+                    message = SeismicMessage(json.loads(data.decode('ascii')))
                     if message.site_name == self.site_name:
                         message.address = addr
                         self.signal.sig.emit(message)
