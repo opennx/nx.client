@@ -33,7 +33,6 @@ class Firefly(QMainWindow):
         self.workspace = workspace
         settings = ffsettings()
 
-
         self.workspace_locked = settings.value("%s/locked" % workspace, False)
 
         if "%s/docks" % workspace in settings.allKeys():
@@ -102,7 +101,8 @@ class Firefly(QMainWindow):
 
 
     def status(self, message, message_type=INFO):
-        print(message)
+        if message:
+            print(message)
         if message_type > DEBUG:
             self.statusBar().showMessage(message)
 

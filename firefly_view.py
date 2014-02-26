@@ -64,10 +64,6 @@ class NXViewModel(QAbstractTableModel):
         self.endResetModel()
 
         self.refresh()
-        #self.emit(SIGNAL("layoutChanged(QModelIndex,QModelIndex)"), index, index)
-        #self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"), index, index)
-        #self.layoutChanged.emit()
-        #self.dataChanged.emit(index, index)
         return True
 
     def refresh(self):

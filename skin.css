@@ -157,7 +157,7 @@ QPushButton:hover{
     max-width : 88px;
 }
 
-#VideoPreview {
+QVideoWidget {
     background-color: #000000;
 }
 

@@ -26,7 +26,6 @@ class BrowserModel(NXViewModel):
         flags = super(BrowserModel, self).flags(index)
         if index.isValid():
             if self.object_data[index.row()]["id_object"]:
-             #if self.parent.parent.edit_mode: 
              flags |= Qt.ItemIsEditable
              flags |= Qt.ItemIsDragEnabled # Itemy se daji dragovat
         return flags
@@ -85,12 +84,15 @@ class SearchBox(QWidget):
             else:
                 self.parent.search_query["fulltext"] = self.line_edit.text()
                 self.parent.browse()
-            return True
+            return
+
         elif event.key() == Qt.Key_Escape:
             self.line_edit.setText("")
+
         elif event.key() == Qt.Key_Down:
             self.parent.view.setFocus()
-        return QLineEdit.keyPressEvent(self.line_edit, event)
+
+        QLineEdit.keyPressEvent(self.line_edit, event)
 
 
 
@@ -184,20 +186,15 @@ class Browser(BaseWidget):
             if row in rows: 
                 continue
             rows.append(row)
-            objects.append(self.model.object_data[row])
-            
-
-#            data = self.browser_view.model.arraydata[row]
-#            dur      = float(data[1].get("Duration",0))
-#            mark_in  = float(data[1].get("MarkIn",0))
-#            mark_out = float(data[1].get("MarkOut",0))
-#            if not dur: continue
-#            if mark_out > 0: dur -= dur - mark_out
-#            if mark_in  > 0: dur -= mark_in
-#            tot_dur += dur
+            obj = self.model.object_data[row]
+            objects.append(obj)
+            if obj.object_type in ["asset", "item"]:
+                tot_dur += obj.get_duration()
 
         if objects:
             self.parent.parent.focus(objects)
+            if len(objects) > 1 and tot_dur:
+                self.status("{} objects selected. Total duration {}".format(len(objects), s2time(tot_dur) ))
 
         super(NXView, self.view).selectionChanged(selected, deselected)
 

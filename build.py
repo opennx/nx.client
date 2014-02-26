@@ -15,6 +15,11 @@ p = subprocess.Popen("""c:\Python33\Lib\site-packages\PyQt5\pyrcc5 .firefly.qrc 
 while p.poll() == None:
     time.sleep(.1)
 
-p = subprocess.Popen("""C:\\Python33\\Scripts\\cxfreeze.bat firefly.py --base-name=Win32GUI --icon=firefly.ico""", shell=True)
+
+
+f = "Win32GUI"
+f = "Console"
+
+p = subprocess.Popen("""C:\\Python33\\Scripts\\cxfreeze.bat firefly.py --base-name=%s --icon=firefly.ico"""%f, shell=True)
 while p.poll() == None:
     time.sleep(.1)

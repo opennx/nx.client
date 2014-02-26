@@ -12,7 +12,7 @@ class NXE_timecode(QLineEdit):
         if default:  
             self.SetSeconds(default)
         else:
-            self.setText("00:00:00.00")
+            self.setText("00:00:00:00")
         self.setCursorPosition(0)
         self.default = default
       
