@@ -12,7 +12,7 @@ from firefly_starter import Firestarter
 from mod_browser import Browser
 from mod_rundown import Rundown
 from mod_detail  import Detail
-
+from mod_onair   import OnAir
 
 class Firefly(QMainWindow):
     def __init__(self, parent):
@@ -38,7 +38,7 @@ class Firefly(QMainWindow):
         if "%s/docks" % workspace in settings.allKeys():
             docks_data = json.loads(settings.value("%s/docks" % workspace))
             for dock_data in docks_data:
-                widget = {"browser" : Browser, "rundown" : Rundown, "detail" : Detail}[dock_data["class"]]
+                widget = {"browser" : Browser, "rundown" : Rundown, "detail" : Detail, "onair" : OnAir}[dock_data["class"]]
                 dock = BaseDock(self, dock_data["object_name"])
                 dock.setState(widget, dock_data)
                 self.docks.append(dock)
@@ -90,7 +90,7 @@ class Firefly(QMainWindow):
 
 
     def closeEvent(self, evt):
-        self.save_workspace()
+        #self.save_workspace()
         evt.accept()
 
 
@@ -134,7 +134,13 @@ class Firefly(QMainWindow):
         wnd.show()
 
     def on_wnd_onair(self):
-        pass
+        for d in self.docks: # Only one onair instance allowed
+            if d.getState()["class"] == "onair":
+                return
+        wnd = BaseDock(self)
+        wnd.setState(OnAir, {})
+        self.docks.append(wnd)
+        wnd.show()
 
 
     def on_new_asset(self):
@@ -150,7 +156,8 @@ class Firefly(QMainWindow):
 
 
     def on_debug(self):
-        self.load_workspace()
+        for dock in self.docks:
+            print (dock.getState()["class"])
 
 
     def on_workspace_lock(self, force = False):
@@ -174,24 +181,40 @@ class Firefly(QMainWindow):
             self.showFullScreen()
 
 
-    ## Global actions
-    ###############################################################################
-    ## SEISMIC
-
-
     def focus(self, objects):
         for d in self.docks:
             if d.getState()["class"] == "detail" and objects:
                 d.main_widget.focus(objects)
         
 
+    ## Global actions
+    ###############################################################################
+    ## SEISMIC
+
 
     def handle_messaging(self, data):
-        if data.method == "rundown_change":
+        if data.method == "playout_status":
+            for dock in self.docks:
+                if dock.getState()["class"] == "onair" and data.data["id_channel"] == dock.main_widget.id_channel:
+                    dock.main_widget.update_status(data)
+
+                elif dock.getState()["class"] == "rundown" and data.data["id_channel"] == dock.main_widget.id_channel:
+                    refresh = False
+                    if data.data["current_item"] != dock.main_widget.current_item:
+                        dock.main_widget.current_item = data.data["current_item"]
+                        dock.main_widget.refresh()
+
+                    if data.data["cued_item"] != dock.main_widget.cued_item:
+                        dock.main_widget.cued_item = data.data["cued_item"]
+                        dock.main_widget.refresh(full=False)
+                
+
+        elif data.method == "rundown_change":
             for dock in self.docks:
                 if dock.getState()["class"] == "rundown":
                     if [dock.main_widget.id_channel, dock.main_widget.current_date] in data.data["rundowns"] and dock.objectName() != data.data["sender"]:
                         dock.main_widget.refresh()
+
 
 
 

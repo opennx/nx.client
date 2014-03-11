@@ -69,6 +69,12 @@ def create_menu(wnd):
 
     menuWorkspace = menubar.addMenu('&Workspace')
 
+    action_workspace_save = QAction('&Save current', wnd)        
+    action_workspace_save.setShortcut('Ctrl+S')
+    action_workspace_save.setStatusTip('Save current workspace')
+    action_workspace_save.triggered.connect(wnd.save_workspace)
+    menuWorkspace.addAction(action_workspace_save)   
+
     action_workspace_lock = QAction('&Lock', wnd)        
     action_workspace_lock.setShortcut('Ctrl+L')
     action_workspace_lock.setStatusTip('Lock workspace')

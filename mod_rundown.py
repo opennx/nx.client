@@ -12,42 +12,44 @@ from dlg_scheduler import Scheduler
 
 
 class RundownModel(NXViewModel):
-    def load(self, id_channel, date):
+    def load(self, id_channel, date, full=True):
         self.id_channel = id_channel
         self.date = date
 
         self.beginResetModel()
-        self.object_data = []
-        self.header_data = ["rundown_symbol", "title", "id_object", "id_magic", "id_asset"]
 
-        res, data = query("rundown",{"id_channel":id_channel,"date":date})
-        if success(res) and data: 
-            row = 0
-            current_bin = False
-            for edata in data["data"]:
-                evt = Event(from_data=edata["event_meta"])
-                evt.bin = Bin(from_data=edata["bin_meta"])
-                current_bin = evt.bin.id
+        if full:
+            self.object_data = []
+            self.header_data = ["rundown_symbol", "title", "id_object", "id_magic", "id_asset"]
 
-                evt["rundown_bin"] = current_bin
-                evt["rundown_row"] = row
-                self.object_data.append(evt)
-                row += 1
+            res, data = query("rundown",{"id_channel":id_channel,"date":date})
+            if success(res) and data: 
+                row = 0
+                current_bin = False
+                for edata in data["data"]:
+                    evt = Event(from_data=edata["event_meta"])
+                    evt.bin = Bin(from_data=edata["bin_meta"])
+                    current_bin = evt.bin.id
 
-                if not edata["items"]:
-                    dummy = Dummy("(no item)")
-                    dummy["rundown_bin"] = current_bin
-                    dummy["rundown_row"] = row
-                    self.object_data.append(dummy)                    
+                    evt["rundown_bin"] = current_bin
+                    evt["rundown_row"] = row
+                    self.object_data.append(evt)
                     row += 1
 
-                for idata, adata in edata["items"]:
-                    item = Item(from_data=idata)
-                    item.asset = Asset(from_data=adata)
-                    item["rundown_bin"] = current_bin
-                    item["rundown_row"] = row
-                    self.object_data.append(item)
-                    row += 1
+                    if not edata["items"]:
+                        dummy = Dummy("(no item)")
+                        dummy["rundown_bin"] = current_bin
+                        dummy["rundown_row"] = row
+                        self.object_data.append(dummy)                    
+                        row += 1
+
+                    for idata, adata in edata["items"]:
+                        item = Item(from_data=idata)
+                        item.asset = Asset(from_data=adata)
+                        item["rundown_bin"] = current_bin
+                        item["rundown_row"] = row
+                        self.object_data.append(item)
+                        row += 1
         
         self.endResetModel()
 
@@ -99,7 +101,8 @@ class RundownModel(NXViewModel):
         
         if data.hasFormat("application/nx.item"):
             iformat = ITEM
-            items = json.loads(str(data.data("application/nx.item")))
+            d = data.data("application/nx.item").data()
+            items = json.loads(d.decode("ascii"))
             if not items or items[0].get("rundown_row","") in [row, row-1]:
                 return False
             for obj in items:
@@ -107,7 +110,8 @@ class RundownModel(NXViewModel):
             
         elif data.hasFormat("application/nx.asset"):
             iformat = ASSET
-            items = json.loads(str(data.data("application/nx.asset")))
+            d = data.data("application/nx.asset").data()
+            items = json.loads(d.decode("ascii"))
             for obj in items:
                 drop_objects.append(Asset(from_data=obj))
 
@@ -248,6 +252,8 @@ class Rundown(BaseWidget):
         
         self.current_date = time.strftime("%Y-%m-%d")
         self.id_channel   = 1 # TODO (get default from playout config, overide in setState)
+        self.current_item = False
+        self.cued_item = False
         self.column_widths = {}
 
 
@@ -299,14 +305,15 @@ class Rundown(BaseWidget):
         for id_column in range(self.model.columnCount(False)):
             self.column_widths[self.model.header_data[id_column]] = self.view.columnWidth(id_column)
         
-    def load(self, id_channel, date):
-        if self.model.header_data:
+    def load(self, id_channel, date, full=True):
+        if full and self.model.header_data:
             self.saveColumnWidths()
-        self.model.load(id_channel, date)
-        self.loadColumnWidths()
+        self.model.load(id_channel, date, full=full)
+        if full:
+            self.loadColumnWidths()
 
-    def refresh(self):
-        self.load(self.id_channel, self.current_date)
+    def refresh(self, full=True):
+        self.load(self.id_channel, self.current_date, full=full)
 
     def update_header(self):
         syy,smm,sdd = [int(i) for i in self.current_date.split("-")]
@@ -327,7 +334,16 @@ class Rundown(BaseWidget):
     ## 
 
     def on_activate(self, mi):
-        pass
+
+        item = self.model.object_data[mi.row()]
+        print (item)
+
+        params = {
+            "id_channel" : self.id_channel,
+            "id_item"    : item.id
+            }
+        print (params)
+        query("cue", params, "play1")
 
 
 

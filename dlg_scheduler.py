@@ -185,11 +185,10 @@ class Scheduler(QDialog):
         for evt in self.model.object_data:
             events.append(evt.meta)
 
-        delete = self.model.deleted.keys()
+        delete = list(self.model.deleted.keys())
 
         result, data = query("set_day_events",{"date":self.current_date, "id_channel":self.id_channel, "events":events, "delete":delete })
 
-        #self.model.load(self.id_channel, self.current_date)
         self.close()
 
     def on_cancel(self):

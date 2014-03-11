@@ -44,7 +44,10 @@ class NXViewModel(QAbstractTableModel):
                   
         if   role == Qt.DisplayRole:     return obj.format_display(tag)
         elif role == Qt.ForegroundRole:  return self.color_edited if obj.id in self.changed_objects else self.color_new if not obj.id else QColor(obj.format_foreground(tag))
-        elif role == Qt.BackgroundRole:  return QColor(obj.format_background(tag)) if obj.format_background(tag) else None
+        elif role == Qt.BackgroundRole:  
+            bkg = obj.format_background(tag, self)
+            if bkg: 
+                return QColor(bkg)
         elif role == Qt.EditRole:        return obj.format_edit(tag)
         elif role == Qt.UserRole:        return obj.format_sort(tag)
         elif role == Qt.DecorationRole:  return pixlib[obj.format_decoration(tag)]
@@ -94,6 +97,7 @@ class NXView(QTableView):
         self.setShowGrid(False)
         self.setAlternatingRowColors(True)
         self.editor_closed_at = time.time() 
+        self.selected_objects = []
 
 
     def do_edit(self, mi):

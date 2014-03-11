@@ -127,7 +127,16 @@ class NXCellFormat():
         return None
 
 
-    def format_background(self, key): # Key is unused.... color per row
+    def format_background(self, key, model=False): # Key is not used.... color per row
+        if model and self.object_type == "item":
+            try:
+                if model.parent.cued_item == self.id:
+                    return "#11cc11"
+                elif model.parent.current_item == self.id:
+                    return "#cc1111"
+            except:
+                pass
+
         if self.object_type == "event":  # and scheduled start
             return RUNDOWN_EVENT_BACKGROUND_COLOR
         return None

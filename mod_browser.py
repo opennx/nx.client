@@ -3,6 +3,8 @@
 
 from firefly_view import *
 from nx.objects import Asset
+from dlg_sendto import SendTo
+
 
 
 class BrowserModel(NXViewModel):
@@ -11,7 +13,7 @@ class BrowserModel(NXViewModel):
         self.beginResetModel()
 
         self.object_data = []
-        self.header_data = ["content_type", "title", "role/performer", "duration", "file/size","promoted"]
+        self.header_data = ["content_type", "title", "role/performer", "duration", "origin"]
         
         res, data = query("browse",kwargs)
         if success(res) and "asset_data" in data:    
@@ -39,7 +41,7 @@ class BrowserModel(NXViewModel):
         data        = [self.object_data[i] for i in set(index.row() for index in indexes if index.isValid())]
         encodedData = json.dumps([a.meta for a in data])
         mimeData = QMimeData()
-        mimeData.setData("application/nx.asset", encodedData)
+        mimeData.setData("application/nx.asset", encodedData.encode("ascii"))
 
         try:
             urls =[QUrl.fromLocalFile(asset.get_file_path()) for asset in data]
@@ -139,6 +141,10 @@ class Browser(BaseWidget):
         self.view.do_edit(mi)
 
 
+    def send_to(self):
+        dlg = SendTo(self, self.view.selected_objects)
+        dlg.exec_()
+
     def getState(self):
         self.saveColumnWidths()
         state = {}
@@ -176,9 +182,25 @@ class Browser(BaseWidget):
 
 
 
+
+    def contextMenuEvent(self, event):
+        if not self.view.selected_objects: return
+        menu = QMenu(self)
+        
+        menu.addSeparator()
+        action_send_to = QAction('&Send to...', self)        
+        action_send_to.setStatusTip('Create action for selected asset(s)')
+        action_send_to.triggered.connect(self.send_to)
+        menu.addAction(action_send_to)
+                
+        menu.exec_(event.globalPos()) 
+
+
+
     def selectionChanged(self, selected, deselected):     
-        objects = []
         rows = []
+        self.view.selected_objects = []
+
         tot_dur = 0
 
         for idx in self.view.selectionModel().selectedIndexes():
@@ -187,14 +209,14 @@ class Browser(BaseWidget):
                 continue
             rows.append(row)
             obj = self.model.object_data[row]
-            objects.append(obj)
+            self.view.selected_objects.append(obj)
             if obj.object_type in ["asset", "item"]:
                 tot_dur += obj.get_duration()
 
-        if objects:
-            self.parent.parent.focus(objects)
-            if len(objects) > 1 and tot_dur:
-                self.status("{} objects selected. Total duration {}".format(len(objects), s2time(tot_dur) ))
+        if self.view.selected_objects:
+            self.parent.parent.focus(self.view.selected_objects)
+            if len(self.view.selected_objects) > 1 and tot_dur:
+                self.status("{} objects selected. Total duration {}".format(len(self.view.selected_objects), s2time(tot_dur) ))
 
         super(NXView, self.view).selectionChanged(selected, deselected)
 
