@@ -12,7 +12,6 @@ from firefly_starter import Firestarter
 from mod_browser import Browser
 from mod_rundown import Rundown
 from mod_detail  import Detail
-from mod_onair   import OnAir
 
 class Firefly(QMainWindow):
     def __init__(self, parent):
@@ -38,7 +37,7 @@ class Firefly(QMainWindow):
         if "%s/docks" % workspace in settings.allKeys():
             docks_data = json.loads(settings.value("%s/docks" % workspace))
             for dock_data in docks_data:
-                widget = {"browser" : Browser, "rundown" : Rundown, "detail" : Detail, "onair" : OnAir}[dock_data["class"]]
+                widget = {"browser" : Browser, "rundown" : Rundown, "detail" : Detail}[dock_data["class"]]
                 dock = BaseDock(self, dock_data["object_name"])
                 dock.setState(widget, dock_data)
                 self.docks.append(dock)
@@ -115,13 +114,16 @@ class Firefly(QMainWindow):
         wnd.setState(Browser, {})
         self.docks.append(wnd)
         wnd.show()
-
+        if self.workspace_locked:
+            wnd.setAllowedAreas(Qt.NoDockWidgetArea)
 
     def on_wnd_rundown(self):
         wnd = BaseDock(self)
         wnd.setState(Rundown, {})
         self.docks.append(wnd)
         wnd.show()
+        if self.workspace_locked:
+            wnd.setAllowedAreas(Qt.NoDockWidgetArea)
 
 
     def on_wnd_detail(self):
@@ -132,15 +134,9 @@ class Firefly(QMainWindow):
         wnd.setState(Detail, {})
         self.docks.append(wnd)
         wnd.show()
+        if self.workspace_locked:
+            wnd.setAllowedAreas(Qt.NoDockWidgetArea)
 
-    def on_wnd_onair(self):
-        for d in self.docks: # Only one onair instance allowed
-            if d.getState()["class"] == "onair":
-                return
-        wnd = BaseDock(self)
-        wnd.setState(OnAir, {})
-        self.docks.append(wnd)
-        wnd.show()
 
 
     def on_new_asset(self):
@@ -165,11 +161,15 @@ class Firefly(QMainWindow):
             self.workspace_locked = False
             wdgt = BaseDock(self).titleBarWidget()
             for dock in self.docks:
-                if not dock.isFloating():
+                if dock.isFloating():
+                    dock.setAllowedAreas(Qt.AllDockWidgetArea)
+                else:
                     dock.setTitleBarWidget(wdgt)
         else:
             for dock in self.docks:
-                if not dock.isFloating():
+                if dock.isFloating():
+                    dock.setAllowedAreas(Qt.NoDockWidgetArea)
+                else:
                     dock.setTitleBarWidget(QWidget())
             self.workspace_locked = True
 
@@ -195,19 +195,9 @@ class Firefly(QMainWindow):
     def handle_messaging(self, data):
         if data.method == "playout_status":
             for dock in self.docks:
-                if dock.getState()["class"] == "onair" and data.data["id_channel"] == dock.main_widget.id_channel:
+                if dock.getState()["class"] == "rundown" and data.data["id_channel"] == dock.main_widget.id_channel:
                     dock.main_widget.update_status(data)
 
-                elif dock.getState()["class"] == "rundown" and data.data["id_channel"] == dock.main_widget.id_channel:
-                    refresh = False
-                    if data.data["current_item"] != dock.main_widget.current_item:
-                        dock.main_widget.current_item = data.data["current_item"]
-                        dock.main_widget.refresh()
-
-                    if data.data["cued_item"] != dock.main_widget.cued_item:
-                        dock.main_widget.cued_item = data.data["cued_item"]
-                        dock.main_widget.refresh(full=False)
-                
 
         elif data.method == "rundown_change":
             for dock in self.docks:

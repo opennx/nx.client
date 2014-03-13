@@ -7,7 +7,7 @@ from firefly_view import *
 from nx.objects import *
 
 from dlg_scheduler import Scheduler
-
+from mod_rundown_onair import OnAir
 
 
 
@@ -234,6 +234,11 @@ def rundown_toolbar(parent):
     action_scheduler.triggered.connect(parent.on_scheduler)
     toolbar.addAction(action_scheduler)
 
+    action_onair = QAction(QIcon(pixlib["onair"]), '&Playout controls', parent)        
+    action_onair.setShortcut('F6')
+    action_onair.setStatusTip('Toggle playout controls')
+    action_onair.triggered.connect(parent.on_onair)
+    toolbar.addAction(action_onair)
 
     toolbar.addWidget(ToolBarStretcher(parent))
 
@@ -256,8 +261,8 @@ class Rundown(BaseWidget):
         self.cued_item = False
         self.column_widths = {}
 
-
-        self.view = NXView(self)
+        self.on_air = OnAir(self)
+        self.view  = NXView(self)
         self.model = RundownModel(self)
 
 
@@ -268,12 +273,16 @@ class Rundown(BaseWidget):
         self.view.setItemDelegate(self.delegate)
         
         self.view.activated.connect(self.on_activate)
-        self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)        
+        self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)       
+        self.view.selectionChanged = self.selectionChanged
+
+
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
         layout.setSpacing(2)
         layout.addWidget(toolbar, 0)
+        layout.addWidget(self.on_air)
         layout.addWidget(self.view, 1)
 
         self.setLayout(layout)
@@ -342,10 +351,21 @@ class Rundown(BaseWidget):
             "id_channel" : self.id_channel,
             "id_item"    : item.id
             }
-        print (params)
+
         query("cue", params, "play1")
 
 
+
+    def update_status(self, data):
+        if data.data["current_item"] != self.current_item:
+            self.current_item = data.data["current_item"]
+            self.refresh()
+
+        if data.data["cued_item"] != self.cued_item:
+            self.cued_item = data.data["cued_item"]
+            self.refresh(full=False)
+        
+        self.on_air.update_status(data)
 
 
     ################################################################
@@ -379,3 +399,36 @@ class Rundown(BaseWidget):
         scheduler = Scheduler(self, self.current_date)
         scheduler.exec_()
         self.refresh()
+
+    def on_onair(self):
+        if self.on_air.isVisible():
+            self.on_air.hide()
+        else:
+            self.on_air.show()
+
+
+
+    def selectionChanged(self, selected, deselected):     
+        rows = []
+        self.view.selected_objects = []
+
+        tot_dur = 0
+
+        for idx in self.view.selectionModel().selectedIndexes():
+            #row      =  self.sort_model.mapToSource(idx).row()
+            row = idx.row()
+            if row in rows: 
+                continue
+            rows.append(row)
+            obj = self.model.object_data[row]
+            self.view.selected_objects.append(obj)
+            if obj.object_type in ["asset", "item"]:
+                tot_dur += obj.get_duration()
+
+        if self.view.selected_objects:
+            self.parent.parent.focus(self.view.selected_objects)
+            if len(self.view.selected_objects) > 1 and tot_dur:
+                self.status("{} objects selected. Total duration {}".format(len(self.view.selected_objects), s2time(tot_dur) ))
+
+        super(NXView, self.view).selectionChanged(selected, deselected)
+

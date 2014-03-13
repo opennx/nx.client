@@ -197,7 +197,7 @@ class Browser(BaseWidget):
 
 
 
-    def selectionChanged(self, selected, deselected):     
+    def selectionChanged(self, selected, deselected):
         rows = []
         self.view.selected_objects = []
 

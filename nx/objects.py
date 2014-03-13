@@ -71,6 +71,17 @@ class Item(NXObject, NXCellFormat):
             self.asset = Asset(self["id_asset"])
         return self.asset
 
+    def get_duration(self):
+        dur = float(self["duration"])
+        mki = float(self["mark_in"])
+        mko = float(self["mark_out"])
+        if not dur: return 0
+        if mko > 0: dur -= dur - mko
+        if mki > 0: dur -= mki
+        return dur
+
+
+
 
 class Bin(NXObject, NXCellFormat):
     object_type = "bin"
