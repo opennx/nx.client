@@ -41,7 +41,7 @@ class Firefly(QMainWindow):
                 dock = BaseDock(self, dock_data["object_name"])
                 dock.setState(widget, dock_data)
                 self.docks.append(dock)
-
+ 
         if "%s/geometry" % workspace in settings.allKeys():
             self.restoreGeometry(settings.value("%s/geometry" % workspace))
         else:

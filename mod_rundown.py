@@ -20,7 +20,7 @@ class RundownModel(NXViewModel):
 
         if full:
             self.object_data = []
-            self.header_data = ["rundown_symbol", "title", "id_object", "id_magic", "id_asset"]
+            self.header_data = ["rundown_symbol", "title", "rundown_staus", "id_object", "id_magic", "id_asset"]
 
             res, data = query("rundown",{"id_channel":id_channel,"date":date})
             if success(res) and data: 
@@ -275,6 +275,7 @@ class Rundown(BaseWidget):
         self.view.activated.connect(self.on_activate)
         self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)       
         self.view.selectionChanged = self.selectionChanged
+        self.view.keyPressEvent = self.view_keyPressEvent
 
 
 
@@ -353,6 +354,15 @@ class Rundown(BaseWidget):
             }
 
         query("cue", params, "play1")
+
+
+
+    def view_keyPressEvent(self, event):
+        print (event.key())
+        if event.key() == Qt.Key_Delete:
+            print (query("del_items",params={"items":[obj.id for obj in self.view.selected_objects]}))
+            return
+        NXView.keyPressEvent(self.view, event)
 
 
 

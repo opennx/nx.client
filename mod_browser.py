@@ -13,7 +13,7 @@ class BrowserModel(NXViewModel):
         self.beginResetModel()
 
         self.object_data = []
-        self.header_data = ["content_type", "title", "role/performer", "duration", "origin"]
+        self.header_data = ["content_type", "title", "role/performer", "duration", "id_folder", "origin"]
         
         res, data = query("browse",kwargs)
         if success(res) and "asset_data" in data:    
