@@ -57,6 +57,13 @@ def create_menu(wnd):
     action_wnd_rundown.triggered.connect(wnd.on_wnd_rundown)
     menuWindow.addAction(action_wnd_rundown)    
 
+    menuWindow.addSeparator()
+
+    action_dlg_system = QAction('&System', wnd)        
+    action_dlg_system.setShortcut('Shift+ESC')
+    action_dlg_system.setStatusTip('Open system manager')
+    action_dlg_system.triggered.connect(wnd.on_dlg_system)
+    menuWindow.addAction(action_dlg_system)    
 
 
 

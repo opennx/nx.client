@@ -13,6 +13,8 @@ from mod_browser import Browser
 from mod_rundown import Rundown
 from mod_detail  import Detail
 
+from dlg_system import SystemDialog
+
 class Firefly(QMainWindow):
     def __init__(self, parent):
         super(Firefly, self).__init__()
@@ -24,8 +26,8 @@ class Firefly(QMainWindow):
         self.status("")
         self.setStyleSheet(base_css)
         self.docks = []
-        self.show()
         self.load_workspace()
+        self.show()
 
 
     def load_workspace(self, workspace="default"):
@@ -37,7 +39,11 @@ class Firefly(QMainWindow):
         if "%s/docks" % workspace in settings.allKeys():
             docks_data = json.loads(settings.value("%s/docks" % workspace))
             for dock_data in docks_data:
-                widget = {"browser" : Browser, "rundown" : Rundown, "detail" : Detail}[dock_data["class"]]
+                widget =   {"browser" : Browser, 
+                            "rundown" : Rundown, 
+                            "detail" : Detail,
+                            }[dock_data["class"]]
+
                 dock = BaseDock(self, dock_data["object_name"])
                 dock.setState(widget, dock_data)
                 self.docks.append(dock)
@@ -52,9 +58,12 @@ class Firefly(QMainWindow):
 
         if self.workspace_locked:
             self.on_workspace_lock(True)
+        
+        for dock in self.docks:
+            dock.show()
 
 
-    def save_workspace(self,workspace=False):
+    def save_workspace(self, workspace=False):
         if not workspace:
             workspace = self.workspace
 
@@ -139,6 +148,15 @@ class Firefly(QMainWindow):
 
 
 
+
+
+
+    def on_dlg_system(self):
+        dlg = SystemDialog(self)
+        dlg.exec_()
+        dlg.save_state()
+
+
     def on_new_asset(self):
         pass
 
@@ -161,8 +179,8 @@ class Firefly(QMainWindow):
             self.workspace_locked = False
             wdgt = BaseDock(self).titleBarWidget()
             for dock in self.docks:
-                if dock.isFloating():
-                    dock.setAllowedAreas(Qt.AllDockWidgetArea)
+                if dock.isFloating(): 
+                    dock.setAllowedAreas(Qt.AllDockWidgetAreas)
                 else:
                     dock.setTitleBarWidget(wdgt)
         else:

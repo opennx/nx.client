@@ -69,10 +69,13 @@ class NXCellFormat():
 
 
         if key == "duration":
-            if self["video/fps"]:
+            if self.object_type not in ["asset", "item"]:
+                return ""
+            elif self["video/fps"]:
                 return s2tc(self.get_duration(),  fract2float(self["video/fps"]))
             else:
                 return s2time(self.get_duration())
+
         if key == "content_type":
             return ""
 
@@ -96,6 +99,11 @@ class NXCellFormat():
             for x in ['bytes','KB','MB','GB','TB']:
                 if value < 1024.0: return "%3.1f %s" % (value, x)
                 value /= 1024.0
+        elif mtype.class_ == TIMECODE:
+            if self["video/fps"]:
+                return s2tc(value,  fract2float(self["video/fps"]))
+            else:
+                return s2time(value)
         else: return "E %s" %value 
 
 
@@ -143,6 +151,12 @@ class NXCellFormat():
         
 
     def format_foreground(self,key):
+        if "rundown_status" in self.meta:
+            return [NXColors[ASSET_FG_OFFLINE], 
+                    NXColors[ASSET_FG_OFFLINE], 
+                    DEFAULT_TEXT_COLOR
+                    ][int(self["rundown_status"])]
+
         return DEFAULT_TEXT_COLOR
 
     def format_sort(self, key):

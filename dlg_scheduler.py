@@ -102,7 +102,7 @@ class Scheduler(QDialog):
         layout.setSpacing(5)
 
         layout.addWidget(self.toolbar, 1)
-        layout.addWidget(self.view,2) 
+        layout.addWidget(self.view, 2) 
 
         self.setLayout(layout) 
 
@@ -115,7 +115,6 @@ class Scheduler(QDialog):
     def closeEvent(self, event):
         self.save_state()
         event.accept()
-
 
 
     def load_state(self):
@@ -186,9 +185,7 @@ class Scheduler(QDialog):
             events.append(evt.meta)
 
         delete = list(self.model.deleted.keys())
-
         result, data = query("set_day_events",{"date":self.current_date, "id_channel":self.id_channel, "events":events, "delete":delete })
-
         self.close()
 
     def on_cancel(self):

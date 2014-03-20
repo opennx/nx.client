@@ -22,5 +22,10 @@ class SendTo(QDialog):
         self.resize(400,600)
 
     def on_send(self):
-        objects = [obj.id for obj in self.objects]
+        if self.objects and self.objects[0].object_type == "asset":
+            objects = [obj.id for obj in self.objects]
+        elif self.objects and self.objects[0].object_type == "item":
+            objects = [obj["id_asset"] for obj in self.objects]
+        else:
+            return
         query("send_to", {"id_action" : 1, "objects": objects, "settings":{}, "restart_existing": True })

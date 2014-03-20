@@ -1,11 +1,14 @@
 import time
 import datetime
 
+from functools import partial
+
 from firefly_common import *
 from firefly_view import *
 
 from nx.objects import *
 
+from dlg_sendto import SendTo
 from dlg_scheduler import Scheduler
 from mod_rundown_onair import OnAir
 
@@ -20,7 +23,7 @@ class RundownModel(NXViewModel):
 
         if full:
             self.object_data = []
-            self.header_data = ["rundown_symbol", "title", "rundown_staus", "id_object", "id_magic", "id_asset"]
+            self.header_data = ["rundown_symbol", "title", "duration", "mark_in", "mark_out", "rundown_status", "id_object", "id_asset"]
 
             res, data = query("rundown",{"id_channel":id_channel,"date":date})
             if success(res) and data: 
@@ -217,7 +220,7 @@ def rundown_toolbar(parent):
     action_refresh = QAction(QIcon(pixlib["refresh"]), '&Refresh', parent)        
     action_refresh.setShortcut('F5')
     action_refresh.setStatusTip('Refresh rundown')
-    action_refresh.triggered.connect(parent.refresh)
+    action_refresh.triggered.connect(partial(parent.refresh, True))
     toolbar.addAction(action_refresh)
 
     action_day_next = QAction(QIcon(pixlib["next"]), '&Next day', parent)        
@@ -377,6 +380,24 @@ class Rundown(BaseWidget):
         
         self.on_air.update_status(data)
 
+
+
+    def contextMenuEvent(self, event):
+        if not self.view.selected_objects: return
+        menu = QMenu(self)
+        
+        menu.addSeparator()
+        action_send_to = QAction('&Send to...', self)        
+        action_send_to.setStatusTip('Create action for selected asset(s)')
+        action_send_to.triggered.connect(self.send_to)
+        menu.addAction(action_send_to)
+                
+        menu.exec_(event.globalPos()) 
+
+
+    def send_to(self):
+        dlg = SendTo(self, self.view.selected_objects)
+        dlg.exec_()
 
     ################################################################
     ## Navigation
