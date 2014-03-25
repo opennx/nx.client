@@ -3,7 +3,7 @@ nx.client
 _Alpha version - Only to be used in presence of developers._
 
 ## About
-OpenNX Server (a.k.a. Firefly) is QT based client application for nx.server (Nebula).
+OpenNX client (a.k.a. Firefly) is QT based client application for nx.server (Nebula).
 
 
 ## Installation
