@@ -52,6 +52,13 @@ class Dummy(NXCellFormat):
         self.meta[key] = value
 
 
+class EmptyAsset():
+    def __init__(self):
+        self.meta = {}
+    def __getitem__(self, key):
+        return ""
+
+
 class Item(NXObject, NXCellFormat):
     object_type = "item"
     asset = False
@@ -66,20 +73,28 @@ class Item(NXObject, NXCellFormat):
                 return False
         return self.meta[key]
 
+
     def get_asset(self):
-        if (not self.asset) and self["id_asset"]:
-            self.asset = Asset(self["id_asset"])
+        if not self.asset:
+            if self.meta.get("id_asset", 0) > 0:
+                self.asset = Asset(self["id_asset"])
+            else:
+                self.asset = EmptyAsset()
+
         return self.asset
 
-    def get_duration(self):
-        dur = float(self["duration"])
-        mki = float(self["mark_in"])
-        mko = float(self["mark_out"])
-        if not dur: return 0
-        if mko > 0: dur -= dur - mko
-        if mki > 0: dur -= mki
-        return dur
 
+    def get_duration(self):
+        try:
+            dur = float(self["duration"])
+            mki = float(self["mark_in"])
+            mko = float(self["mark_out"])
+            if not dur: return 0
+            if mko > 0: dur -= dur - mko
+            if mki > 0: dur -= mki
+            return dur
+        except:
+            return 0
 
 
 

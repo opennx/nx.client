@@ -203,11 +203,18 @@ class VideoPlayer(QWidget):
     def load(self, obj):
         self.status("")
         id_asset = obj.id
+        
+        id_asset = obj.id if obj.object_type == "asset" else obj["id_asset"]
+        if id_asset <= 0:
+            self.unload()
+            return    
+
         try:
             if int(id_asset) < 1 or id_asset == self.current_id:
                 return
         except:
             return
+            
         self.current_object = obj
         self.current_id = id_asset      
         
