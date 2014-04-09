@@ -205,7 +205,7 @@ class VideoPlayer(QWidget):
         id_asset = obj.id
         
         id_asset = obj.id if obj.object_type == "asset" else obj["id_asset"]
-        if id_asset <= 0:
+        if not id_asset:
             self.unload()
             return    
 

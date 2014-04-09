@@ -148,9 +148,6 @@ class Firefly(QMainWindow):
 
 
 
-
-
-
     def on_dlg_system(self):
         dlg = SystemDialog(self)
         dlg.exec_()

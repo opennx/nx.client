@@ -67,6 +67,7 @@ class NXCellFormat():
         elif not key:
             return ""
 
+        value = self[key]
 
         if key == "duration":
             if self.object_type not in ["asset", "item"]:
@@ -76,14 +77,34 @@ class NXCellFormat():
             else:
                 return s2time(self.get_duration())
 
-        if key == "content_type":
+        elif key in ["mark_in", "mark_out"]:
+            if not value:
+                return ""
+            elif self["video/fps"]:
+                return s2tc(value,  fract2float(self["video/fps"]))
+            else:
+                return s2time(value)
+
+        elif key == "rundown_status":
+            try:
+                return [
+                    "OFFLINE",
+                    "NOT SCHEDULED",
+                    "READY"
+                    ][value]
+            except:
+                return ""
+
+        elif key == "content_type":
             return ""
+
+
+
 
         if not key in meta_types:
             return self[key]
 
         mtype = meta_types[key]
-        value = self[key]
 
         if   mtype.class_ in [TEXT, BLOB]:         return value
         elif mtype.class_ in [INTEGER, NUMERIC]:   return ["%.3f","%d"][float(value).is_integer()] % value if value else 0
@@ -137,15 +158,17 @@ class NXCellFormat():
 
     def format_background(self, key, model=False): # Key is not used.... color per row
         if model and self.object_type == "item":
-            try:
-                if model.parent.cued_item == self.id:
+            #try:
+                if not self.id:
+                    return "#111140"
+                elif model.parent.cued_item == self.id:
                     return "#11cc11"
                 elif model.parent.current_item == self.id:
                     return "#cc1111"
-            except:
-                pass
+            #except:
+            #    pass
 
-        if self.object_type == "event":  # and scheduled start
+        if self.object_type == "event" and self.model.parent.__class__.__name__ == "Rundown":
             return RUNDOWN_EVENT_BACKGROUND_COLOR
         return None
         

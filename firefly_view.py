@@ -22,6 +22,7 @@ class NXViewModel(QAbstractTableModel):
         self.color_edited = QBrush(QColor("#ffdd00"))
         self.color_new = QBrush(QColor("#44ff00"))
 
+
     def rowCount(self, parent):    
         return len(self.object_data)   
 
@@ -40,10 +41,11 @@ class NXViewModel(QAbstractTableModel):
 
         row = index.row()
         obj = self.object_data[row]
+        obj.model = self
         tag = self.header_data[index.column()]
                   
         if   role == Qt.DisplayRole:     return obj.format_display(tag)
-        elif role == Qt.ForegroundRole:  return self.color_edited if obj.id in self.changed_objects else self.color_new if not obj.id else QColor(obj.format_foreground(tag))
+        elif role == Qt.ForegroundRole:  return self.color_edited if obj.id in self.changed_objects else QColor(obj.format_foreground(tag))
         elif role == Qt.BackgroundRole:  
             bkg = obj.format_background(tag, self)
             if bkg: 
