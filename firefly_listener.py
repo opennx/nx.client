@@ -1,14 +1,20 @@
 import json
 import socket
+import time
 
-from qt_common import *
+from urllib.request import urlopen
+
+from firefly_common import *
+
 
 class SeismicMessage(object):
     def __init__(self, packet):
         self.timestamp, self.site_name, self.host, self.method, self.data = packet
 
+
 class SeismicSignal(QObject):
     sig = Signal(SeismicMessage)
+
 
 class SeismicListener(QThread):
     def __init__(self, parent = None):
@@ -16,9 +22,12 @@ class SeismicListener(QThread):
         self.parent = parent
         self._halt = False
         self.halted = True
+        self.last_msg = time.time()
         self.signal = SeismicSignal()
         
     def listen(self, site_name, addr, port):
+        port = port +1
+
         self.site_name = site_name
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -33,24 +42,54 @@ class SeismicListener(QThread):
         while not self._halt:
             try:
                 data, addr = self.sock.recvfrom(1024)
+                self.last_msg = time.time()
             except (socket.error):
-                pass
+
+                if time.time() - self.last_msg < 3:
+                    continue
+                
+                self.listen_http()
+
             else:
-                try:
-                    message = SeismicMessage(json.loads(data.decode('ascii')))
-                    if message.site_name == self.site_name:
-                        message.address = addr
-                        self.signal.sig.emit(message)
-                except:
-                    print ("Malformed seismic message detected:")
-                    print (data)
+                self.parse_message(data)
+
         print ("Listener halted")
         self.halted = True
+
+
+    def listen_http(self):
+        print ("Switching to HTTP listener")
+        
+        url = "{protocol}://{host}:{port}/msg_subscribe?id={site_name}".format(
+                protocol  = ["http", "https"][config.get("use_ssl", False)],
+                host      = config["hive_host"], 
+                port      = config["hive_port"], 
+                site_name = config["site_name"]
+                )
+
+        try:
+            with urlopen(url, timeout=3) as feed:
+                while not self._halt:
+                    line = feed.readline()
+                    self.parse_message(line)
+        except:
+            return 
+
+    def parse_message(self, data, addr=False):
+        try:
+            message = SeismicMessage(json.loads(data.decode('ascii')))
+            if message.site_name == self.site_name:
+                if addr:
+                    message.address = addr
+                self.signal.sig.emit(message)
+        except:
+            print ("Malformed seismic message detected:")
+            print (data)
+
 
     def halt(self):
         self._halt = True
       
     def add_handler(self, handler):
         self.signal.sig.connect(handler)
-
 
