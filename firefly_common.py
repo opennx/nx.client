@@ -13,6 +13,15 @@ def ffsettings():
     return QSettings(".state.%s.nxsettings" % socket.gethostname(), QSettings.IniFormat)
 
 def get_pix(name):
+    if not name:
+        return None
+
+    elif name.startswith("folder_"):
+            id_folder = int(name.lstrip("folder_"))
+            icn = QPixmap(12, 12)
+            icn.fill(QColor(config["folders"][id_folder][1]))
+            return icn
+
     return QPixmap(":/images/{}.png".format(name))
 
 class Pixlib(dict):

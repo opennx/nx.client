@@ -26,8 +26,6 @@ class SeismicListener(QThread):
         self.signal = SeismicSignal()
         
     def listen(self, site_name, addr, port):
-        port = port +1
-
         self.site_name = site_name
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

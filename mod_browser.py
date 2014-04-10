@@ -15,7 +15,9 @@ class BrowserModel(NXViewModel):
         self.object_data = []
         self.header_data = ["content_type", "title", "role/performer", "duration", "id_folder", "origin"]
         
-        res, data = query("browse",kwargs)
+        kwargs["view"] = 1
+
+        res, data = query("browse", kwargs)
         if success(res) and "asset_data" in data:    
             for adata in data["asset_data"]:
                 self.object_data.append(Asset(from_data=adata))

@@ -9,7 +9,6 @@ class OnAirButton(QPushButton):
         super(OnAirButton, self).__init__(parent)
         self.setText(title)
         
-
         if title == "Freeze":
             bg_col = "qlineargradient(x1: 0, y1: 0,    x2: 0, y2: 1,  stop: 0 #c01616, stop: 1 #941010);"
             self.setToolTip("Pause/unpause current clip")
@@ -23,6 +22,17 @@ class OnAirButton(QPushButton):
         if on_click:
             self.clicked.connect(on_click)
 
+class OnAirLabel(QLabel):
+    def __init__(self,head, default, parent=None, tcolor="#eeeeee"):
+        super(OnAirLabel,self).__init__(parent)
+        self.head = head 
+        self.setStyleSheet("background-color: #161616; padding:5px; margin:3px; font:16px; font-weight: bold; color : {};".format(tcolor))
+        self.setMinimumWidth(160)
+    
+    def set_text(self,text):
+       self.setText("%s: %s"%(self.head,text))
+ 
+
 
 
 class OnAir(QWidget):
@@ -35,6 +45,9 @@ class OnAir(QWidget):
         self.current  = "(loading)"
         self.cued     = "(loading)"
         self.request_time = 0
+        self.local_request_time = time.time()
+
+        self.fps = 25.0
 
 
         self.parent.setWindowTitle("On air ctrl")
@@ -43,7 +56,7 @@ class OnAir(QWidget):
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setTextVisible(False)
         self.progress_bar.setStyleSheet("""
-        QProgressBar{background: #3d3d3d; border:0; border-radius:0; height: 4px}
+        QProgressBar{background: #161616; border:0; border-radius:0; height: 4px}
         QProgressBar::chunk{background:qlineargradient(x1: 0, y1: 0,    x2: 0, y2: 1,  stop: 0 #009fbc, stop: 1 #00a5c3);}
         """)
         self.progress_bar.setValue(0)
@@ -63,10 +76,38 @@ class OnAir(QWidget):
         btns_layout.addWidget(self.btn_abort,0)
         btns_layout.addStretch(1)
 
-        
+
+
+      
+        self.display_clock   = OnAirLabel("CLK", "--:--:--:--")
+        self.display_pos     = OnAirLabel("POS", "--:--:--:--")
+      
+        self.display_current = OnAirLabel("CUR","(no clip)", tcolor="#cc0000")
+        self.display_cued    = OnAirLabel("NXT","(no clip)", tcolor="#00cc00")
+       
+        self.display_rem     = OnAirLabel("REM","(unknown)")
+        self.display_dur     = OnAirLabel("DUR", "--:--:--:--")
         
 
+        info_layout = QGridLayout()    
+        info_layout.setContentsMargins(0,0,0,0)
+        info_layout.setSpacing(2)
+
+        info_layout.addWidget(self.display_clock,   0, 0)    
+        info_layout.addWidget(self.display_pos,     1, 0)  
+
+        info_layout.addWidget(self.display_current, 0, 1)          
+        info_layout.addWidget(self.display_cued,    1, 1)
+
+        info_layout.addWidget(self.display_rem,     0, 2)
+        info_layout.addWidget(self.display_dur,     1, 2)
+
+        info_layout.setColumnStretch(1,1)
+
+
+
         layout = QVBoxLayout()
+        layout.addLayout(info_layout,0)
         layout.addStretch(1)
         layout.addWidget(self.progress_bar,0)
         layout.addLayout(btns_layout,0)
@@ -74,7 +115,7 @@ class OnAir(QWidget):
 
         self.display_timer = QTimer()
         self.display_timer.timeout.connect(self.update_display)
-        self.display_timer.start(80)
+        self.display_timer.start(40)
 
 
     def on_take(self, evt=False):
@@ -110,18 +151,27 @@ class OnAir(QWidget):
         status = data.data
         self.pos = status["position"]
         self.request_time = status["request_time"]
+        self.local_request_time = time.time()
 
         if self.dur !=  status["duration"]:
             self.dur = status["duration"]
-            self.progress_bar.setMaximum(int(self.dur * 25))
+            self.progress_bar.setMaximum(int(self.dur * self.fps))
+            self.display_dur.set_text(f2tc(self.dur, self.fps))
 
         if self.current != status["current_title"]:
             self.current = status["current_title"]
+            self.display_current.set_text(self.current)
         
-        if self.cued    != status["cued_title"]:
-            self.cued    != status["cued_title"]
-
+        if self.cued != status["cued_title"]:
+            self.cued = status["cued_title"]
+            self.display_cued.set_text(self.cued)
 
 
     def update_display(self):
-        self.progress_bar.setValue(int(self.pos * 25))
+        adv = time.time() - self.local_request_time
+        rpos = self.pos + (adv*self.fps)
+        
+        self.progress_bar.setValue(int(rpos*self.fps))
+        self.display_clock.set_text(s2tc(self.request_time+adv, self.fps))
+        self.display_pos.set_text(f2tc(min(self.dur, rpos), self.fps))
+        self.display_rem.set_text(f2tc(max(0,self.dur - rpos), self.fps))

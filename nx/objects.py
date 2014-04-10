@@ -16,12 +16,6 @@ __all__ = ["Asset", "Item", "Bin", "Event", "Dummy"]
 
 
 class Asset(NXObject, AssetBase, NXCellFormat):
-    def format_foreground(self,key):
-        if key == "title":
-            return NXColors[[ASSET_FG_OFFLINE, ASSET_FG_ONLINE, ASSET_FG_CREATING, ASSET_FG_TRASHED, ASSET_FG_RESET][self["status"]]]
-        return DEFAULT_TEXT_COLOR
-        
-
     def format_sort(self, key):
         if not key in self.meta: 
             return ""

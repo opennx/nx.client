@@ -4,15 +4,12 @@ from nx.common.metadata import meta_types, fract2float
 
 from nx.colors import *
 
-
-
 ROLE_DISPLAY    = 0
 ROLE_EDIT       = 1
 ROLE_DECORATION = 2
 ROLE_FOREGROUND = 3
 ROLE_BACKGROUND = 4
 ROLE_SORT       = 5
-
 
 class SuperTags():
     def __init__(self):
@@ -27,15 +24,13 @@ class SuperTags():
             if obj.object_type == "event":
                 key = "promoted"
             else:
-                if role == ROLE_DECORATION:
+                if role == ROLE_DECORATION and obj["id_folder"]:
                     value = "folder_{}".format(obj["id_folder"])
                 elif role == ROLE_DISPLAY:
                     value = ""
 
-
         ## TODO: PLUGINIZE THIS        
         ###########################
-
         return key, value
 
 
@@ -98,6 +93,9 @@ class NXCellFormat():
         elif key == "content_type":
             return ""
 
+        elif key == "id_folder":
+            return config["folders"][self[key]][0]
+
 
 
 
@@ -125,7 +123,8 @@ class NXCellFormat():
                 return s2tc(value,  fract2float(self["video/fps"]))
             else:
                 return s2time(value)
-        else: return "E %s" %value 
+        else:
+            return value 
 
 
     def format_edit(self, key):
@@ -157,16 +156,13 @@ class NXCellFormat():
 
 
     def format_background(self, key, model=False): # Key is not used.... color per row
-        if model and self.object_type == "item":
-            #try:
-                if not self.id:
-                    return "#111140"
-                elif model.parent.cued_item == self.id:
-                    return "#11cc11"
-                elif model.parent.current_item == self.id:
-                    return "#cc1111"
-            #except:
-            #    pass
+        if model and self.object_type == "item":   
+            if not self.id:
+                return "#111140"
+            elif model.parent.cued_item == self.id:
+                return "#059005"
+            elif model.parent.current_item == self.id:
+                return "#900505"
 
         if self.object_type == "event" and self.model.parent.__class__.__name__ == "Rundown":
             return RUNDOWN_EVENT_BACKGROUND_COLOR
@@ -174,13 +170,25 @@ class NXCellFormat():
         
 
     def format_foreground(self,key):
-        if "rundown_status" in self.meta:
+
+        if key == "id_folder":
+            return config["folders"][self[key]][1]
+
+        elif "rundown_status" in self.meta:
             return [NXColors[ASSET_FG_OFFLINE], 
                     NXColors[ASSET_FG_OFFLINE], 
                     DEFAULT_TEXT_COLOR
                     ][int(self["rundown_status"])]
 
+        elif key == "title" and self.object_type == "asset":
+            return NXColors[[ASSET_FG_OFFLINE, ASSET_FG_ONLINE, ASSET_FG_CREATING, ASSET_FG_TRASHED, ASSET_FG_RESET][self["status"]]]
+
+
+
+
         return DEFAULT_TEXT_COLOR
+
+
 
     def format_sort(self, key):
         return self[key]

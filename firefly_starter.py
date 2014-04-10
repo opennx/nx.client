@@ -43,6 +43,12 @@ class Firestarter(QApplication):
         ret_code, result = query("site_settings")
         if ret_code < 300:
             config.update(result)
+            # folder ids back to integers. fuck json
+            nfolders = {}
+            for id_folder in config["folders"]:
+                nfolders[int(id_folder)] = config["folders"][id_folder]
+            config["folders"] = nfolders
+
         else:
             critical_error("Unable to load site settings")
 
