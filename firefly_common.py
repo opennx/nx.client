@@ -56,7 +56,6 @@ class BaseDock(QDockWidget):
 
     def getState(self):
         state = self.main_widget.getState() 
-        #state = {"class":"browser"}
         size = self.size()
         state.update({"object_name": self.objectName(), "size" : (size.width(),size.height())})
         return state
