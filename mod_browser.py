@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from functools import partial
+
 from firefly_view import *
 from nx.objects import Asset
 from dlg_sendto import SendTo
 
-
+DEFAULT_HEADER_DATA = ["content_type", "title", "duration", "id_folder", "origin"]
 
 class BrowserModel(NXViewModel):
     def browse(self, **kwargs):
@@ -13,9 +15,11 @@ class BrowserModel(NXViewModel):
         self.beginResetModel()
 
         self.object_data = []
-        self.header_data = ["content_type", "title", "role/performer", "duration", "id_folder", "origin"]
         
-        kwargs["view"] = 1
+        if "view" in kwargs:
+            self.header_data = config["views"][kwargs["view"]][2]
+        else:
+            self.header_data =  DEFAULT_HEADER_DATA
 
         res, data = query("browse", kwargs)
         if success(res) and "asset_data" in data:    
@@ -60,27 +64,12 @@ class BrowserModel(NXViewModel):
 
 
 
-
-class SearchBox(QWidget):
-    def __init__(self,parent):
-        super(SearchBox, self).__init__()
+class SearchWidget(QLineEdit):
+    def __init__(self, parent):
+        super(QLineEdit, self).__init__()
         self.parent = parent
 
-        self.line_edit =  QLineEdit()
-        self.line_edit.setPlaceholderText ("type something...")
-        self.line_edit.keyPressEvent = self.line_keyPressEvent
-
-        layout = QHBoxLayout()
-        layout.setSpacing(2)
-        layout.setContentsMargins(0,4,0,0)
-
-        layout.addWidget(self.line_edit,1)
-        self.setLayout(layout)
-
-    def setText(self, text):
-        self.line_edit.setText(text)
-
-    def line_keyPressEvent(self, event):
+    def keyPressEvent(self, event):
         if event.key() in [Qt.Key_Return,Qt.Key_Enter]:
             if event.modifiers() & Qt.ControlModifier:
                 print ("extend search")
@@ -99,6 +88,39 @@ class SearchBox(QWidget):
         QLineEdit.keyPressEvent(self.line_edit, event)
 
 
+class SearchBox(QWidget):
+    def __init__(self,parent):
+        super(SearchBox, self).__init__()
+        self.parent = parent
+
+
+        self.btn_view = QPushButton()
+        self.btn_view.setIcon(QIcon(pixlib["menu"]))
+
+        self.btn_clear = QPushButton()
+        self.btn_clear.setIcon(QIcon(pixlib["cancel"]))
+
+        self.btn_search = QPushButton()
+        self.btn_search.setIcon(QIcon(pixlib["search"]))
+
+
+        self.line_edit =  QLineEdit()
+        self.line_edit.setPlaceholderText ("type something...")
+        self.line_edit.keyPressEvent = self.line_keyPressEvent
+
+        layout = QHBoxLayout()
+        layout.setSpacing(2)
+        layout.setContentsMargins(0,4,0,0)
+
+        layout.addWidget(self.btn_view,0)
+        layout.addWidget(self.line_edit,1)
+        layout.addWidget(self.btn_clear,0)
+        layout.addWidget(self.btn_search,0)
+        self.setLayout(layout)
+
+
+
+
 
 class Browser(BaseWidget):
     def __init__(self, parent):
@@ -110,7 +132,7 @@ class Browser(BaseWidget):
         self.search_query = {}
         self.column_widths = {}
 
-        self.search_box = SearchBox(self)
+        self.search_box = SearchWidget(self)
 
         self.view = NXView(self)
         self.view.setSortingEnabled(True)
@@ -118,20 +140,52 @@ class Browser(BaseWidget):
         self.view.activated.connect(self.on_activate)
         self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
-        self.model      = BrowserModel(self) 
-
+        self.model       = BrowserModel(self) 
         self.sort_model  = NXSortModel(self.model)
         self.view.setModel(self.sort_model)
         self.view.selectionChanged = self.selectionChanged
 
+
+
+        action_clear = QAction(QIcon(pixlib["search_clear"]), '&Clear search query', parent)        
+
+        self.action_search = QMenu("Views")
+        self.action_search.menuAction().setIcon(QIcon(pixlib["search"]))
+        self.action_search.menuAction().triggered.connect(self.browse)
+        self.load_view_menu()
+
+        toolbar = QToolBar()
+        toolbar.addWidget(self.search_box)
+        toolbar.addAction(action_clear)
+        toolbar.addAction(self.action_search.menuAction())
+
         layout = QVBoxLayout()
         layout.setContentsMargins(2,2,2,2)
         layout.setSpacing(5)
-        layout.addWidget(self.search_box, 0)
+        layout.addWidget(toolbar, 0)
         layout.addWidget(self.view, 1)
         self.setLayout(layout)
 
         
+    def load_view_menu(self):
+        for id_view in sorted(config["views"].keys(), key=lambda k: config["views"][k][0]):
+
+            pos, title, columns = config["views"][id_view]
+
+            if title == "-":
+                self.action_search.addSeparator()
+                continue
+
+            action = QAction(title, self)
+            action.triggered.connect(partial(self.set_view, id_view))
+            self.action_search.addAction(action)
+
+
+
+    def set_view(self, id_view):
+        self.browse(view=id_view)
+
+
     def browse(self,**kwargs):
         if self.model.header_data:
             self.saveColumnWidths()

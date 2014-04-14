@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from __future__ import nested_scopes, generators, division, absolute_import, with_statement, print_function, unicode_literals
-
 import sys
 
 from firefly_common import *
@@ -26,6 +24,7 @@ class Firefly(QMainWindow):
         self.status("")
         self.setStyleSheet(base_css)
         self.docks = []
+        self.sys_dlg = None
         self.load_workspace()
         self.show()
 
@@ -149,9 +148,10 @@ class Firefly(QMainWindow):
 
 
     def on_dlg_system(self):
-        dlg = SystemDialog(self)
-        dlg.exec_()
-        dlg.save_state()
+        self.sys_dlg = SystemDialog(self)
+        self.sys_dlg.exec_()
+        self.sys_dlg.save_state()
+        self.sys_dlg = None
 
 
     def on_new_asset(self):
@@ -213,12 +213,17 @@ class Firefly(QMainWindow):
                 if dock.getState()["class"] == "rundown" and data.data["id_channel"] == dock.main_widget.id_channel:
                     dock.main_widget.update_status(data)
 
+        elif data.method == "hive_heartbeat":
+            if self.sys_dlg:
+                self.sys_dlg.update_status(data)
+
 
         elif data.method == "rundown_change":
             for dock in self.docks:
                 if dock.getState()["class"] == "rundown":
                     if [dock.main_widget.id_channel, dock.main_widget.current_date] in data.data["rundowns"] and dock.objectName() != data.data["sender"]:
                         dock.main_widget.refresh()
+
 
 
 
