@@ -107,9 +107,7 @@ class ServiceView(QTableView):
         self.selected_services = []
         self.activated.connect(self.on_activate)
 
-        self.model       = ServiceViewModel(self) 
-        self.sort_model  = ServiceSortModel(self.model)
-        self.setModel(self.sort_model)
+
   
 
     def selectionChanged(self, selected, deselected):
@@ -162,6 +160,9 @@ class SystemDialog(QDialog):
         self.setWindowTitle("System manager")
 
         self.view = ServiceView(self)
+        self.model       = ServiceViewModel(self) 
+        self.sort_model  = ServiceSortModel(self.model)
+        self.view.setModel(self.sort_model)
 
         layout = QVBoxLayout()
         layout.setContentsMargins(2,2,2,2)
@@ -169,38 +170,37 @@ class SystemDialog(QDialog):
 
         self.setLayout(layout)
         self.load_state()
-        self.load()
 
 
     def load(self, q={}):
         res, data = query("services",q)
-        self.view.model.beginResetModel()
-        self.view.model.object_data = data
-        self.view.model.endResetModel()
+        self.model.beginResetModel()
+        self.model.object_data = data
+        self.model.endResetModel()
 
 
     def load_state(self):
         settings = ffsettings()
-        if "global/system_dlg_geometry" in settings.allKeys():
-            self.restoreGeometry(settings.value("global/system_dlg_geometry"))
+        if "global/system_g" in settings.allKeys():
+            self.restoreGeometry(settings.value("global/system_g"))
 
-        if "global/services_column_widths" in settings.allKeys():
-            col_widths = settings.value("global/services_column_widths")
-            for id_column in range(self.view.model.columnCount(False)):
-                col_tag = self.view.model.header_data[id_column]
-                w = col_widths.get(col_tag,False)
-                if w:
-                    self.view.setColumnWidth(id_column, w) 
-                else: 
-                    self.view.resizeColumnToContents(id_column)
+        if "global/services_c" in settings.allKeys():
+            self.model.header_data = settings.value("global/services_c")
+
+        self.load()
+
+        if "global/services_cw" in settings.allKeys():
+            self.view.horizontalHeader().restoreState(settings.value("global/services_cw"))
+        else:
+            for id_column in range(self.model.columnCount(False)):
+                self.view.resizeColumnToContents(id_column)
+
 
     def save_state(self):
         settings = ffsettings()
-        settings.setValue("global/system_dlg_geometry", self.saveGeometry())
-        col_widths = {}
-        for id_column in range(self.view.model.columnCount(False)):
-            col_widths[self.view.model.header_data[id_column]] = self.view.columnWidth(id_column)
-        settings.setValue("global/services_column_widths", col_widths)
+        settings.setValue("global/system_g", self.saveGeometry())
+        settings.setValue("global/services_c", self.model.header_data)
+        settings.setValue("global/services_cw", self.view.horizontalHeader().saveState())
 
 
 
@@ -209,14 +209,14 @@ class SystemDialog(QDialog):
         for svc in data.data["service_status"]:
             sstat[svc[0]] = svc[1:]
 
-        self.view.model.beginResetModel()
-        for svc in self.view.model.object_data:
+        self.model.beginResetModel()
+        for svc in self.model.object_data:
             if svc["id_service"] not in sstat:
                 continue
             svc["state"], svc["last_seen"] = sstat[svc["id_service"]]
             svc["last_seen"] = data.timestamp - svc["last_seen"]
 
-        self.view.model.endResetModel()
+        self.model.endResetModel()
 
 
 

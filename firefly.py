@@ -35,16 +35,16 @@ class Firefly(QMainWindow):
 
         self.workspace_locked = settings.value("%s/locked" % workspace, False)
 
-        if "%s/docks" % workspace in settings.allKeys():
-            docks_data = json.loads(settings.value("%s/docks" % workspace))
-            for dock_data in docks_data:
+        if "{}/docks".format(workspace) in settings.allKeys():
+            for object_name in settings.value("{}/docks".format(workspace)):
+                dock_data = settings.value("docks/{}".format(object_name))
                 widget =   {"browser" : Browser, 
                             "rundown" : Rundown, 
                             "detail" : Detail,
                             }[dock_data["class"]]
 
-                dock = BaseDock(self, dock_data["object_name"])
-                dock.setState(widget, dock_data)
+                dock = BaseDock(self, object_name)
+                dock.load_state(widget, dock_data)
                 self.docks.append(dock)
  
         if "%s/geometry" % workspace in settings.allKeys():
@@ -62,19 +62,23 @@ class Firefly(QMainWindow):
             dock.show()
 
 
-    def save_workspace(self, workspace=False):
+    def on_save_workspace(self):
+        self.save_workspace(True)
+
+    def save_workspace(self, full=False, workspace=False):
         if not workspace:
             workspace = self.workspace
 
         settings = ffsettings()
-        docks = []
-        for dock in self.docks:
-            docks.append(dock.getState())
 
-        settings.setValue("%s/locked"   % self.workspace, self.workspace_locked)
-        settings.setValue("%s/docks"    % self.workspace, json.dumps(docks))
-        settings.setValue("%s/state"    % self.workspace, self.saveState())
-        settings.setValue("%s/geometry" % self.workspace, self.saveGeometry())
+        for dock in self.docks:
+            dock.save(settings)
+
+        if full:
+            settings.setValue("{}/docks".format(self.workspace)    , [str(dock.objectName()) for dock in self.docks])
+            settings.setValue("{}/locked".format(self.workspace)   , self.workspace_locked)
+            settings.setValue("{}/state".format(self.workspace)    , self.saveState())
+            settings.setValue("{}/geometry".format(self.workspace) , self.saveGeometry())
 
 
 
@@ -97,7 +101,7 @@ class Firefly(QMainWindow):
 
 
     def closeEvent(self, evt):
-        #self.save_workspace()
+        self.save_workspace()
         evt.accept()
 
 
@@ -119,7 +123,7 @@ class Firefly(QMainWindow):
 
     def on_wnd_browser(self):
         wnd = BaseDock(self)
-        wnd.setState(Browser, {})
+        wnd.load_state(Browser, {})
         self.docks.append(wnd)
         wnd.show()
         if self.workspace_locked:
@@ -127,7 +131,7 @@ class Firefly(QMainWindow):
 
     def on_wnd_rundown(self):
         wnd = BaseDock(self)
-        wnd.setState(Rundown, {})
+        wnd.load_state(Rundown, {})
         self.docks.append(wnd)
         wnd.show()
         if self.workspace_locked:
@@ -136,10 +140,10 @@ class Firefly(QMainWindow):
 
     def on_wnd_detail(self):
         for d in self.docks: # Only one detail instance allowed
-            if d.getState()["class"] == "detail":
+            if d.class_ == "detail":
                 return
         wnd = BaseDock(self)
-        wnd.setState(Detail, {})
+        wnd.load_state(Detail, {})
         self.docks.append(wnd)
         wnd.show()
         if self.workspace_locked:
@@ -168,7 +172,7 @@ class Firefly(QMainWindow):
 
     def on_debug(self):
         for dock in self.docks:
-            print (dock.getState()["class"])
+            print (dock.class_)
 
 
     def on_workspace_lock(self, force = False):
@@ -198,7 +202,7 @@ class Firefly(QMainWindow):
 
     def focus(self, objects):
         for d in self.docks:
-            if d.getState()["class"] == "detail" and objects:
+            if d.class_ == "detail" and objects:
                 d.main_widget.focus(objects)
         
 
@@ -210,7 +214,7 @@ class Firefly(QMainWindow):
     def handle_messaging(self, data):
         if data.method == "playout_status":
             for dock in self.docks:
-                if dock.getState()["class"] == "rundown" and data.data["id_channel"] == dock.main_widget.id_channel:
+                if dock.class_ == "rundown" and data.data["id_channel"] == dock.main_widget.id_channel:
                     dock.main_widget.update_status(data)
 
         elif data.method == "hive_heartbeat":
@@ -220,7 +224,7 @@ class Firefly(QMainWindow):
 
         elif data.method == "rundown_change":
             for dock in self.docks:
-                if dock.getState()["class"] == "rundown":
+                if dock.class_ == "rundown":
                     if [dock.main_widget.id_channel, dock.main_widget.current_date] in data.data["rundowns"] and dock.objectName() != data.data["sender"]:
                         dock.main_widget.refresh()
 

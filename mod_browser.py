@@ -126,11 +126,9 @@ class Browser(BaseWidget):
     def __init__(self, parent):
         super(Browser, self).__init__(parent)
         self.parent = parent
-
         self.parent.setWindowTitle("Browser")
         
         self.search_query = {}
-        self.column_widths = {}
 
         self.search_box = SearchWidget(self)
 
@@ -144,8 +142,6 @@ class Browser(BaseWidget):
         self.sort_model  = NXSortModel(self.model)
         self.view.setModel(self.sort_model)
         self.view.selectionChanged = self.selectionChanged
-
-
 
         action_clear = QAction(QIcon(pixlib["search_clear"]), '&Clear search query', parent)        
 
@@ -182,16 +178,18 @@ class Browser(BaseWidget):
 
 
 
-    def set_view(self, id_view):
+    def set_view(self, id_view, initial=False):
+        if not initial:
+            self.parent.save()
+        #self.state.get("{}c".format("id_view"), DEFAULT_HEADER_DATA)
         self.browse(view=id_view)
-
+        cw = self.state.get("{}cw".format(id_view), False)
+        if cw:
+            self.view.horizontalHeader().restoreState(cw)
 
     def browse(self,**kwargs):
-        if self.model.header_data:
-            self.saveColumnWidths()
         self.search_query.update(kwargs)
         self.model.browse(**self.search_query)
-        self.loadColumnWidths()
  
     def on_activate(self,mi):
         self.view.do_edit(mi)
@@ -201,40 +199,29 @@ class Browser(BaseWidget):
         dlg = SendTo(self, self.view.selected_objects)
         dlg.exec_()
 
-    def getState(self):
-        self.saveColumnWidths()
-        state = {}
+
+    def save_state(self):
+        state = self.state
+        id_view = self.search_query.get("view",0)
+        #state["{}c".format(id_view)] = self.model.header_data
+        state["{}cw".format(id_view)] = self.view.horizontalHeader().saveState()
         state["class"]  = "browser"
         state["search_query"]  = self.search_query
-        state["column_widths"] = self.column_widths
         return state
 
 
-    def setState(self, state):
+    def load_state(self, state):
         self.search_query = state.get("search_query", {})
-        self.column_widths = state.get("column_widths", {})
         q = self.search_query.get("fulltext","")
         if q:
             self.search_box.setText(q)
-        self.browse()
+        self.state = state
+        self.set_view(self.search_query.get("view",0), initial=True)
 
-
-    def loadColumnWidths(self):
-        for id_column in range(self.model.columnCount(False)):
-            col_tag = self.model.header_data[id_column]
-            w = self.column_widths.get(col_tag,False)
-            if w:
-                self.view.setColumnWidth(id_column, w) 
-            else: 
-                self.view.resizeColumnToContents(id_column)
-
-    def saveColumnWidths(self):
-        for id_column in range(self.model.columnCount(False)):
-            self.column_widths[self.model.header_data[id_column]] = self.view.columnWidth(id_column)
         
 
     def hideEvent(self, event):
-        self.saveColumnWidths()
+        pass
 
 
 

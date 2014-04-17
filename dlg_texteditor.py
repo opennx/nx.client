@@ -74,7 +74,7 @@ class TextEditor(QDialog):
             ttl += model.object_data[index.row()]["Title"]
             if ttl:
                 ttl += " / "
-            ttl += model.headerData(index.column())
+            ttl += model.headerData(index.column(), Qt.Horizontal, Qt.DisplayRole)
             ttl = ": " + ttl
 
         self.setWindowTitle('Firefly text editor'+ttl)

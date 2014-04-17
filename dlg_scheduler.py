@@ -6,9 +6,9 @@ from firefly_view import *
 
 from nx.objects import Event
 
+DEFAULT_COLUMS =  ["promoted", "start", "title", "description"]
 
 class SchedulerModel(NXViewModel):        
-
     def load(self, id_channel, date):
         self.beginResetModel()
         res, data = query("get_day_events",{"id_channel":id_channel,"date":date})
@@ -33,13 +33,6 @@ class SchedulerModel(NXViewModel):
             flags |= Qt.ItemIsEditable
         return flags
   
-
-
-
-
-
-
-
 
 def scheduler_toolbar(parent):
     toolbar = QToolBar(parent)
@@ -72,22 +65,19 @@ def scheduler_toolbar(parent):
   
 
 
-
 class Scheduler(QDialog):
-    def __init__(self,  parent, current_date):
+    def __init__(self,  parent, id_channel, current_date):
         super(Scheduler, self).__init__()
         self.parent = parent
         self.setModal(True)
         self.setStyleSheet(base_css)
+        self.setWindowTitle("Scheduler")
 
+        self.id_channel = id_channel
         self.current_date = current_date
-        self.id_channel   = 1
 
-        self.toolbar = scheduler_toolbar(self)
         
         self.model = SchedulerModel(self)
-        self.model.header_data = ["promoted", "start", "title", "description"]
-
         self.view = NXView(self)
         self.view.setModel(self.model)
 
@@ -96,6 +86,8 @@ class Scheduler(QDialog):
 
         self.view.setItemDelegate(self.delegate)
         self.view.activated.connect(self.on_activate)
+        
+        self.toolbar = scheduler_toolbar(self)
         
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
@@ -107,8 +99,6 @@ class Scheduler(QDialog):
         self.setLayout(layout) 
 
         self.load_state()
-        self.model.load(self.id_channel, self.current_date)
-
 
 
 
@@ -119,33 +109,30 @@ class Scheduler(QDialog):
 
     def load_state(self):
         settings = ffsettings()
-        if "global/scheduler_geometry" in settings.allKeys():
-            self.restoreGeometry(settings.value("global/scheduler_geometry"))
+        if "global/scheduler_g" in settings.allKeys():
+            self.restoreGeometry(settings.value("global/scheduler_g"))
 
-        if "global/scheduler_column_widths" in settings.allKeys():
-            col_widths = settings.value("global/scheduler_column_widths")
+        if "global/scheduler_c" in settings.allKeys():
+            self.model.header_data = settings.value("global/scheduler_c") or DEFAULT_COLUMS
+
+        self.model.load(self.id_channel, self.current_date)
+
+        if "global/scheduler_cw" in settings.allKeys():
+            self.view.horizontalHeader().restoreState(settings.value("global/scheduler_cw"))
+        else:
             for id_column in range(self.model.columnCount(False)):
-                col_tag = self.model.header_data[id_column]
-                w = col_widths.get(col_tag,False)
-                if w:
-                    self.view.setColumnWidth(id_column, w) 
-                else: 
-                    self.view.resizeColumnToContents(id_column)
-
+                self.view.resizeColumnToContents(id_column)
 
 
     def save_state(self):
         settings = ffsettings()
-        settings.setValue("global/scheduler_geometry", self.saveGeometry())
-        col_widths = {}
-        for id_column in range(self.model.columnCount(False)):
-            col_widths[self.model.header_data[id_column]] = self.view.columnWidth(id_column)
-        settings.setValue("global/scheduler_column_widths", col_widths)
+        settings.setValue("global/scheduler_g", self.saveGeometry())
+        settings.setValue("global/scheduler_c", self.model.header_data)
+        settings.setValue("global/scheduler_cw", self.view.horizontalHeader().saveState())
 
 
     def on_activate(self,mi):
         self.view.do_edit(mi)
-
 
     def on_add_event(self):
         try:
@@ -168,15 +155,10 @@ class Scheduler(QDialog):
             id_event = self.model.object_data[idx.row()]["id_object"]
             if id_event and id_event not in self.model.deleted.keys(): 
                 self.model.deleted[id_event] = self.model.object_data[idx.row()]["title"]
-         
         rtd.sort()
         for i in reversed(rtd):
             del(self.model.object_data[i])
-        
         self.model.refresh()
-
-        #print self.model.deleted
-
 
 
     def on_accept(self):
@@ -185,7 +167,13 @@ class Scheduler(QDialog):
             events.append(evt.meta)
 
         delete = list(self.model.deleted.keys())
-        result, data = query("set_day_events",{"date":self.current_date, "id_channel":self.id_channel, "events":events, "delete":delete })
+        result, data = query("set_day_events", 
+                                {   
+                                    "date" : self.current_date, 
+                                    "id_channel" : self.id_channel,
+                                    "events" : events,
+                                    "delete" : delete 
+                                })
         self.close()
 
     def on_cancel(self):

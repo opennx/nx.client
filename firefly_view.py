@@ -83,6 +83,11 @@ class NXSortModel(QSortFilterProxyModel):
         self.setSortLocaleAware(True)
         self.setSortRole(Qt.UserRole)
 
+    @property 
+    def object_data(self):
+        return self.sourceModel().object_data
+
+
 
 
 class NXView(QTableView):
@@ -90,6 +95,7 @@ class NXView(QTableView):
         super(NXView, self).__init__(parent)
         self.setStyleSheet(base_css)
         self.verticalHeader().setVisible(False)
+        #self.horizontalHeader().setStretchLastSection(True)
         self.setWordWrap(False)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setDragEnabled(True)

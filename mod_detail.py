@@ -34,18 +34,12 @@ class Detail(BaseWidget):
 
         self.setLayout(layout)
 
-
-
-
-
-
-    def getState(self):
+    def save_state(self):
         state = {}
         state["class"] = "detail"
         return state
 
-
-    def setState(self, state):
+    def load_state(self, state):
         pass
 
 

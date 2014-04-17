@@ -1,25 +1,70 @@
 from firefly_common import *
 from firefly_widgets import *
 
+def format_header(key):
+    return meta_types.tag_alias(key, config.get("language","en-US")) 
+
+class MetaViewModel(QAbstractTableModel):
+    def __init__(self, parent):
+        super(MetaViewModel, self).__init__(parent)
+        self.parent = parent
+        self.object_data     = []
+
+    def rowCount(self, parent):    
+        return len(self.object_data)   
+
+    def columnCount(self, parent): 
+        return 1
+
+    def headerData(self, idx, orientation=Qt.Vertical, role=Qt.DisplayRole):
+        if orientation == Qt.Vertical and role == Qt.DisplayRole: 
+            return format_header(self.object_data[idx][0])
+        
+        elif orientation == Qt.Vertical and role == Qt.DisplayRole:
+            return ["value"]    
+
+    def data(self, index, role=Qt.DisplayRole): 
+        if not index.isValid(): 
+            return None 
+
+        row = index.row()
+        col = index.column()
+        tag, val  = self.object_data[row]
+          
+        if role == Qt.DisplayRole:
+            return val
+
+        return None
+
+
 
 
 class MetaView(QTableView):
     def __init__(self, parent):
         super(MetaView, self).__init__(parent)
+
         self.parent = parent
+        self.setStyleSheet(base_css)
+        self.verticalHeader().setVisible(True)
+        self.horizontalHeader().setVisible(False)
+        self.horizontalHeader().setStretchLastSection(True);
+        self.setWordWrap(False)
+        self.setSelectionMode(self.ExtendedSelection)
+        
+        self.setShowGrid(False)
+        self.setAlternatingRowColors(True)
+        self.activated.connect(self.on_activate)
 
-    def load(self, obj):
-        pass
+        self.model = MetaViewModel(self) 
+        self.setModel(self.model)
+  
 
 
 
-
-class MetaView(QTextEdit):
     def load(self, objects):
-        txt = ""
-
+        self.model.beginResetModel()
         tags = set([tag for obj in objects for tag in obj.meta])
-
+        self.model.object_data = []
         for tag in sorted(tags):
             s = set([obj[tag] for obj in objects])
             s = list(s)
@@ -31,8 +76,10 @@ class MetaView(QTextEdit):
             else:
                 value = ">>>MULTIPLE VALUES<<<"
 
-            txt += "{0:<25} {1}\n".format(tag, value)
 
+            self.model.object_data.append((tag, value))
+        self.model.endResetModel()
 
-            
-        self.setText(txt)
+    def on_activate(self):
+        pass
+

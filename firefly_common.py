@@ -30,6 +30,8 @@ class Pixlib(dict):
             self[key] = get_pix(key)
         return self.get(key, None)
 
+pixlib = Pixlib()
+
 
 class BaseDock(QDockWidget):
     def __init__(self, parent, object_name=False):
@@ -48,17 +50,22 @@ class BaseDock(QDockWidget):
         self.deleteLater()
         self.parent.on_dock_closed(self)
 
-    def setState(self, main_widget, state):
+    @property 
+    def class_(self):
+        return self.main_widget.__class__.__name__.lower()
+
+    def load_state(self, main_widget, state):
         self.main_widget = main_widget(self)
         self.setWidget(self.main_widget)
-        self.main_widget.setState(state)
-        self.init_size = state.get("size",False)
+        self.main_widget.load_state(state)
 
-    def getState(self):
-        state = self.main_widget.getState() 
-        size = self.size()
-        state.update({"object_name": self.objectName(), "size" : (size.width(),size.height())})
-        return state
+    def save(self, settings=False):
+        if not settings:
+            settings = ffsettings()
+        settings.setValue("docks/{}".format(self.objectName()), self.save_state())
+
+    def save_state(self):
+        return self.main_widget.save_state()
 
     def status(self, message, message_type=INFO):
         self.parent.status(message, message_type)
@@ -69,10 +76,10 @@ class BaseWidget(QWidget):
     def status(self, message, message_type=INFO):
         self.parent.status(message, message_type)
 
-    def getState(self):
+    def save_state(self):
         pass
 
-    def setState(self):
+    def load_state(self):
         pass
 
 
@@ -81,5 +88,3 @@ class ToolBarStretcher(QWidget):
         super(ToolBarStretcher, self).__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
 
-
-pixlib = Pixlib()

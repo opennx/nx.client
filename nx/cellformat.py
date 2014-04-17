@@ -11,6 +11,15 @@ ROLE_FOREGROUND = 3
 ROLE_BACKGROUND = 4
 ROLE_SORT       = 5
 
+
+def shorten(instr):
+    output = instr[:100]
+    output = output.split("\n")[0]
+    if instr != output:
+        output += "..."
+    return output
+
+
 class SuperTags():
     def __init__(self):
         self.tags = {"rundown_symbol":True}
@@ -104,7 +113,7 @@ class NXCellFormat():
 
         mtype = meta_types[key]
 
-        if   mtype.class_ in [TEXT, BLOB]:         return value
+        if   mtype.class_ in [TEXT, BLOB]:         return shorten(value)
         elif mtype.class_ in [INTEGER, NUMERIC]:   return ["%.3f","%d"][float(value).is_integer()] % value if value else 0
         elif mtype.class_ == DATE:                 return time.strftime("%Y-%m-%d",time.localtime(value))
         elif mtype.class_ == TIME:                 return time.strftime("%H:%M",time.localtime(value))

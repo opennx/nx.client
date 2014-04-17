@@ -13,6 +13,8 @@ from dlg_scheduler import Scheduler
 from mod_rundown_onair import OnAir
 
 
+DEFAULT_COLUMNS = ["rundown_symbol", "title", "duration", "mark_in", "mark_out", "rundown_status", "id_object", "id_asset"]
+
 
 class RundownModel(NXViewModel):
     def load(self, id_channel, date, full=True):
@@ -23,8 +25,6 @@ class RundownModel(NXViewModel):
 
         if full:
             self.object_data = []
-            self.header_data = ["rundown_symbol", "title", "duration", "mark_in", "mark_out", "rundown_status", "id_object", "id_asset"]
-
             res, data = query("rundown",{"id_channel":id_channel,"date":date})
             if success(res) and data: 
                 row = 0
@@ -260,14 +260,14 @@ class Rundown(BaseWidget):
         
         self.current_date = time.strftime("%Y-%m-%d")
         self.id_channel   = 1 # TODO (get default from playout config, overide in setState)
+        self.update_header()
+
         self.current_item = False
         self.cued_item = False
-        self.column_widths = {}
 
         self.on_air = OnAir(self)
         self.view  = NXView(self)
         self.model = RundownModel(self)
-
 
         self.delegate = MetaEditItemDelegate(self.view)
         self.delegate.settings["base_date"] = datestr2ts(self.current_date)
@@ -280,8 +280,6 @@ class Rundown(BaseWidget):
         self.view.selectionChanged = self.selectionChanged
         self.view.keyPressEvent = self.view_keyPressEvent
 
-
-
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
         layout.setSpacing(2)
@@ -292,38 +290,29 @@ class Rundown(BaseWidget):
         self.setLayout(layout)
 
 
-
-
-    def getState(self):
+    def save_state(self):
         state = {}
         state["class"] = "rundown"
-        self.saveColumnWidths()
-        state["column_widths"] = self.column_widths
+        state["c"] = self.model.header_data
+        state["cw"] = self.view.horizontalHeader().saveState()
         return state
 
-    def setState(self, state):
-        self.column_widths = state.get("column_widths", {})
+    def load_state(self, state):
+        self.model.header_data = state.get("c") or DEFAULT_COLUMNS
+
         self.load(self.id_channel, self.current_date)
 
-    def loadColumnWidths(self):
-        for id_column in range(self.model.columnCount(False)):
-            col_tag = self.model.header_data[id_column]
-            w = self.column_widths.get(col_tag,False)
-            if w:
-                self.view.setColumnWidth(id_column, w)
-            else: 
+        cw = state.get("cw", False)
+        if cw:
+            self.view.horizontalHeader().restoreState(cw)
+        else:
+            for id_column in range(self.model.columnCount(False)):
                 self.view.resizeColumnToContents(id_column)
 
-    def saveColumnWidths(self):
-        for id_column in range(self.model.columnCount(False)):
-            self.column_widths[self.model.header_data[id_column]] = self.view.columnWidth(id_column)
+
         
     def load(self, id_channel, date, full=True):
-        if full and self.model.header_data:
-            self.saveColumnWidths()
         self.model.load(id_channel, date, full=full)
-        if full:
-            self.loadColumnWidths()
 
     def refresh(self, full=True):
         self.load(self.id_channel, self.current_date, full=full)
@@ -347,9 +336,7 @@ class Rundown(BaseWidget):
     ## 
 
     def on_activate(self, mi):
-
         item = self.model.object_data[mi.row()]
-        print (item)
 
         params = {
             "id_channel" : self.id_channel,
@@ -361,9 +348,8 @@ class Rundown(BaseWidget):
 
 
     def view_keyPressEvent(self, event):
-        print (event.key())
         if event.key() == Qt.Key_Delete:
-            print (query("del_items",params={"items":[obj.id for obj in self.view.selected_objects]}))
+            query("del_items", params={"items":[obj.id for obj in self.view.selected_objects]})
             return
         NXView.keyPressEvent(self.view, event)
 
@@ -427,7 +413,7 @@ class Rundown(BaseWidget):
         pass
 
     def on_scheduler(self):
-        scheduler = Scheduler(self, self.current_date)
+        scheduler = Scheduler(self, self.id_channel, self.current_date)
         scheduler.exec_()
         self.refresh()
 
