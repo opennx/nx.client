@@ -94,6 +94,7 @@ class ServiceSortModel(QSortFilterProxyModel):
 class ServiceView(QTableView):
     def __init__(self, parent):
         super(ServiceView, self).__init__(parent)
+        self.parent = parent
         self.setStyleSheet(base_css)
         self.verticalHeader().setVisible(False)
         self.setWordWrap(False)
@@ -114,8 +115,8 @@ class ServiceView(QTableView):
         self.selected_services = []
 
         for idx in self.selectionModel().selectedIndexes():
-            row =  self.sort_model.mapToSource(idx).row()
-            id_service = self.model.object_data[row]["id_service"]
+            row =  self.parent.sort_model.mapToSource(idx).row()
+            id_service = self.parent.model.object_data[row]["id_service"]
             if id_service in self.selected_services: 
                 continue
             self.selected_services.append(id_service)
@@ -127,12 +128,12 @@ class ServiceView(QTableView):
 
  
     def on_activate(self,mi):
-        row = self.sort_model.mapToSource(mi).row()
-        col = self.sort_model.mapToSource(mi).column()
-        svc = self.model.object_data[row]
+        row = self.parent.sort_model.mapToSource(mi).row()
+        col = self.parent.sort_model.mapToSource(mi).column()
+        svc = self.parent.model.object_data[row]
         id_service = svc["id_service"]
 
-        action = self.model.header_data[col]
+        action = self.parent.model.header_data[col]
         if action == "ctrl":
             cmd = {
                 0 : 2,

@@ -13,7 +13,7 @@ from dlg_scheduler import Scheduler
 from mod_rundown_onair import OnAir
 
 
-DEFAULT_COLUMNS = ["rundown_symbol", "title", "duration", "mark_in", "mark_out", "rundown_status", "id_object", "id_asset"]
+DEFAULT_COLUMNS = ["rundown_symbol", "title", "duration", "rundown_scheduled", "rundown_broadcast", "rundown_status", "mark_in", "mark_out", "id_asset"]
 
 
 class RundownModel(NXViewModel):

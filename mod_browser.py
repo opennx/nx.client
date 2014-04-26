@@ -16,9 +16,9 @@ class BrowserModel(NXViewModel):
 
         self.object_data = []
         
-        if "view" in kwargs:
+        try:
             self.header_data = config["views"][kwargs["view"]][2]
-        else:
+        except:
             self.header_data =  DEFAULT_HEADER_DATA
 
         res, data = query("browse", kwargs)
@@ -75,7 +75,6 @@ class SearchWidget(QLineEdit):
                 print ("extend search")
                 #self.parent.OnSearch(extend=True)
             else:
-                self.parent.search_query["fulltext"] = self.line_edit.text()
                 self.parent.browse()
             return
 
@@ -85,39 +84,7 @@ class SearchWidget(QLineEdit):
         elif event.key() == Qt.Key_Down:
             self.parent.view.setFocus()
 
-        QLineEdit.keyPressEvent(self.line_edit, event)
-
-
-class SearchBox(QWidget):
-    def __init__(self,parent):
-        super(SearchBox, self).__init__()
-        self.parent = parent
-
-
-        self.btn_view = QPushButton()
-        self.btn_view.setIcon(QIcon(pixlib["menu"]))
-
-        self.btn_clear = QPushButton()
-        self.btn_clear.setIcon(QIcon(pixlib["cancel"]))
-
-        self.btn_search = QPushButton()
-        self.btn_search.setIcon(QIcon(pixlib["search"]))
-
-
-        self.line_edit =  QLineEdit()
-        self.line_edit.setPlaceholderText ("type something...")
-        self.line_edit.keyPressEvent = self.line_keyPressEvent
-
-        layout = QHBoxLayout()
-        layout.setSpacing(2)
-        layout.setContentsMargins(0,4,0,0)
-
-        layout.addWidget(self.btn_view,0)
-        layout.addWidget(self.line_edit,1)
-        layout.addWidget(self.btn_clear,0)
-        layout.addWidget(self.btn_search,0)
-        self.setLayout(layout)
-
+        QLineEdit.keyPressEvent(self, event)
 
 
 
@@ -144,6 +111,7 @@ class Browser(BaseWidget):
         self.view.selectionChanged = self.selectionChanged
 
         action_clear = QAction(QIcon(pixlib["search_clear"]), '&Clear search query', parent)        
+        action_clear.triggered.connect(self.on_clear)
 
         self.action_search = QMenu("Views")
         self.action_search.menuAction().setIcon(QIcon(pixlib["search"]))
@@ -187,7 +155,12 @@ class Browser(BaseWidget):
         if cw:
             self.view.horizontalHeader().restoreState(cw)
 
+    def on_clear(self):
+        self.search_box.setText("")
+        self.browse(fulltext="")
+
     def browse(self,**kwargs):
+        self.search_query["fulltext"] = self.search_box.text()
         self.search_query.update(kwargs)
         self.model.browse(**self.search_query)
  
