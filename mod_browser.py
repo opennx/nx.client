@@ -60,6 +60,29 @@ class BrowserModel(NXViewModel):
     def dropMimeData(self, data, action, row, column, parent):
         #TODO: UPLOAD
         return False
+
+
+    def setData(self, index, data, role=False):
+        tag = self.header_data[index.column()] 
+        value = data
+        id_object = self.object_data[index.row()].id
+        
+        res, data = query("set_meta", {"id_object":id_object, "tag":tag, "value":value })
+
+        if success(res):
+            self.beginResetModel()
+            self.object_data[index.row()] = Asset(from_data=data)
+            self.endResetModel()
+        else:
+            QMessageBox.error(self, "Error", "Unable to save")
+
+        #self.object_data[index.row()][tag] = data
+        #if not id_object in self.changed_objects:
+        #    self.changed_objects.append(id_object)
+        #self.endResetModel()
+
+        #self.refresh()
+        return True
    
 
 
@@ -149,11 +172,14 @@ class Browser(BaseWidget):
     def set_view(self, id_view, initial=False):
         if not initial:
             self.parent.save()
-        #self.state.get("{}c".format("id_view"), DEFAULT_HEADER_DATA)
+        self.state.get("{}c".format("id_view"), DEFAULT_HEADER_DATA)
         self.browse(view=id_view)
         cw = self.state.get("{}cw".format(id_view), False)
         if cw:
             self.view.horizontalHeader().restoreState(cw)
+        else:
+            #TODO: Resize to content
+            pass
 
     def on_clear(self):
         self.search_box.setText("")
