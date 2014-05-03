@@ -6,7 +6,7 @@ from firefly_view import *
 
 from nx.objects import Event
 
-DEFAULT_COLUMS =  ["promoted", "start", "title", "description"]
+DEFAULT_COLUMNS =  ["promoted", "start", "title", "description"]
 
 class SchedulerModel(NXViewModel):        
     def load(self, id_channel, date):
@@ -41,12 +41,12 @@ def scheduler_toolbar(parent):
   
     action_add_event = QAction(QIcon(pixlib["add"]), 'Add event', parent)
     action_add_event.setShortcut('+')
-    action_add_event.triggered.connect(parent.on_add_event)        
+    action_add_event.triggered.connect(parent.on_add_event)
     toolbar.addAction(action_add_event)
   
     action_remove_event = QAction(QIcon(pixlib["remove"]), 'Remove selected event', parent)
     action_remove_event.setShortcut('-')
-    action_remove_event.triggered.connect(parent.on_remove_event)        
+    action_remove_event.triggered.connect(parent.on_remove_event)
     toolbar.addAction(action_remove_event)
     
     toolbar.addSeparator()
@@ -113,7 +113,7 @@ class Scheduler(QDialog):
             self.restoreGeometry(settings.value("global/scheduler_g"))
 
         if "global/scheduler_c" in settings.allKeys():
-            self.model.header_data = settings.value("global/scheduler_c") or DEFAULT_COLUMS
+            self.model.header_data = settings.value("global/scheduler_c") or DEFAULT_COLUMNS
 
         self.model.load(self.id_channel, self.current_date)
 
@@ -122,6 +122,8 @@ class Scheduler(QDialog):
         else:
             for id_column in range(self.model.columnCount(False)):
                 self.view.resizeColumnToContents(id_column)
+
+        self.model.load(self.parent.id_channel, self.parent.current_date)
 
 
     def save_state(self):
