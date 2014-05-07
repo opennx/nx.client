@@ -20,7 +20,7 @@ def datestr2ts(datestr, hh=0, mm=0, ss=0):
     return int(time.mktime(time.struct_time([yy,mo,dd,hh,mm,ss,False,False,False])))
 
 
-def s2time(secs):
+def s2time(secs, show_secs=True, show_fracs=True):
     """Converts seconds to time"""
     try:
         secs = float(secs)
@@ -32,7 +32,13 @@ def s2time(secs):
     hd = int(hh % 24)
     mm = int((wholesecs / 60) - (hh*60))
     ss = int(wholesecs - (hh*3600) - (mm*60))
-    return "{:02d}:{:02d}:{:02d}.{:02d}".format(hd, mm, ss, milisecs) 
+    r = "{:02d}:{:02d}".format(hd, mm) 
+    if show_secs:
+        r += ":{:02d}".format(ss)
+    if show_fracs:
+        r += ":{:02d}".format(milisecs)
+    return r
+        
 
 
 def f2tc(f,base=25):

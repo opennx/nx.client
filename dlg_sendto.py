@@ -1,6 +1,8 @@
 import time
 import datetime
 
+from functools import partial
+
 from firefly_common import *
 
 
@@ -13,19 +15,35 @@ class SendTo(QDialog):
         self.setModal(True)
         self.setStyleSheet(base_css)
 
-        btn_send = QPushButton("Send to playout")
-        btn_send.clicked.connect(self.on_send)
+        if len(self.objects) == 1:
+            what = self.objects[0]["title"]
+        else:
+            what = "{} objects".format(len(self.objects))
 
-        layout = QVBoxLayout()
-        layout.addWidget(btn_send,0)
-        self.setLayout(layout)
-        self.resize(400,600)
+        self.setWindowTitle("Send {} to...".format(what))
 
-    def on_send(self):
+        self.actions = []
+        res, data = query("actions", {"assets":self.assets})
+        if success(res):
+
+            layout = QVBoxLayout()
+            for id_action, title in data:
+                btn_send = QPushButton(title)
+                btn_send.clicked.connect(partial(self.on_send, id_action))
+                layout.addWidget(btn_send,0)
+
+            self.setLayout(layout)
+            self.setMinimumWidth(400)
+
+    @property
+    def assets(self):
         if self.objects and self.objects[0].object_type == "asset":
             objects = [obj.id for obj in self.objects]
         elif self.objects and self.objects[0].object_type == "item":
             objects = [obj["id_asset"] for obj in self.objects]
         else:
-            return
-        query("send_to", {"id_action" : 1, "objects": objects, "settings":{}, "restart_existing": True })
+            return []
+        return objects
+
+    def on_send(self, id_action):
+        query("send_to", {"id_action" : id_action, "objects": self.assets, "settings":{}, "restart_existing": True })

@@ -70,9 +70,10 @@ class BrowserModel(NXViewModel):
         res, data = query("set_meta", {"id_object":id_object, "tag":tag, "value":value })
 
         if success(res):
-            self.beginResetModel()
+            #self.beginResetModel()
             self.object_data[index.row()] = Asset(from_data=data)
-            self.endResetModel()
+            #self.endResetModel()
+            self.dataChanged.emit(index, index)
         else:
             QMessageBox.error(self, "Error", "Unable to save")
 

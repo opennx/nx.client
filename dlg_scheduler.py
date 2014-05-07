@@ -76,7 +76,6 @@ class Scheduler(QDialog):
         self.id_channel = id_channel
         self.current_date = current_date
 
-        
         self.model = SchedulerModel(self)
         self.view = NXView(self)
         self.view.setModel(self.model)
@@ -135,6 +134,7 @@ class Scheduler(QDialog):
 
     def on_activate(self,mi):
         self.view.do_edit(mi)
+
 
     def on_add_event(self):
         try:
