@@ -38,7 +38,6 @@ class OnAirLabel(QLabel):
 class OnAir(QWidget):
     def __init__(self, parent):
         super(OnAir, self).__init__(parent)
-        self.parent = parent
 
         self.pos = 0
         self.dur = 0
@@ -50,7 +49,7 @@ class OnAir(QWidget):
         self.fps = 25.0
 
 
-        self.parent.setWindowTitle("On air ctrl")
+        self.parent().setWindowTitle("On air ctrl")
 
 
         self.progress_bar = QProgressBar(self)
@@ -113,29 +112,30 @@ class OnAir(QWidget):
         layout.addLayout(btns_layout,0)
         self.setLayout(layout)
 
-        self.display_timer = QTimer()
+        self.display_timer = QTimer(self)
         self.display_timer.timeout.connect(self.update_display)
         self.display_timer.start(40)
 
 
     def on_take(self, evt=False):
-        query("take", {"id_channel":self.parent.id_channel}, "play1")
+        query("take", {"id_channel":self.parent().id_channel}, "play1")
 
 
     def on_freeze(self, evt=False):
-        query("freeze", {"id_channel":self.parent.id_channel}, "play1")
+        query("freeze", {"id_channel":self.parent().id_channel}, "play1")
 
     
     def on_retake(self, evt=False):
-        query("retake", {"id_channel":self.parent.id_channel}, "play1")
+        query("retake", {"id_channel":self.parent().id_channel}, "play1")
 
         
     def on_abort(self, evt=False):
-        query("abort", {"id_channel":self.parent.id_channel}, "play1")
+        query("abort", {"id_channel":self.parent().id_channel}, "play1")
 
             
 
-
+    def closeEvent(self):
+        print("onAirClosed")
 
 
     def getState(self):
@@ -168,10 +168,15 @@ class OnAir(QWidget):
 
 
     def update_display(self):
-        adv = time.time() - self.local_request_time
-        rpos = self.pos + (adv*self.fps)
+        try:
+            adv = time.time() - self.local_request_time
+            rpos = self.pos + (adv*self.fps)
         
-        self.progress_bar.setValue(int(rpos*self.fps))
-        self.display_clock.set_text(s2tc(self.request_time+adv, self.fps))
-        self.display_pos.set_text(f2tc(min(self.dur, rpos), self.fps))
-        self.display_rem.set_text(f2tc(max(0,self.dur - rpos), self.fps))
+            self.progress_bar.setValue(int(rpos*self.fps))
+            self.display_clock.set_text(s2tc(self.request_time+adv, self.fps))
+            self.display_pos.set_text(f2tc(min(self.dur, rpos), self.fps))
+            self.display_rem.set_text(f2tc(max(0,self.dur - rpos), self.fps))
+        except:
+            pass
+            #self.deleteLater()
+        #    self.display_timer.stop()

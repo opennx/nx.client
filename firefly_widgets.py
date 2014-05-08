@@ -127,11 +127,10 @@ class NXE_select(QComboBox):
 class MetaEditItemDelegate(QStyledItemDelegate):
     def __init__(self, parent=None):
         super(MetaEditItemDelegate, self).__init__(parent)
-        self.parent = parent
         self.settings = {}
 
     def createEditor(self, parent, styleOption, index):
-        self.parent.is_editing = True  
+        self.parent().is_editing = True  
         try:
             tag, class_, msettings, default_value = index.model().data(index, Qt.EditRole)
         except:
@@ -181,7 +180,7 @@ class MetaEditItemDelegate(QStyledItemDelegate):
             editor.editingFinished.connect(self.commitAndCloseEditor)
          
         elif class_ == BLOB:
-            self.parent.text_editor = TextEditor(default_value, index)
+            parent.text_editor = TextEditor(default_value, index)
             return None
         
         elif class_ in [BOOLEAN, STAR]:
@@ -200,7 +199,7 @@ class MetaEditItemDelegate(QStyledItemDelegate):
          editor = self.sender()
          self.commitData.emit(editor)
          self.closeEditor.emit(editor, QAbstractItemDelegate.NoHint)
-         self.parent.editor_closed_at = time.time()
+         self.parent().editor_closed_at = time.time()
 
      #######################################################################
      

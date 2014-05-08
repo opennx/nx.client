@@ -34,31 +34,31 @@ class SchedulerModel(NXViewModel):
         return flags
   
 
-def scheduler_toolbar(parent):
-    toolbar = QToolBar(parent)
+def scheduler_toolbar(wnd):
+    toolbar = QToolBar(wnd)
     toolbar.setMovable(False)
     toolbar.setFloatable(False)
   
-    action_add_event = QAction(QIcon(pixlib["add"]), 'Add event', parent)
+    action_add_event = QAction(QIcon(pixlib["add"]), 'Add event', wnd)
     action_add_event.setShortcut('+')
-    action_add_event.triggered.connect(parent.on_add_event)
+    action_add_event.triggered.connect(wnd.on_add_event)
     toolbar.addAction(action_add_event)
   
-    action_remove_event = QAction(QIcon(pixlib["remove"]), 'Remove selected event', parent)
+    action_remove_event = QAction(QIcon(pixlib["remove"]), 'Remove selected event', wnd)
     action_remove_event.setShortcut('-')
-    action_remove_event.triggered.connect(parent.on_remove_event)
+    action_remove_event.triggered.connect(wnd.on_remove_event)
     toolbar.addAction(action_remove_event)
     
     toolbar.addSeparator()
   
-    action_accept = QAction(QIcon(pixlib["accept"]), 'Accept changes', parent)
+    action_accept = QAction(QIcon(pixlib["accept"]), 'Accept changes', wnd)
     action_accept.setShortcut('ESC')
-    action_accept.triggered.connect(parent.on_accept)        
+    action_accept.triggered.connect(wnd.on_accept)        
     toolbar.addAction(action_accept)
   
-    action_cancel = QAction(QIcon(pixlib["cancel"]), 'Cancel', parent)
+    action_cancel = QAction(QIcon(pixlib["cancel"]), 'Cancel', wnd)
     action_cancel.setShortcut('Alt+F4')
-    action_cancel.triggered.connect(parent.on_cancel)        
+    action_cancel.triggered.connect(wnd.on_cancel)        
     toolbar.addAction(action_cancel)
 
     return toolbar
@@ -67,8 +67,7 @@ def scheduler_toolbar(parent):
 
 class Scheduler(QDialog):
     def __init__(self,  parent, id_channel, current_date):
-        super(Scheduler, self).__init__()
-        self.parent = parent
+        super(Scheduler, self).__init__(parent)
         self.setModal(True)
         self.setStyleSheet(base_css)
         self.setWindowTitle("Scheduler")
@@ -122,7 +121,7 @@ class Scheduler(QDialog):
             for id_column in range(self.model.columnCount(False)):
                 self.view.resizeColumnToContents(id_column)
 
-        self.model.load(self.parent.id_channel, self.parent.current_date)
+        self.model.load(self.parent().id_channel, self.parent().current_date)
 
 
     def save_state(self):

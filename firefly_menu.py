@@ -1,6 +1,7 @@
+from functools import partial
 from qt_common import *
 
-def create_menu(wnd):
+def create_menu(wnd, workspaces=[]):
     menubar = wnd.menuBar()
 
 
@@ -69,11 +70,28 @@ def create_menu(wnd):
 
     menuWorkspace = menubar.addMenu('&Workspace')
 
+    for workspace in workspaces:
+        wa = QAction(workspace, wnd)
+        wa.triggered.connect(partial(wnd.load_workspace, workspace))
+        menuWorkspace.addAction(wa)   
+
+
+
+    menuWorkspace.addSeparator()
+
     action_workspace_save = QAction('&Save current', wnd)        
     action_workspace_save.setShortcut('Ctrl+S')
     action_workspace_save.setStatusTip('Save current workspace')
     action_workspace_save.triggered.connect(wnd.on_save_workspace)
     menuWorkspace.addAction(action_workspace_save)   
+
+    action_workspace_save_as = QAction('&Save current as', wnd)        
+    action_workspace_save_as.setShortcut('Ctrl+Shift+S')
+    action_workspace_save_as.setStatusTip('Save current workspace as')
+    action_workspace_save_as.triggered.connect(wnd.on_save_workspace_as)
+    menuWorkspace.addAction(action_workspace_save_as)   
+
+    menuWorkspace.addSeparator()
 
     action_workspace_lock = QAction('&Lock', wnd)        
     action_workspace_lock.setShortcut('Ctrl+L')

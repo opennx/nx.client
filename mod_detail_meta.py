@@ -7,7 +7,6 @@ def format_header(key):
 class MetaViewModel(QAbstractTableModel):
     def __init__(self, parent):
         super(MetaViewModel, self).__init__(parent)
-        self.parent = parent
         self.object_data     = []
 
     def rowCount(self, parent):    
@@ -42,8 +41,6 @@ class MetaViewModel(QAbstractTableModel):
 class MetaView(QTableView):
     def __init__(self, parent):
         super(MetaView, self).__init__(parent)
-
-        self.parent = parent
         self.setStyleSheet(base_css)
         self.verticalHeader().setVisible(True)
         self.horizontalHeader().setVisible(False)
@@ -82,4 +79,3 @@ class MetaView(QTableView):
 
     def on_activate(self):
         pass
-

@@ -181,7 +181,7 @@ class RundownModel(NXViewModel):
         if pre_items:
             QApplication.setOverrideCursor(Qt.WaitCursor)
             try:
-                query("bin_order",params={"id_bin":to_bin, "order":pre_items, "sender":self.parent.parent.objectName() })
+                query("bin_order",params={"id_bin":to_bin, "order":pre_items, "sender":self.parent().parent().objectName() })
             except:
                 return False
             self.load(self.id_channel, self.date)
@@ -195,58 +195,58 @@ class RundownDate(QLabel):
     pass
 
 
-def rundown_toolbar(parent):
-    toolbar = QToolBar(parent)
+def rundown_toolbar(wnd):
+    toolbar = QToolBar(wnd)
 
-    action_day_prev = QAction(QIcon(pixlib["back"]), '&Previous day', parent)        
+    action_day_prev = QAction(QIcon(pixlib["back"]), '&Previous day', wnd)        
     action_day_prev.setShortcut('Alt+Left')
     action_day_prev.setStatusTip('Go to previous day')
-    action_day_prev.triggered.connect(parent.on_day_prev)
+    action_day_prev.triggered.connect(wnd.on_day_prev)
     toolbar.addAction(action_day_prev)
 
-    action_now = QAction(QIcon(pixlib["now"]), '&Now', parent)        
+    action_now = QAction(QIcon(pixlib["now"]), '&Now', wnd)        
     action_now.setShortcut('F1')
     action_now.setStatusTip('Go to now')
-    action_now.triggered.connect(parent.on_now)
+    action_now.triggered.connect(wnd.on_now)
     toolbar.addAction(action_now)
 
 
-    action_calendar = QAction(QIcon(pixlib["calendar"]), '&Calendar', parent)        
+    action_calendar = QAction(QIcon(pixlib["calendar"]), '&Calendar', wnd)        
     action_calendar.setShortcut('Ctrl+D')
     action_calendar.setStatusTip('Open calendar')
-    action_calendar.triggered.connect(parent.on_calendar)
+    action_calendar.triggered.connect(wnd.on_calendar)
     toolbar.addAction(action_calendar)
 
-    action_refresh = QAction(QIcon(pixlib["refresh"]), '&Refresh', parent)        
+    action_refresh = QAction(QIcon(pixlib["refresh"]), '&Refresh', wnd)        
     action_refresh.setShortcut('F5')
     action_refresh.setStatusTip('Refresh rundown')
-    action_refresh.triggered.connect(partial(parent.refresh, True))
+    action_refresh.triggered.connect(partial(wnd.refresh, True))
     toolbar.addAction(action_refresh)
 
-    action_day_next = QAction(QIcon(pixlib["next"]), '&Next day', parent)        
+    action_day_next = QAction(QIcon(pixlib["next"]), '&Next day', wnd)        
     action_day_next.setShortcut('Alt+Right')
     action_day_next.setStatusTip('Go to next day')
-    action_day_next.triggered.connect(parent.on_day_next)
+    action_day_next.triggered.connect(wnd.on_day_next)
     toolbar.addAction(action_day_next)
 
     toolbar.addSeparator()
 
-    action_scheduler = QAction(QIcon(pixlib["clock"]), '&Scheduler', parent)        
+    action_scheduler = QAction(QIcon(pixlib["clock"]), '&Scheduler', wnd)        
     action_scheduler.setShortcut('F7')
     action_scheduler.setStatusTip('Open scheduler')
-    action_scheduler.triggered.connect(parent.on_scheduler)
+    action_scheduler.triggered.connect(wnd.on_scheduler)
     toolbar.addAction(action_scheduler)
 
-    action_onair = QAction(QIcon(pixlib["onair"]), '&Playout controls', parent)        
+    action_onair = QAction(QIcon(pixlib["onair"]), '&Playout controls', wnd)        
     action_onair.setShortcut('F6')
     action_onair.setStatusTip('Toggle playout controls')
-    action_onair.triggered.connect(parent.on_onair)
+    action_onair.triggered.connect(wnd.on_onair)
     toolbar.addAction(action_onair)
 
-    toolbar.addWidget(ToolBarStretcher(parent))
+    toolbar.addWidget(ToolBarStretcher(wnd))
 
-    parent.date_display = RundownDate()
-    toolbar.addWidget(parent.date_display)
+    wnd.date_display = RundownDate()
+    toolbar.addWidget(wnd.date_display)
 
     return toolbar
 
@@ -254,8 +254,6 @@ def rundown_toolbar(parent):
 class Rundown(BaseWidget):
     def __init__(self, parent):
         super(Rundown, self).__init__(parent)
-        self.parent = parent
-
         toolbar = rundown_toolbar(self)
         
         self.current_date = time.strftime("%Y-%m-%d")
@@ -329,7 +327,7 @@ class Rundown(BaseWidget):
             s = ""
 
         t = t.strftime("%A %Y-%m-%d")
-        self.parent.setWindowTitle("Rundown {}".format(t))
+        self.parent().setWindowTitle("Rundown {}".format(t))
         self.date_display.setText("<font{}>{}</font>".format(s, t))
 
     ################################################################
@@ -443,7 +441,7 @@ class Rundown(BaseWidget):
                 tot_dur += obj.get_duration()
 
         if self.view.selected_objects:
-            self.parent.parent.focus(self.view.selected_objects)
+            self.parent().parent().focus(self.view.selected_objects)
             if len(self.view.selected_objects) > 1 and tot_dur:
                 self.status("{} objects selected. Total duration {}".format(len(self.view.selected_objects), s2time(tot_dur) ))
 

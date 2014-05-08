@@ -11,7 +11,6 @@ def format_header(key):
 class NXViewModel(QAbstractTableModel):
     def __init__(self, parent):
         super(NXViewModel, self).__init__(parent)
-        self.parent = parent
         self.object_data     = []
         self.header_data     = []
         self.changed_objects = []

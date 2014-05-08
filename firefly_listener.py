@@ -19,7 +19,6 @@ class SeismicSignal(QObject):
 class SeismicListener(QThread):
     def __init__(self, parent = None):
         QThread.__init__(self, parent)
-        self.parent = parent
         self._halt = False
         self.halted = True
         self.last_msg = time.time()

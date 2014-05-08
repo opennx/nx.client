@@ -10,9 +10,7 @@ from mod_detail_meta import MetaView
 class Detail(BaseWidget):
     def __init__(self, parent):
         super(Detail, self).__init__(parent)
-        self.parent = parent
-        
-        self.parent.setWindowTitle("Asset detail")
+        parent.setWindowTitle("Asset detail")
 
         self.tabs = QTabWidget()
 

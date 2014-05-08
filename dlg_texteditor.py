@@ -5,7 +5,6 @@ from firefly_syntaxhl import *
 class TextWidget(QTextEdit):
     def __init__(self, parent, syntax=False):
         super(TextWidget, self).__init__(parent)
-        self.parent = parent
         self.syntax = syntax
 
         if syntax == "python": 
@@ -43,21 +42,21 @@ class TextWidget(QTextEdit):
 
 
 
-def editor_toolbar(parent):
-    toolbar = QToolBar(parent)
+def editor_toolbar(wnd):
+    toolbar = QToolBar(wnd)
     toolbar.setMovable(False)
     toolbar.setFloatable(False)
     
     toolbar.addSeparator()
   
-    action_accept = QAction(QIcon(pixlib["accept"]), 'Accept changes', parent)
+    action_accept = QAction(QIcon(pixlib["accept"]), 'Accept changes', wnd)
     action_accept.setShortcut('ESC')
-    action_accept.triggered.connect(parent.on_accept)        
+    action_accept.triggered.connect(wnd.on_accept)        
     toolbar.addAction(action_accept)
   
-    action_cancel = QAction(QIcon(pixlib["cancel"]), 'Cancel', parent)
+    action_cancel = QAction(QIcon(pixlib["cancel"]), 'Cancel', wnd)
     action_cancel.setShortcut('Alt+F4')
-    action_cancel.triggered.connect(parent.on_cancel)        
+    action_cancel.triggered.connect(wnd.on_cancel)        
     toolbar.addAction(action_cancel)
 
     return toolbar

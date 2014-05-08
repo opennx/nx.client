@@ -9,8 +9,7 @@ from firefly_common import *
 
 class SendTo(QDialog):
     def __init__(self,  parent, objects=[]):
-        super(SendTo, self).__init__()
-        self.parent = parent
+        super(SendTo, self).__init__(parent)
         self.objects = objects
         self.setModal(True)
         self.setStyleSheet(base_css)

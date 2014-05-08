@@ -16,10 +16,13 @@ from dlg_system import SystemDialog
 class Firefly(QMainWindow):
     def __init__(self, parent):
         super(Firefly, self).__init__()
+        settings = ffsettings()
+        workspace = settings.value("global/current_workspace", "default")
+        workspaces =  list(set(k.split("/")[0] for k in settings.allKeys() if k.split("/")[0] not in ["global", "docks"]))
         self.setWindowTitle("Firefly")
         self.setDockOptions(QMainWindow.AllowNestedDocks)
         self.setCentralWidget(None)
-        create_menu(self)
+        create_menu(self, workspaces=workspaces)
         self.parent = parent
         self.status("")
         self.setStyleSheet(base_css)
@@ -30,6 +33,11 @@ class Firefly(QMainWindow):
 
 
     def load_workspace(self, workspace="default"):
+        for dock in self.docks:
+            dock.close()
+            dock.deleteLater()
+            del(dock)
+
         self.workspace = workspace
         settings = ffsettings()
 
@@ -65,20 +73,35 @@ class Firefly(QMainWindow):
     def on_save_workspace(self):
         self.save_workspace(True)
 
+
+    def on_save_workspace_as(self):
+        text, ok = QInputDialog.getText(self, 'Save workspace',  'Enter workspace name')
+        if (not ok) or (text in ["global", "docks"]):
+            QMessageBox.error(self, "Error", "Unable to save workspace")
+            return
+        for dock in self.docks:
+            dock.reset_object_name()
+        self.save_workspace(full=True, workspace=text)
+
+
     def save_workspace(self, full=False, workspace=False):
-        if not workspace:
-            workspace = self.workspace
+        if workspace:
+            self.workspace = workspace
 
         settings = ffsettings()
 
         for dock in self.docks:
             dock.save(settings)
 
+        settings.setValue("global/current_workspace", workspace)
+
         if full:
             settings.setValue("{}/docks".format(self.workspace)    , [str(dock.objectName()) for dock in self.docks])
             settings.setValue("{}/locked".format(self.workspace)   , self.workspace_locked)
             settings.setValue("{}/state".format(self.workspace)    , self.saveState())
             settings.setValue("{}/geometry".format(self.workspace) , self.saveGeometry())
+
+        
 
 
 
@@ -106,7 +129,7 @@ class Firefly(QMainWindow):
 
 
     def on_dock_closed(self, dock):
-        for i,w in enumerate(self.docks):
+        for i, w in enumerate(self.docks):
             if w == dock:
                 del (self.docks[i])
 

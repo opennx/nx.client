@@ -26,8 +26,7 @@ class TXEvent(object):
 class TXVerticalBar(QWidget):
     def __init__(self, parent):      
         super(TXVerticalBar, self).__init__(parent)
-        self.parent = parent
-        self.day_start = self.parent.day_start
+        self.day_start = self.parent().day_start
         self.setMouseTracking(True)
 
     @property
@@ -104,7 +103,7 @@ class TXClockBar(TXVerticalBar):
             if i % 60:
                 continue
             y = i * self.min_size
-            tc = (self.parent.day_start[0]*60 + self.parent.day_start[1]) + i
+            tc = (self.parent().day_start[0]*60 + self.parent().day_start[1]) + i
             qp.drawLine(0, y, self.width(), y)
             qp.drawText(5, y+15, s2time(tc*60, False, False))
 

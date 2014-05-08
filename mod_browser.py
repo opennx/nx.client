@@ -27,7 +27,7 @@ class BrowserModel(NXViewModel):
                 self.object_data.append(Asset(from_data=adata))
 
         self.endResetModel()
-        self.parent.status("Got %d assets in %.03f seconds." % (len(self.object_data), time.time()-start_time))
+        self.parent().status("Got %d assets in %.03f seconds." % (len(self.object_data), time.time()-start_time))
 
 
     def flags(self,index):
@@ -91,22 +91,21 @@ class BrowserModel(NXViewModel):
 class SearchWidget(QLineEdit):
     def __init__(self, parent):
         super(QLineEdit, self).__init__()
-        self.parent = parent
 
     def keyPressEvent(self, event):
         if event.key() in [Qt.Key_Return,Qt.Key_Enter]:
             if event.modifiers() & Qt.ControlModifier:
                 print ("extend search")
-                #self.parent.OnSearch(extend=True)
+                #self.parent().OnSearch(extend=True)
             else:
-                self.parent.browse()
+                self.parent().browse()
             return
 
         elif event.key() == Qt.Key_Escape:
             self.line_edit.setText("")
 
         elif event.key() == Qt.Key_Down:
-            self.parent.view.setFocus()
+            self.parent().view.setFocus()
 
         QLineEdit.keyPressEvent(self, event)
 
@@ -116,8 +115,7 @@ class SearchWidget(QLineEdit):
 class Browser(BaseWidget):
     def __init__(self, parent):
         super(Browser, self).__init__(parent)
-        self.parent = parent
-        self.parent.setWindowTitle("Browser")
+        parent.setWindowTitle("Browser")
         
         self.search_query = {}
 
@@ -172,7 +170,7 @@ class Browser(BaseWidget):
 
     def set_view(self, id_view, initial=False):
         if not initial:
-            self.parent.save()
+            self.parent().save()
         self.state.get("{}c".format("id_view"), DEFAULT_HEADER_DATA)
         self.browse(view=id_view)
         cw = self.state.get("{}cw".format(id_view), False)
@@ -257,7 +255,7 @@ class Browser(BaseWidget):
                 tot_dur += obj.get_duration()
 
         if self.view.selected_objects:
-            self.parent.parent.focus(self.view.selected_objects)
+            self.parent().parent().focus(self.view.selected_objects)
             if len(self.view.selected_objects) > 1 and tot_dur:
                 self.status("{} objects selected. Total duration {}".format(len(self.view.selected_objects), s2time(tot_dur) ))
 

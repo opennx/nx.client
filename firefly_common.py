@@ -40,15 +40,18 @@ class BaseDock(QDockWidget):
         if object_name:
             self.setObjectName(object_name)
         else:
-            self.setObjectName(str(uuid.uuid1()))
+            self.reset_object_name()
 
-        self.parent = parent
         self.setAllowedAreas(Qt.AllDockWidgetAreas)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.setFloating(True)
+
+    def reset_object_name(self):
+        self.setObjectName(str(uuid.uuid1()))
 
     def closeEvent(self, evt):
         self.deleteLater()
-        self.parent.on_dock_closed(self)
+        self.parent().on_dock_closed(self)
 
     @property 
     def class_(self):
@@ -68,13 +71,13 @@ class BaseDock(QDockWidget):
         return self.main_widget.save_state()
 
     def status(self, message, message_type=INFO):
-        self.parent.status(message, message_type)
+        self.parent().status(message, message_type)
 
 
 
 class BaseWidget(QWidget):
     def status(self, message, message_type=INFO):
-        self.parent.status(message, message_type)
+        self.parent().status(message, message_type)
 
     def save_state(self):
         pass

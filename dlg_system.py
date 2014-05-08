@@ -27,7 +27,6 @@ SVC_STATES = {
 class ServiceViewModel(QAbstractTableModel):
     def __init__(self, parent):
         super(ServiceViewModel, self).__init__(parent)
-        self.parent = parent
         self.object_data     = []
         self.header_data     = ["id_service", "agent", "host", "title", "state", "last_seen","autostart", "ctrl"]
 
@@ -94,7 +93,6 @@ class ServiceSortModel(QSortFilterProxyModel):
 class ServiceView(QTableView):
     def __init__(self, parent):
         super(ServiceView, self).__init__(parent)
-        self.parent = parent
         self.setStyleSheet(base_css)
         self.verticalHeader().setVisible(False)
         self.setWordWrap(False)
@@ -115,8 +113,8 @@ class ServiceView(QTableView):
         self.selected_services = []
 
         for idx in self.selectionModel().selectedIndexes():
-            row =  self.parent.sort_model.mapToSource(idx).row()
-            id_service = self.parent.model.object_data[row]["id_service"]
+            row =  self.parent().sort_model.mapToSource(idx).row()
+            id_service = self.parent().model.object_data[row]["id_service"]
             if id_service in self.selected_services: 
                 continue
             self.selected_services.append(id_service)
@@ -128,12 +126,12 @@ class ServiceView(QTableView):
 
  
     def on_activate(self,mi):
-        row = self.parent.sort_model.mapToSource(mi).row()
-        col = self.parent.sort_model.mapToSource(mi).column()
-        svc = self.parent.model.object_data[row]
+        row = self.parent().sort_model.mapToSource(mi).row()
+        col = self.parent().sort_model.mapToSource(mi).column()
+        svc = self.parent().model.object_data[row]
         id_service = svc["id_service"]
 
-        action = self.parent.model.header_data[col]
+        action = self.parent().model.header_data[col]
         if action == "ctrl":
             cmd = {
                 0 : 2,
@@ -157,7 +155,6 @@ class ServiceView(QTableView):
 class SystemDialog(QDialog):
     def __init__(self, parent):
         super(SystemDialog, self).__init__(parent)
-        self.parent = parent
         self.setWindowTitle("System manager")
 
         self.view = ServiceView(self)

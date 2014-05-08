@@ -10,93 +10,93 @@ def proxy_path(id_asset):
     return QUrl(url)
 
 
-def navigation_toolbar(parent):
-    action_goto_in = QAction('Go to IN', parent)        
+def navigation_toolbar(wnd):
+    action_goto_in = QAction('Go to IN', wnd)        
     action_goto_in.setShortcut('Q')
-    action_goto_in.triggered.connect(parent.on_goto_in)
-    parent.addAction(action_goto_in)
+    action_goto_in.triggered.connect(wnd.on_goto_in)
+    wnd.addAction(action_goto_in)
 
-    action_goto_out = QAction('Go to OUT', parent)        
+    action_goto_out = QAction('Go to OUT', wnd)        
     action_goto_out.setShortcut('W')
-    action_goto_out.triggered.connect(parent.on_goto_out)
-    parent.addAction(action_goto_out)
+    action_goto_out.triggered.connect(wnd.on_goto_out)
+    wnd.addAction(action_goto_out)
 
-    action_shuttle_left = QAction('Shuttle left', parent)        
+    action_shuttle_left = QAction('Shuttle left', wnd)        
     action_shuttle_left.setShortcut('J')
-    action_shuttle_left.triggered.connect(parent.on_shuttle_left)
-    parent.addAction(action_shuttle_left)
+    action_shuttle_left.triggered.connect(wnd.on_shuttle_left)
+    wnd.addAction(action_shuttle_left)
 
-    action_shuttle_pause = QAction('Shuttle right', parent)        
+    action_shuttle_pause = QAction('Shuttle right', wnd)        
     action_shuttle_pause.setShortcut('K')
-    action_shuttle_pause.triggered.connect(parent.on_play)
-    parent.addAction(action_shuttle_pause)
+    action_shuttle_pause.triggered.connect(wnd.on_play)
+    wnd.addAction(action_shuttle_pause)
 
-    action_shuttle_right = QAction('Shuttle right', parent)        
+    action_shuttle_right = QAction('Shuttle right', wnd)        
     action_shuttle_right.setShortcut('L')
-    action_shuttle_right.triggered.connect(parent.on_shuttle_right)
-    parent.addAction(action_shuttle_right)
+    action_shuttle_right.triggered.connect(wnd.on_shuttle_right)
+    wnd.addAction(action_shuttle_right)
 
-    action_frame_prev5 = QAction('Previous 5 frames', parent)        
+    action_frame_prev5 = QAction('Previous 5 frames', wnd)        
     action_frame_prev5.setShortcut('1')
-    action_frame_prev5.triggered.connect(partial(parent.on_frame_step, -5))
-    parent.addAction(action_frame_prev5)
+    action_frame_prev5.triggered.connect(partial(wnd.on_frame_step, -5))
+    wnd.addAction(action_frame_prev5)
 
-    action_frame_next5 = QAction('Next 5 frames', parent)        
+    action_frame_next5 = QAction('Next 5 frames', wnd)        
     action_frame_next5.setShortcut('2')
-    action_frame_next5.triggered.connect(partial(parent.on_frame_step, 5))
-    parent.addAction(action_frame_next5)
+    action_frame_next5.triggered.connect(partial(wnd.on_frame_step, 5))
+    wnd.addAction(action_frame_next5)
 
 
     ################################################################
 
-    toolbar = QToolBar(parent)
+    toolbar = QToolBar(wnd)
     toolbar.setStyleSheet("background-color:transparent;")
 
-    toolbar.addWidget(ToolBarStretcher(parent))
+    toolbar.addWidget(ToolBarStretcher(wnd))
 
-    action_clear_in = QAction(QIcon(pixlib["clear_in"]), 'Clear IN', parent)        
+    action_clear_in = QAction(QIcon(pixlib["clear_in"]), 'Clear IN', wnd)        
     action_clear_in.setShortcut('d')
     action_clear_in.setStatusTip('Clear IN')
-    action_clear_in.triggered.connect(parent.on_clear_in)
+    action_clear_in.triggered.connect(wnd.on_clear_in)
     toolbar.addAction(action_clear_in)
 
-    action_mark_in = QAction(QIcon(pixlib["mark_in"]), 'Mark IN', parent)        
+    action_mark_in = QAction(QIcon(pixlib["mark_in"]), 'Mark IN', wnd)        
     action_mark_in.setShortcut('E')
     action_mark_in.setStatusTip('Mark IN')
-    action_mark_in.triggered.connect(parent.on_mark_in)
+    action_mark_in.triggered.connect(wnd.on_mark_in)
     toolbar.addAction(action_mark_in)
 
-    action_frame_prev = QAction(QIcon(pixlib["frame_prev"]), 'Previous frame', parent)        
+    action_frame_prev = QAction(QIcon(pixlib["frame_prev"]), 'Previous frame', wnd)        
     action_frame_prev.setShortcut('3')
     action_frame_prev.setStatusTip('Go to previous frame')
-    action_frame_prev.triggered.connect(partial(parent.on_frame_step, -1))
+    action_frame_prev.triggered.connect(partial(wnd.on_frame_step, -1))
     toolbar.addAction(action_frame_prev)
 
-    parent.action_play = QAction(QIcon(pixlib["play"]), 'Play/Pause', parent)        
-    parent.action_play.setShortcut('Space')
-    parent.action_play.setStatusTip('Play/Pause')
-    parent.action_play.triggered.connect(parent.on_play)
-    toolbar.addAction(parent.action_play)
+    wnd.action_play = QAction(QIcon(pixlib["play"]), 'Play/Pause', wnd)        
+    wnd.action_play.setShortcut('Space')
+    wnd.action_play.setStatusTip('Play/Pause')
+    wnd.action_play.triggered.connect(wnd.on_play)
+    toolbar.addAction(wnd.action_play)
 
-    action_frame_next = QAction(QIcon(pixlib["frame_next"]), 'Next frame', parent)        
+    action_frame_next = QAction(QIcon(pixlib["frame_next"]), 'Next frame', wnd)        
     action_frame_next.setShortcut('4')
     action_frame_next.setStatusTip('Go to next frame')
-    action_frame_next.triggered.connect(partial(parent.on_frame_step, 1))
+    action_frame_next.triggered.connect(partial(wnd.on_frame_step, 1))
     toolbar.addAction(action_frame_next)
 
-    action_mark_out = QAction(QIcon(pixlib["mark_out"]), 'Mark OUT', parent)        
+    action_mark_out = QAction(QIcon(pixlib["mark_out"]), 'Mark OUT', wnd)        
     action_mark_out.setShortcut('R')
     action_mark_out.setStatusTip('Mark OUT')
-    action_mark_out.triggered.connect(parent.on_mark_out)
+    action_mark_out.triggered.connect(wnd.on_mark_out)
     toolbar.addAction(action_mark_out)
 
-    action_clear_out = QAction(QIcon(pixlib["clear_out"]), 'Clear OUT', parent)        
+    action_clear_out = QAction(QIcon(pixlib["clear_out"]), 'Clear OUT', wnd)        
     action_clear_out.setShortcut('f')
     action_clear_out.setStatusTip('Clear OUT')
-    action_clear_out.triggered.connect(parent.on_clear_out)
+    action_clear_out.triggered.connect(wnd.on_clear_out)
     toolbar.addAction(action_clear_out)
 
-    toolbar.addWidget(ToolBarStretcher(parent))
+    toolbar.addWidget(ToolBarStretcher(wnd))
     return toolbar
 
 
@@ -125,7 +125,6 @@ class VideoPlayer(QWidget):
         self.media_player = QMediaPlayer(None, QMediaPlayer.VideoSurface)
         self.video_widget = QVideoWidget(self)
         self.current_id = False
-        self.parent = parent
 
         self.timeline = QSlider(Qt.Horizontal)
         self.timeline.setRange(0, 0)
@@ -162,7 +161,7 @@ class VideoPlayer(QWidget):
         self.media_player.error.connect(self.handle_error)
 
     def status(self, message, message_type=INFO):
-        self.parent.status(message, message_type)
+        self.parent().parent().parent().status(message, message_type)
 
     def media_state_changed(self, state):
         if self.media_player.state() == QMediaPlayer.PlayingState:
