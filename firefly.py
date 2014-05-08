@@ -9,7 +9,8 @@ from firefly_starter import Firestarter
 
 from mod_browser import Browser
 from mod_rundown import Rundown
-from mod_detail  import Detail
+from mod_detail import Detail
+from mod_scheduler import Scheduler
 
 from dlg_system import SystemDialog
 
@@ -19,7 +20,6 @@ class Firefly(QMainWindow):
         settings = ffsettings()
         workspace = settings.value("global/current_workspace", "default")
         workspaces =  list(set(k.split("/")[0] for k in settings.allKeys() if k.split("/")[0] not in ["global", "docks"]))
-        self.setWindowTitle("Firefly")
         self.setDockOptions(QMainWindow.AllowNestedDocks)
         self.setCentralWidget(None)
         create_menu(self, workspaces=workspaces)
@@ -28,27 +28,30 @@ class Firefly(QMainWindow):
         self.setStyleSheet(base_css)
         self.docks = []
         self.sys_dlg = None
-        self.load_workspace()
+        self.load_workspace(workspace)
         self.show()
-
+        
+    def on_close_all(self):
+        print (len(self.docks))
+        for dock in self.docks:
+            print ("closing dock", dock.class_)
+            dock.close()
 
     def load_workspace(self, workspace="default"):
-        for dock in self.docks:
-            dock.close()
-            dock.deleteLater()
-            del(dock)
-
+        self.on_close_all()
+        self.docks = []
         self.workspace = workspace
         settings = ffsettings()
 
         self.workspace_locked = settings.value("%s/locked" % workspace, False)
 
-        if "{}/docks".format(workspace) in settings.allKeys():
+        if "{}/docks".format(workspace) in settings.allKeys() and settings.value("{}/docks".format(workspace)):
             for object_name in settings.value("{}/docks".format(workspace)):
                 dock_data = settings.value("docks/{}".format(object_name))
                 widget =   {"browser" : Browser, 
                             "rundown" : Rundown, 
                             "detail" : Detail,
+                            "scheduler" : Scheduler,
                             }[dock_data["class"]]
 
                 dock = BaseDock(self, object_name)
@@ -68,6 +71,7 @@ class Firefly(QMainWindow):
         
         for dock in self.docks:
             dock.show()
+        self.setWindowTitle("Firefly - {}".format(self.workspace))
 
 
     def on_save_workspace(self):
@@ -93,10 +97,10 @@ class Firefly(QMainWindow):
         for dock in self.docks:
             dock.save(settings)
 
-        settings.setValue("global/current_workspace", workspace)
+        settings.setValue("global/current_workspace", self.workspace)
 
         if full:
-            settings.setValue("{}/docks".format(self.workspace)    , [str(dock.objectName()) for dock in self.docks])
+            settings.setValue("{}/docks".format(self.workspace)    , [str(dock.objectName()) for dock in self.docks if dock.isVisible()])
             settings.setValue("{}/locked".format(self.workspace)   , self.workspace_locked)
             settings.setValue("{}/state".format(self.workspace)    , self.saveState())
             settings.setValue("{}/geometry".format(self.workspace) , self.saveGeometry())
@@ -127,12 +131,16 @@ class Firefly(QMainWindow):
         self.save_workspace()
         evt.accept()
 
-
     def on_dock_closed(self, dock):
-        for i, w in enumerate(self.docks):
-            if w == dock:
-                del (self.docks[i])
+        pass
 
+    def on_dock_destroyed(self):
+        for i, dock in enumerate(self.docks):
+            try:
+                a = dock.objectName()
+            except:
+                del(self.docks[i])
+        
 
     def status(self, message, message_type=INFO):
         if message:
@@ -155,6 +163,14 @@ class Firefly(QMainWindow):
     def on_wnd_rundown(self):
         wnd = BaseDock(self)
         wnd.load_state(Rundown, {})
+        self.docks.append(wnd)
+        wnd.show()
+        if self.workspace_locked:
+            wnd.setAllowedAreas(Qt.NoDockWidgetArea)
+
+    def on_wnd_scheduler(self):
+        wnd = BaseDock(self)
+        wnd.load_state(Scheduler, {})
         self.docks.append(wnd)
         wnd.show()
         if self.workspace_locked:

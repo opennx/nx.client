@@ -36,14 +36,13 @@ pixlib = Pixlib()
 class BaseDock(QDockWidget):
     def __init__(self, parent, object_name=False):
         super(BaseDock, self).__init__(parent)
-
         if object_name:
             self.setObjectName(object_name)
         else:
             self.reset_object_name()
-
+        self.destroyed.connect(parent.on_dock_destroyed)
         self.setAllowedAreas(Qt.AllDockWidgetAreas)
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.setFloating(True)
 
     def reset_object_name(self):

@@ -52,6 +52,12 @@ def create_menu(wnd, workspaces=[]):
     action_wnd_detail.triggered.connect(wnd.on_wnd_detail)
     menuWindow.addAction(action_wnd_detail)    
 
+    action_wnd_scheduler = QAction('&Scheduler', wnd)        
+    action_wnd_scheduler.setShortcut('Ctrl+H')
+    action_wnd_scheduler.setStatusTip('Open scheduler window')
+    action_wnd_scheduler.triggered.connect(wnd.on_wnd_scheduler)
+    menuWindow.addAction(action_wnd_scheduler)    
+
     action_wnd_rundown = QAction('&Rundown', wnd)        
     action_wnd_rundown.setShortcut('Ctrl+R')
     action_wnd_rundown.setStatusTip('Open rundown window')
@@ -78,6 +84,12 @@ def create_menu(wnd, workspaces=[]):
 
 
     menuWorkspace.addSeparator()
+
+
+    action_close_all = QAction('&Close all', wnd)        
+    action_close_all.setStatusTip('Close current workspace')
+    action_close_all.triggered.connect(wnd.on_close_all)
+    menuWorkspace.addAction(action_close_all)   
 
     action_workspace_save = QAction('&Save current', wnd)        
     action_workspace_save.setShortcut('Ctrl+S')

@@ -7,11 +7,10 @@ from nx.common.utils import *
 COLOR_CALENDAR_BACKGROUND = QColor("#161616")
 COLOR_DAY_BACKGROUND = QColor("#323232")
 
-
 TIME_PENS = [
-        (60 , QPen( QColor("#9999ff"), 2 , Qt.SolidLine )),
+        (60 , QPen( QColor("#999999"), 2 , Qt.SolidLine )),
         (15 , QPen( QColor("#999999"), 1 , Qt.SolidLine )),
-        (5  , QPen( QColor("#666666"), 1 , Qt.SolidLine ))
+        (5  , QPen( QColor("#444444"), 1 , Qt.SolidLine ))
     ]
 
 DAY = 3600*24
@@ -26,7 +25,6 @@ class TXEvent(object):
 class TXVerticalBar(QWidget):
     def __init__(self, parent):      
         super(TXVerticalBar, self).__init__(parent)
-        self.day_start = self.parent().day_start
         self.setMouseTracking(True)
 
     @property
@@ -80,15 +78,16 @@ class TXDayWidget(TXVerticalBar):
     def mouseMoveEvent(self, evt):
         tc = (evt.y()/self.min_size*60) + self.start_time
         
-        print (time.strftime("%Y-%m-%d %H:%M", time.localtime(tc)))
+    #    print (time.strftime("%Y-%m-%d %H:%M", time.localtime(tc)))
         
 
 
 
 class TXClockBar(TXVerticalBar):
-    def __init__(self, parent):
+    def __init__(self, parent, day_start):
         super(TXClockBar, self).__init__(parent)
-        self.setMinimumWidth(60)
+        self.setMinimumWidth(45)
+        self.day_start = day_start
 
     def drawWidget(self, qp):
         qp.setPen(Qt.NoPen)       
@@ -103,10 +102,9 @@ class TXClockBar(TXVerticalBar):
             if i % 60:
                 continue
             y = i * self.min_size
-            tc = (self.parent().day_start[0]*60 + self.parent().day_start[1]) + i
+            tc = (self.day_start[0]*60 + self.day_start[1]) + i
             qp.drawLine(0, y, self.width(), y)
             qp.drawText(5, y+15, s2time(tc*60, False, False))
-
 
 
 class TXCalendar(QWidget):
@@ -124,7 +122,7 @@ class TXCalendar(QWidget):
         self.events = []
 
         cols_layout = QHBoxLayout()
-        cols_layout.addWidget(TXClockBar(self), 0)
+        cols_layout.addWidget(TXClockBar(self, self.day_start), 0)
 
         for i in range(self.num_days):
             self.days.append(TXDayWidget(self, self.start_time+(i*DAY)))
@@ -151,7 +149,6 @@ class TXCalendar(QWidget):
         self.setMinimumHeight(600)
     
     def on_zoom(self):
-        print(self.zoom.value())
         self.scroll_widget.setMinimumHeight(self.zoom.value())
 
 
