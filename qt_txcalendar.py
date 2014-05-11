@@ -110,6 +110,7 @@ class TXClockBar(TXVerticalBar):
 class TXCalendar(QWidget):
     def __init__(self, parent, view_start):
         super(TXCalendar, self).__init__(parent)
+        self.setStyleSheet("border:1px solid red;")
         self.week_start = 0     # Monday is a first day of week
         self.day_start = (6,00) # Broadcast starts at 6:00 AM
         self.num_days = 7
@@ -136,6 +137,7 @@ class TXCalendar(QWidget):
         self.scroll_area.setFrameStyle(QFrame.NoFrame)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setWidget(self.scroll_widget)
+        self.scroll_area.setContentsMargins(0,0,0,0)
 
         self.zoom = QSlider(Qt.Horizontal)
         self.zoom.setMinimum(0)

@@ -214,7 +214,8 @@ class Browser(BaseWidget):
         if q:
             self.search_box.setText(q)
         self.state = state
-        self.set_view(self.search_query.get("view",0), initial=True)
+        default_view = sorted(config["views"].keys())[0]
+        self.set_view(self.search_query.get("view",default_view), initial=True)
 
         
 

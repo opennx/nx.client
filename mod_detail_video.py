@@ -4,9 +4,10 @@ from nx.common.metadata import fract2float
 from functools import partial
 
 def proxy_path(id_asset):
-    host = "192.168.32.148"
-    port = 80
-    url = "http://{}:{}/proxy/{:04d}/{:08d}.mp4".format(host, port, int(id_asset/1000), id_asset)
+    host = config["hive_host"]
+    port = config["hive_port"]
+    protocol = "https" if config["use_ssl"] else "http"
+    url = "{}://{}:{}/proxy/{:04d}/{:08d}.mp4".format(protocol, host, port, int(id_asset/1000), id_asset)
     return QUrl(url)
 
 
@@ -100,7 +101,17 @@ def navigation_toolbar(wnd):
     return toolbar
 
 
+class VideoWidget(QVideoWidget):
+    def paintEvent(self, e):
+        qp = QPainter()
+        qp.begin(self)
+        self.drawWidget(qp)
+        qp.end()
 
+    def drawWidget(self, qp):
+        qp.setPen(Qt.NoPen)       
+        qp.setBrush(QColor("#cc00cc"))
+        qp.drawRect(0, 0, self.width(), self.height())
 
 
 
@@ -123,7 +134,7 @@ class VideoPlayer(QWidget):
         self.dout.setStatusTip("Mark Out")
 
         self.media_player = QMediaPlayer(None, QMediaPlayer.VideoSurface)
-        self.video_widget = QVideoWidget(self)
+        self.video_widget = VideoWidget(self)
         self.current_id = False
 
         self.timeline = QSlider(Qt.Horizontal)
@@ -159,6 +170,7 @@ class VideoPlayer(QWidget):
         self.media_player.positionChanged.connect(self.position_changed)
         self.media_player.durationChanged.connect(self.duration_changed)
         self.media_player.error.connect(self.handle_error)
+
 
     def status(self, message, message_type=INFO):
         self.parent().parent().parent().status(message, message_type)
