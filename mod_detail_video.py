@@ -7,7 +7,8 @@ def proxy_path(id_asset):
     host = config["hive_host"]
     port = config["hive_port"]
     protocol = "https" if config["use_ssl"] else "http"
-    url = "{}://{}:{}/proxy/{:04d}/{:08d}.mp4".format(protocol, host, port, int(id_asset/1000), id_asset)
+    url = "{}://{}:{}/proxy/{:04d}/{:d}.mp4".format(protocol, host, port, int(id_asset/1000), id_asset)
+    print (url)
     return QUrl(url)
 
 

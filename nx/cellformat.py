@@ -168,12 +168,12 @@ class NXCellFormat():
         if model and self.object_type == "item":   
             if not self.id:
                 return "#111140"
-            elif model.parent.cued_item == self.id:
+            elif model.parent().cued_item == self.id:
                 return "#059005"
-            elif model.parent.current_item == self.id:
+            elif model.parent().current_item == self.id:
                 return "#900505"
 
-        if self.object_type == "event" and self.model.parent.__class__.__name__ == "Rundown":
+        if self.object_type == "event" and self.model.parent().__class__.__name__ == "Rundown":
             return RUNDOWN_EVENT_BACKGROUND_COLOR
         return None
         
