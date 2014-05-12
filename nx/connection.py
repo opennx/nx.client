@@ -16,7 +16,7 @@ def success(retcode):
 
 def query(method, params={}, target="hive"):
     params = json.dumps(params)
-    url = "{protocol}://{host}:{port}/{target}".format(protocol = ["http", "https"][config.get("use_ssl", False)],
+    url = "{protocol}://{host}:{port}/{target}".format(protocol = ["http", "https"][config.get("hive_ssl", False)],
                                                        host     = config["hive_host"], 
                                                        port     = config["hive_port"], 
                                                        target   = target

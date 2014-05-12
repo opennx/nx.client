@@ -4,10 +4,9 @@ from nx.common.metadata import fract2float
 from functools import partial
 
 def proxy_path(id_asset):
-    host = config["hive_host"]
-    port = config["hive_port"]
-    protocol = "https" if config["use_ssl"] else "http"
-    url = "{}://{}:{}/proxy/{:04d}/{:d}.mp4".format(protocol, host, port, int(id_asset/1000), id_asset)
+    host = config.get("media_host", False) or config["hive_host"]
+    port = config.get("media_port", False) or config["hive_port"]
+    url = "http://{}:{}/proxy/{:04d}/{:d}.mp4".format(host, port, int(id_asset/1000), id_asset)
     print (url)
     return QUrl(url)
 
