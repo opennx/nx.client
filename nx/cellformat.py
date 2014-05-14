@@ -140,9 +140,9 @@ class NXCellFormat():
         key, val = self._key(key, ROLE_EDIT)
 
         if key and meta_types[key].editable and not val:
-            return key, meta_types[key].class_, meta_types[key].settings, self[key]
+            return key, meta_types[key].class_, meta_types[key].settings, self
         else:
-            return key, "NOEDIT", False, False 
+            return key, "NOEDIT", False, self
 
 
     def format_decoration(self, key):

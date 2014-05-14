@@ -67,16 +67,7 @@ class TextEditor(QDialog):
     def __init__(self, default, index=False, syntax=False):
         super(TextEditor, self).__init__()
 
-        ttl = ""
-        if index:
-            model = index.model()
-            ttl += model.object_data[index.row()]["Title"]
-            if ttl:
-                ttl += " / "
-            ttl += model.headerData(index.column(), Qt.Horizontal, Qt.DisplayRole)
-            ttl = ": " + ttl
-
-        self.setWindowTitle('Firefly text editor'+ttl)
+        self.setWindowTitle('Firefly text editor')
         self.setModal(True)
 
         self.toolbar = editor_toolbar(self)

@@ -130,12 +130,13 @@ class MetaEditItemDelegate(QStyledItemDelegate):
         self.settings = {}
 
     def createEditor(self, parent, styleOption, index):
-        self.parent().is_editing = True  
+        parent.is_editing = True  
         try:
-            tag, class_, msettings, default_value = index.model().data(index, Qt.EditRole)
+            key, class_, msettings, obj = index.model().data(index, Qt.EditRole)
         except:
             return None
 
+        default_value = obj[key]
         settings = self.settings
 
         if isinstance(msettings, dict):
@@ -180,7 +181,9 @@ class MetaEditItemDelegate(QStyledItemDelegate):
             editor.editingFinished.connect(self.commitAndCloseEditor)
          
         elif class_ == BLOB:
-            parent.text_editor = TextEditor(default_value, index)
+            parent.text_editor = TextEditor(default_value, index=index)
+            parent.text_editor.setWindowTitle('{} / {} : Firefly text editor'.format(obj["title"], key))
+            parent.text_editor.exec_()
             return None
         
         elif class_ in [BOOLEAN, STAR]:
