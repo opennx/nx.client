@@ -3,6 +3,7 @@
  
 import os
 import time
+import datetime
 import unicodedata
 
 
@@ -17,7 +18,10 @@ def unaccent(instr,encoding="utf-8"):
 
 def datestr2ts(datestr, hh=0, mm=0, ss=0):
     yy,mo,dd = [int(i) for i in datestr.split("-")]
-    return int(time.mktime(time.struct_time([yy,mo,dd,hh,mm,ss,False,False,False])))
+    ttuple = [yy, mo, dd, hh, mm]
+    dt = datetime.datetime(*ttuple)
+    tstamp = time.mktime(dt.timetuple()) 
+    return tstamp
 
 
 def s2time(secs, show_secs=True, show_fracs=True):
