@@ -1,7 +1,7 @@
+import math
+
 from firefly_common import *
 from firefly_widgets import *
-
-
 
 
 class OnAirButton(QPushButton):
@@ -54,10 +54,6 @@ class OnAir(QWidget):
 
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setTextVisible(False)
-        self.progress_bar.setStyleSheet("""
-        QProgressBar{background: #161616; border:0; border-radius:0; height: 4px}
-        QProgressBar::chunk{background:qlineargradient(x1: 0, y1: 0,    x2: 0, y2: 1,  stop: 0 #009fbc, stop: 1 #00a5c3);}
-        """)
         self.progress_bar.setValue(0)
 
 
@@ -170,10 +166,14 @@ class OnAir(QWidget):
     def update_display(self):
         try:
             adv = time.time() - self.local_request_time
+            rtime = self.request_time+adv
             rpos = self.pos + (adv*self.fps)
+
+            #clock = s2tc(self.request_time+adv, self.fps)
+            clock = time.strftime("%H:%M:%S:{:02d}", time.localtime(rtime)).format(int(25*(rtime-math.floor(rtime))))
+            self.display_clock.set_text(clock)
         
             self.progress_bar.setValue(int(rpos*self.fps))
-            self.display_clock.set_text(s2tc(self.request_time+adv, self.fps))
             self.display_pos.set_text(f2tc(min(self.dur, rpos), self.fps))
             self.display_rem.set_text(f2tc(max(0,self.dur - rpos), self.fps))
         except:

@@ -89,10 +89,10 @@ class RundownModel(NXViewModel):
             mimeData.setUrls(urls)
         except:
             pass
-        return mimeData
+        return mimeData 
 
 
-   
+
     def dropMimeData(self, data, action, row, column, parent):
         if action == Qt.IgnoreAction:
             return True
@@ -430,7 +430,6 @@ class Rundown(BaseWidget):
         tot_dur = 0
 
         for idx in self.view.selectionModel().selectedIndexes():
-            #row      =  self.sort_model.mapToSource(idx).row()
             row = idx.row()
             if row in rows: 
                 continue

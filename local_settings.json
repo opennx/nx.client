@@ -1,6 +1,7 @@
 {
-    "site_name" : "opennx",
-    "hive_host" : "sportuj.tyzmr.de",
-    "hive_port" : 11000,
-    "use_ssl"   : true
+    "site_name"  : "opennx",
+    "hive_host"  : "nx_server.local",
+    "hive_ssl"   : true,
+    "hive_port"  : 11000,
+    "media_port" : 11002
 }

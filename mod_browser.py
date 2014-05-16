@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import math
+
 from functools import partial
 
 from firefly_view import *
@@ -136,6 +138,7 @@ class Browser(BaseWidget):
         action_clear.triggered.connect(self.on_clear)
 
         self.action_search = QMenu("Views")
+        self.action_search.setStyleSheet(base_css)
         self.action_search.menuAction().setIcon(QIcon(pixlib["search"]))
         self.action_search.menuAction().triggered.connect(self.browse)
         self.load_view_menu()
@@ -177,8 +180,9 @@ class Browser(BaseWidget):
         if cw:
             self.view.horizontalHeader().restoreState(cw)
         else:
-            #TODO: Resize to content
-            pass
+            for id_column in range(self.model.columnCount(False)):
+                if meta_types[self.model.header_data[id_column]].class_ != BLOB:
+                    self.view.resizeColumnToContents(id_column)
 
     def on_clear(self):
         self.search_box.setText("")
@@ -191,6 +195,7 @@ class Browser(BaseWidget):
  
     def on_activate(self,mi):
         self.view.do_edit(mi)
+        self.view.update()
 
 
     def send_to(self):
@@ -255,10 +260,13 @@ class Browser(BaseWidget):
             if obj.object_type in ["asset", "item"]:
                 tot_dur += obj.get_duration()
 
+        days = math.floor(tot_dur / (24*3600))
+        durstr = "{} days {}".format(days, s2time(tot_dur)) if days else s2time(tot_dur)
+
         if self.view.selected_objects:
             self.parent().parent().focus(self.view.selected_objects)
             if len(self.view.selected_objects) > 1 and tot_dur:
-                self.status("{} objects selected. Total duration {}".format(len(self.view.selected_objects), s2time(tot_dur) ))
+                self.status("{} objects selected. Total duration {}".format(len(self.view.selected_objects), durstr ))
 
         super(NXView, self.view).selectionChanged(selected, deselected)
 

@@ -179,7 +179,6 @@ class NXCellFormat():
         
 
     def format_foreground(self,key):
-
         if key == "id_folder":
             return config["folders"][self[key]][1]
 
@@ -191,9 +190,6 @@ class NXCellFormat():
 
         elif key == "title" and self.object_type == "asset":
             return NXColors[[ASSET_FG_OFFLINE, ASSET_FG_ONLINE, ASSET_FG_CREATING, ASSET_FG_TRASHED, ASSET_FG_RESET][self["status"]]]
-
-
-
 
         return DEFAULT_TEXT_COLOR
 

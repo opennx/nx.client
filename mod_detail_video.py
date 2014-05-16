@@ -102,6 +102,12 @@ def navigation_toolbar(wnd):
 
 
 class VideoWidget(QVideoWidget):
+    def __init__(self, parent):
+        super(VideoWidget,self).__init__(parent)
+        self.setMinimumWidth(512)
+        self.setMinimumHeight(288)
+        self.pix = pixlib["thumb_video"]
+
     def paintEvent(self, e):
         qp = QPainter()
         qp.begin(self)
@@ -110,10 +116,20 @@ class VideoWidget(QVideoWidget):
 
     def drawWidget(self, qp):
         qp.setPen(Qt.NoPen)       
-        qp.setBrush(QColor("#cc00cc"))
+        qp.setBrush(QColor("#000000"))
         qp.drawRect(0, 0, self.width(), self.height())
+        x, y = int(self.width()/2), int(self.height()/2)
+        x -= int(self.pix.width()/2)
+        y -= int(self.pix.height()/2)
+        qp.drawPixmap(x, y, self.pix)
 
-
+    def load_thumb(self, id_asset, content_type):
+        self.pix = pixlib[{
+            VIDEO: "thumb_video",
+            AUDIO: "thumb_audio",
+            IMAGE: "thumb_image",
+            TEXT : "thumb_text"
+            }[content_type]]
 
 
 class VideoPlayer(QWidget):
@@ -234,8 +250,11 @@ class VideoPlayer(QWidget):
         except:
             self.fps = 0
         
+        self.video_widget.load_thumb(id_asset, obj["content_type"])
+
         self.unload()
         self.action_play.setIcon(QIcon(pixlib["play"]))
+
 
 
     def unload(self):

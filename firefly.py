@@ -32,15 +32,13 @@ class Firefly(QMainWindow):
         self.show()
         
     def on_close_all(self):
-        print (len(self.docks))
         for dock in self.docks:
-            print ("closing dock", dock.class_)
             dock.close()
 
     def load_workspace(self, workspace="default"):
         self.on_close_all()
         self.docks = []
-        self.workspace = workspace
+        self.workspace = workspace 
         settings = ffsettings()
 
         self.workspace_locked = settings.value("%s/locked" % workspace, False)
