@@ -30,21 +30,6 @@ def suggested_duration(dur):
     return r
 
 
-class TXEvent(object):
-    def __init__(self, parent, start, obj):
-        self.parent = parent
-        self.start = start
-        self.base_dur = base_dur
-        self.obj = obj
-
-    @property
-    def start_pos(self):
-        return self.parent.ts2pos(start)
-
-    @property
-    def end_pos(self):
-        return self.parent.ts2pos(start + self.obj.get_duration())
-
 
 class TXVerticalBar(QWidget):
     def __init__(self, parent):      
@@ -140,9 +125,16 @@ class TXDayWidget(TXVerticalBar):
         self.dragging = False
         self.cursor_time = 0
 
+    @property
+    def calendar(self):
+        return self.parent().parent().parent().parent()
+
     def ts2pos(self, ts):
         ts -= self.start_time
         return ts*self.sec_size
+
+    def is_ts_today(self, ts):
+        return ts >= self.start_time and ts < self.start_time + (3600*24)
 
     def drawWidget(self, qp):
         qp.setPen(Qt.NoPen)       
@@ -159,9 +151,23 @@ class TXDayWidget(TXVerticalBar):
             y = i * self.min_size
             qp.drawLine(0, y, self.width(), y)    
 
+        for event in self.calendar.events:
+            if not self.is_ts_today(event["start"]):
+                continue
+            self.drawBlock(qp, event)
+
         if self.dragging:
             self.drawGrabbed(qp)
             
+
+    def drawBlock(self, qp, event):
+        base_t = self.ts2pos(event["start"])
+        base_h =  self.min_size * (max(300, event["duration"]) / 60)
+        
+        qp.setPen(Qt.NoPen)
+        qp.setBrush(QColor(100,200,200,128))
+        qp.drawRect(0, base_t, self.width(), base_h)
+
 
     def drawGrabbed(self, qp):
         exp_dur = suggested_duration(self.dragging.get_duration())
@@ -176,11 +182,9 @@ class TXDayWidget(TXVerticalBar):
                 time.strftime("%H:%M", time.localtime(self.cursor_time)), 
                 time.strftime("%H:%M", time.localtime(self.cursor_time + exp_dur))
                 ))
-            
+        
 
 
-    def drawBlock(self, qp, start_time, asset):
-        pass
 
 
     def dragEnterEvent(self, evt):
@@ -219,19 +223,22 @@ class TXDayWidget(TXVerticalBar):
             })
 
         self.dragging = False
+        self.calendar.load()
         self.update()
 
 
 
 
 class TXCalendar(QWidget):
-    def __init__(self, parent, view_start):
+    def __init__(self, parent, id_channel, view_start):
         super(TXCalendar, self).__init__(parent)
-        self.week_start = 0     # Monday is a first day of week
+        self.view_start = view_start
+        self.first_weekday = 0     # Monday is a first day of week
         self.day_start = (6,00) # Broadcast starts at 6:00 AM
         self.num_days = 7
 
         self.start_time = datestr2ts(view_start, *self.day_start)
+        self.id_channel = id_channel
 
         self.days = []
         self.events = []
@@ -277,7 +284,15 @@ class TXCalendar(QWidget):
 
 
 
-
+    def load(self):
+        res, data = query("scheduler", {
+            "id_channel" : self.id_channel,
+            "date" : self.view_start,
+            })
+        self.events = []
+        for event_data in data["data"]:
+            e = Event(from_data=event_data)
+            self.events.append(e)
 
 
 
@@ -302,33 +317,33 @@ def scheduler_toolbar(wnd):
     toolbar = QToolBar(wnd)
 
     action_week_prev = QAction(QIcon(pixlib["back"]), '&Previous week', wnd)        
-#    action_week_prev.setShortcut('Alt+Left')
+    #action_week_prev.setShortcut('Alt+Left')
     action_week_prev.setStatusTip('Go to previous week')
-#    action_week_prev.triggered.connect(wnd.on_week_prev)
+    #action_week_prev.triggered.connect(wnd.on_week_prev)
     toolbar.addAction(action_week_prev)
 
     action_now = QAction(QIcon(pixlib["now"]), '&Now', wnd)        
     action_now.setShortcut('F1')
     action_now.setStatusTip('Go to now')
-#    action_now.triggered.connect(wnd.on_now)
+    #action_now.triggered.connect(wnd.on_now)
     toolbar.addAction(action_now)
 
     action_calendar = QAction(QIcon(pixlib["calendar"]), '&Calendar', wnd)        
-#    action_calendar.setShortcut('Ctrl+D')
+    #action_calendar.setShortcut('Ctrl+D')
     action_calendar.setStatusTip('Open calendar')
-#    action_calendar.triggered.connect(wnd.on_calendar)
+    #action_calendar.triggered.connect(wnd.on_calendar)
     toolbar.addAction(action_calendar)
 
     action_refresh = QAction(QIcon(pixlib["refresh"]), '&Refresh', wnd)        
     action_refresh.setShortcut('F5')
     action_refresh.setStatusTip('Refresh rundown')
-#    action_refresh.triggered.connect(partial(wnd.refresh, True))
+    #action_refresh.triggered.connect(partial(wnd.refresh, True))
     toolbar.addAction(action_refresh)
 
     action_week_next = QAction(QIcon(pixlib["next"]), '&Next week', wnd)        
-#    action_week_next.setShortcut('Alt+Right')
+    #action_week_next.setShortcut('Alt+Right')
     action_week_next.setStatusTip('Go to next week')
-#    action_week_next.triggered.connect(wnd.on_week_next)
+    #action_week_next.triggered.connect(wnd.on_week_next)
     toolbar.addAction(action_week_next)
 
     return toolbar
@@ -340,10 +355,11 @@ class Scheduler(BaseWidget):
         super(Scheduler, self).__init__(parent)
         toolbar = scheduler_toolbar(self)
         self.current_date = time.strftime("%Y-%m-%d")
+        self.view_start = self.current_date #FIXME - get monday from date??
         self.id_channel   = 1 # TODO (get default from playout config, overide in setState)
         self.update_header()
 
-        self.calendar = TXCalendar(self, self.current_date)
+        self.calendar = TXCalendar(self, self.id_channel, self.view_start)
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
@@ -352,6 +368,10 @@ class Scheduler(BaseWidget):
         layout.addWidget(self.calendar, 1)
 
         self.setLayout(layout)
+
+        self.calendar.load()
+
+
 
     def update_header(self):
         pass
