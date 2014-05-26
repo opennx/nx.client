@@ -48,14 +48,11 @@ class OnAir(QWidget):
 
         self.fps = 25.0
 
-
         self.parent().setWindowTitle("On air ctrl")
-
 
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setTextVisible(False)
         self.progress_bar.setValue(0)
-
 
         self.btn_take    = OnAirButton(u"Take",   self, self.on_take)
         self.btn_freeze  = OnAirButton(u"Freeze", self, self.on_freeze)
@@ -71,9 +68,6 @@ class OnAir(QWidget):
         btns_layout.addWidget(self.btn_abort,0)
         btns_layout.addStretch(1)
 
-
-
-      
         self.display_clock   = OnAirLabel("CLK", "--:--:--:--")
         self.display_pos     = OnAirLabel("POS", "--:--:--:--")
       
@@ -83,7 +77,6 @@ class OnAir(QWidget):
         self.display_rem     = OnAirLabel("REM","(unknown)")
         self.display_dur     = OnAirLabel("DUR", "--:--:--:--")
         
-
         info_layout = QGridLayout()    
         info_layout.setContentsMargins(0,0,0,0)
         info_layout.setSpacing(2)
@@ -99,8 +92,6 @@ class OnAir(QWidget):
 
         info_layout.setColumnStretch(1,1)
 
-
-
         layout = QVBoxLayout()
         layout.addLayout(info_layout,0)
         layout.addStretch(1)
@@ -112,27 +103,21 @@ class OnAir(QWidget):
         self.display_timer.timeout.connect(self.update_display)
         self.display_timer.start(40)
 
+    @property
+    def route(self):
+        return "play{}".format(self.parent.id_channel)
 
     def on_take(self, evt=False):
-        query("take", {"id_channel":self.parent().id_channel}, "play1")
-
+        query("take", {"id_channel":self.parent().id_channel}, self.route)
 
     def on_freeze(self, evt=False):
-        query("freeze", {"id_channel":self.parent().id_channel}, "play1")
+        query("freeze", {"id_channel":self.parent().id_channel}, self.route)
 
-    
     def on_retake(self, evt=False):
-        query("retake", {"id_channel":self.parent().id_channel}, "play1")
+        query("retake", {"id_channel":self.parent().id_channel}, self.route)
 
-        
     def on_abort(self, evt=False):
-        query("abort", {"id_channel":self.parent().id_channel}, "play1")
-
-            
-
-    def closeEvent(self):
-        print("onAirClosed")
-
+        query("abort", {"id_channel":self.parent().id_channel}, self.route)
 
     def getState(self):
         state = {}
@@ -169,7 +154,6 @@ class OnAir(QWidget):
             rtime = self.request_time+adv
             rpos = self.pos + (adv*self.fps)
 
-            #clock = s2tc(self.request_time+adv, self.fps)
             clock = time.strftime("%H:%M:%S:{:02d}", time.localtime(rtime)).format(int(25*(rtime-math.floor(rtime))))
             self.display_clock.set_text(clock)
         
@@ -178,5 +162,3 @@ class OnAir(QWidget):
             self.display_rem.set_text(f2tc(max(0,self.dur - rpos), self.fps))
         except:
             pass
-            #self.deleteLater()
-        #    self.display_timer.stop()

@@ -111,15 +111,12 @@ class ServiceView(QTableView):
 
     def selectionChanged(self, selected, deselected):
         self.selected_services = []
-
         for idx in self.selectionModel().selectedIndexes():
             row =  self.parent().sort_model.mapToSource(idx).row()
             id_service = self.parent().model.object_data[row]["id_service"]
             if id_service in self.selected_services: 
                 continue
             self.selected_services.append(id_service)
-
-        print (self.selected_services)
         super(QTableView, self).selectionChanged(selected, deselected)
 
 

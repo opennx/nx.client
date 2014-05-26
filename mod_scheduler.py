@@ -194,8 +194,11 @@ class TXDayWidget(TXVerticalBar):
             if len(d) != 1:
                 evt.ignore()
                 return
+            asset = Asset(from_data=d[0])
 
-            self.dragging = Asset(from_data=d[0])
+            if not eval(config["playout_config"])
+
+            self.dragging = asset
             evt.accept()
         else:
             evt.ignore()
@@ -239,6 +242,7 @@ class TXCalendar(QWidget):
 
         self.start_time = datestr2ts(view_start, *self.day_start)
         self.id_channel = id_channel
+        self.append_condition = False
 
         self.days = []
         self.events = []
@@ -354,12 +358,15 @@ class Scheduler(BaseWidget):
     def __init__(self, parent):
         super(Scheduler, self).__init__(parent)
         toolbar = scheduler_toolbar(self)
+        playout_config = config["playout_channels"][self.id_channel]
+
         self.current_date = time.strftime("%Y-%m-%d")
         self.view_start = self.current_date #FIXME - get monday from date??
         self.id_channel   = 1 # TODO (get default from playout config, overide in setState)
         self.update_header()
 
         self.calendar = TXCalendar(self, self.id_channel, self.view_start)
+        self.calendar.append_condition = playut_config["scheduler_accepts"]
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)

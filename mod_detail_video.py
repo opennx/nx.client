@@ -7,7 +7,6 @@ def proxy_path(id_asset):
     host = config.get("media_host", False) or config["hive_host"]
     port = config.get("media_port", False) or config["hive_port"]
     url = "http://{}:{}/proxy/{:04d}/{:d}.mp4".format(host, port, int(id_asset/1000), id_asset)
-    print (url)
     return QUrl(url)
 
 
@@ -210,10 +209,8 @@ class VideoPlayer(QWidget):
             dstring = s2tc(duration/1000.0, self.fps)
         else:
             dstring = s2tc(duration/1000.0)
-
         self.ddur.setText(dstring)
-        print ("DUR", dstring)
-
+        
     def get_position(self):
         return self.media_player.position()
 
