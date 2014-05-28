@@ -340,8 +340,8 @@ class Rundown(BaseWidget):
             "id_channel" : self.id_channel,
             "id_item"    : item.id
             }
-
-        query("cue", params, "play1")
+        #FIXME
+        query("cue", params, "play%s"%self.id_channel)
 
 
 

@@ -81,13 +81,13 @@ class NXCellFormat():
             else:
                 return s2time(self.get_duration())
 
-        elif key in ["mark_in", "mark_out"]:
-            if not value:
-                return ""
-            elif self["video/fps"]:
-                return s2tc(value,  fract2float(self["video/fps"]))
-            else:
-                return s2time(value)
+        # elif key in ["mark_in", "mark_out"]:
+        #     if not value:
+        #         return ""
+        #     elif self["video/fps"]:
+        #         return s2tc(value,  fract2float(self["video/fps"]))
+        #     else:
+        #         return s2time(value)
 
         elif key == "rundown_status":
             try:
@@ -98,6 +98,7 @@ class NXCellFormat():
                     ][value]
             except:
                 return ""
+
 
         elif key == "content_type":
             return ""
@@ -116,7 +117,7 @@ class NXCellFormat():
         if   mtype.class_ in [TEXT, BLOB]:         return shorten(value)
         elif mtype.class_ in [INTEGER, NUMERIC]:   return ["%.3f","%d"][float(value).is_integer()] % value if value else 0
         elif mtype.class_ == DATE:                 return time.strftime("%Y-%m-%d",time.localtime(value))
-        elif mtype.class_ == TIME:                 return time.strftime("%H:%M",time.localtime(value))
+        elif mtype.class_ == TIME:                 return time.strftime(mtype.settings or "%H:%M", time.localtime(int(value))) if value else "" 
         elif mtype.class_ in [STAR, BOOLEAN]:      return None
         elif mtype.class_ == DATETIME:
             if "base_date" in self.format_settings:
@@ -124,10 +125,14 @@ class NXCellFormat():
             else:
                 return time.strftime("%Y-%m-%d %H:%M",time.localtime(value))
         elif mtype.class_ == FILESIZE:
+            if not value:
+                return ""
             for x in ['bytes','KB','MB','GB','TB']:
                 if value < 1024.0: return "%3.1f %s" % (value, x)
                 value /= 1024.0
         elif mtype.class_ == TIMECODE:
+            if not value:
+                return ""
             if self["video/fps"]:
                 return s2tc(value,  fract2float(self["video/fps"]))
             else:

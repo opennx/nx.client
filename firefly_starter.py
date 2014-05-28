@@ -43,19 +43,29 @@ class Firestarter(QApplication):
         ret_code, result = query("site_settings")
         if ret_code < 300:
             config.update(result)
-               
-            nfolders = {}
-            for id_folder in config["folders"]:
-                nfolders[int(id_folder)] = config["folders"][id_folder]
-            config["folders"] = nfolders
+            
+            if "JSON IS RETARDED AND CAN'T HANDLE INTEGER BASED KEYS IN DICTS":
+                nfolders = {}
+                for id_folder in config["folders"]:
+                    nfolders[int(id_folder)] = config["folders"][id_folder]
+                config["folders"] = nfolders
 
-            nviews = {}
-            i = 0
-            for id_view, title, columns in config["views"]:
-                    nviews[id_view] = i, title, columns
-                    i += 1
-            config["views"] = nviews
+                nviews = {}
+                i = 0
+                for id_view, title, columns in config["views"]:
+                        nviews[id_view] = i, title, columns
+                        i += 1
+                config["views"] = nviews
 
+                nch = {}
+                for id_channel in config["playout_channels"]:
+                    nch[int(id_channel)] = config["playout_channels"][id_channel]
+                config["playout_channels"] = nch
+
+                nch = {}
+                for id_channel in config["ingest_channels"]:
+                    nch[int(id_channel)] = config["ingest_channels"][id_channel]
+                config["ingest_channels"] = nch
 
         else:
             critical_error("Unable to load site settings")

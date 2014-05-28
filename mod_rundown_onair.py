@@ -105,7 +105,7 @@ class OnAir(QWidget):
 
     @property
     def route(self):
-        return "play{}".format(self.parent.id_channel)
+        return "play{}".format(self.parent().id_channel)
 
     def on_take(self, evt=False):
         query("take", {"id_channel":self.parent().id_channel}, self.route)

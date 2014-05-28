@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import locale
+locale.setlocale(locale.LC_ALL, '')
+
 import sys
 
 from firefly_common import *

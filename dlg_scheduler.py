@@ -170,7 +170,6 @@ class Scheduler(QDialog):
         delete = list(self.model.deleted.keys())
         result, data = query("set_day_events", 
                                 {   
-                                    "date" : self.current_date, 
                                     "id_channel" : self.id_channel,
                                     "events" : events,
                                     "delete" : delete 
