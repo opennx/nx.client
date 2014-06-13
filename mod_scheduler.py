@@ -251,7 +251,6 @@ class TXDayWidget(TXVerticalBar):
             asset = Asset(from_data=d[0])
 
             if not eval(self.calendar.playout_config["scheduler_accepts"]):
-                self.calendar.status("This asset is not allowed here")
                 evt.ignore()
                 return
 
