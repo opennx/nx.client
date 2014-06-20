@@ -72,19 +72,10 @@ class BrowserModel(NXViewModel):
         res, data = query("set_meta", {"id_object":id_object, "tag":tag, "value":value })
 
         if success(res):
-            #self.beginResetModel()
             self.object_data[index.row()] = Asset(from_data=data)
-            #self.endResetModel()
             self.dataChanged.emit(index, index)
         else:
             QMessageBox.error(self, "Error", "Unable to save")
-
-        #self.object_data[index.row()][tag] = data
-        #if not id_object in self.changed_objects:
-        #    self.changed_objects.append(id_object)
-        #self.endResetModel()
-
-        #self.refresh()
         return True
    
 
@@ -96,12 +87,12 @@ class SearchWidget(QLineEdit):
 
     def keyPressEvent(self, event):
         if event.key() in [Qt.Key_Return,Qt.Key_Enter]:
-            if event.modifiers() & Qt.ControlModifier:
-                print ("extend search")
+           # if event.modifiers() & Qt.ControlModifier:
+           #     print ("extend search")
                 #self.parent().OnSearch(extend=True)
-            else:
-                self.parent().browse()
-            return
+           # else:
+                self.parent().parent().browse()
+           # return
 
         elif event.key() == Qt.Key_Escape:
             self.line_edit.setText("")
