@@ -475,6 +475,7 @@ class Scheduler(BaseWidget):
     def __init__(self, parent):
         super(Scheduler, self).__init__(parent)
         toolbar = scheduler_toolbar(self)
+        self.parent().setWindowTitle("Scheduler")
 
         #TODO: Get rid of this madness
         self.current_date = time.strftime("%Y-%m-%d")

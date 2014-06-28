@@ -1,7 +1,7 @@
 from functools import partial
 from qt_common import *
 
-def create_menu(wnd, workspaces=[]):
+def create_menu(wnd):
     menubar = wnd.menuBar()
 
 
@@ -12,6 +12,14 @@ def create_menu(wnd, workspaces=[]):
     action_new_asset.setStatusTip('Create new asset from template')
     action_new_asset.triggered.connect(wnd.on_new_asset)
     menuFile.addAction(action_new_asset)
+
+    menuFile.addSeparator()
+
+    action_dlg_system = QAction('&System manager', wnd)        
+    action_dlg_system.setShortcut('Shift+ESC')
+    action_dlg_system.setStatusTip('Open system manager')
+    action_dlg_system.triggered.connect(wnd.on_dlg_system)
+    menuFile.addAction(action_dlg_system)
 
     menuFile.addSeparator()
 
@@ -43,76 +51,38 @@ def create_menu(wnd, workspaces=[]):
     action_wnd_browser = QAction('&Browser', wnd)        
     action_wnd_browser.setShortcut('Ctrl+T')
     action_wnd_browser.setStatusTip('Open new browser window')
-    action_wnd_browser.triggered.connect(wnd.on_wnd_browser)
+    action_wnd_browser.triggered.connect(partial(wnd.create_dock, widget_class="browser"))
     menuWindow.addAction(action_wnd_browser)    
 
-    action_wnd_detail = QAction('&Asset Detail', wnd)        
-    action_wnd_detail.setShortcut('Ctrl+D')
-    action_wnd_detail.setStatusTip('Open asset detail window')
-    action_wnd_detail.triggered.connect(wnd.on_wnd_detail)
-    menuWindow.addAction(action_wnd_detail)    
+    action_wnd_preview = QAction('&Preview', wnd)        
+    action_wnd_preview.setShortcut('Ctrl+D')
+    action_wnd_preview.setStatusTip('Open preview window')
+    action_wnd_preview.triggered.connect(partial(wnd.create_dock, widget_class="preview", one_instance=True))
+    menuWindow.addAction(action_wnd_preview)    
 
     action_wnd_scheduler = QAction('&Scheduler', wnd)        
-    action_wnd_scheduler.setShortcut('Ctrl+H')
+    action_wnd_scheduler.setShortcut('F7')
     action_wnd_scheduler.setStatusTip('Open scheduler window')
-    action_wnd_scheduler.triggered.connect(wnd.on_wnd_scheduler)
+    action_wnd_scheduler.triggered.connect(partial(wnd.create_dock, widget_class="scheduler", one_instance=True))
     menuWindow.addAction(action_wnd_scheduler)    
 
     action_wnd_rundown = QAction('&Rundown', wnd)        
-    action_wnd_rundown.setShortcut('Ctrl+R')
+    action_wnd_rundown.setShortcut('F8')
     action_wnd_rundown.setStatusTip('Open rundown window')
-    action_wnd_rundown.triggered.connect(wnd.on_wnd_rundown)
-    menuWindow.addAction(action_wnd_rundown)    
+    action_wnd_rundown.triggered.connect(partial(wnd.create_dock, widget_class="rundown", one_instance=True))
+    menuWindow.addAction(action_wnd_rundown)
 
     menuWindow.addSeparator()
 
-    action_dlg_system = QAction('&System', wnd)        
-    action_dlg_system.setShortcut('Shift+ESC')
-    action_dlg_system.setStatusTip('Open system manager')
-    action_dlg_system.triggered.connect(wnd.on_dlg_system)
-    menuWindow.addAction(action_dlg_system)    
+    action_lock_workspace = QAction('&Lock workspace', wnd)        
+    action_lock_workspace.setShortcut('Ctrl+L')
+    action_lock_workspace.setStatusTip('Lock widgets position')
+    action_lock_workspace.triggered.connect(wnd.on_lock_workspace)
+    menuWindow.addAction(action_lock_workspace)
 
 
-
-    menuWorkspace = menubar.addMenu('&Workspace')
-
-    for workspace in workspaces:
-        wa = QAction(workspace, wnd)
-        wa.triggered.connect(partial(wnd.load_workspace, workspace))
-        menuWorkspace.addAction(wa)   
-
-
-
-    menuWorkspace.addSeparator()
-
-
-    action_close_all = QAction('&Close all', wnd)        
-    action_close_all.setStatusTip('Close current workspace')
-    action_close_all.triggered.connect(wnd.on_close_all)
-    menuWorkspace.addAction(action_close_all)   
-
-    action_workspace_save = QAction('&Save current', wnd)        
-    action_workspace_save.setShortcut('Ctrl+S')
-    action_workspace_save.setStatusTip('Save current workspace')
-    action_workspace_save.triggered.connect(wnd.on_save_workspace)
-    menuWorkspace.addAction(action_workspace_save)   
-
-    action_workspace_save_as = QAction('&Save current as', wnd)        
-    action_workspace_save_as.setShortcut('Ctrl+Shift+S')
-    action_workspace_save_as.setStatusTip('Save current workspace as')
-    action_workspace_save_as.triggered.connect(wnd.on_save_workspace_as)
-    menuWorkspace.addAction(action_workspace_save_as)   
-
-    menuWorkspace.addSeparator()
-
-    action_workspace_lock = QAction('&Lock', wnd)        
-    action_workspace_lock.setShortcut('Ctrl+L')
-    action_workspace_lock.setStatusTip('Lock workspace')
-    action_workspace_lock.triggered.connect(wnd.on_workspace_lock)
-    menuWorkspace.addAction(action_workspace_lock)   
-
-    action_fullscreen = QAction('&Full screen', wnd)        
-    action_fullscreen.setShortcut('F11')
-    action_fullscreen.setStatusTip('Toggle fullscreen')
-    action_fullscreen.triggered.connect(wnd.on_fullscreen)
-    menuWorkspace.addAction(action_fullscreen)    
+#    action_wnd_detail = QAction('&Asset Detail', wnd)        
+#    action_wnd_detail.setShortcut('Ctrl+D')
+#    action_wnd_detail.setStatusTip('Open asset detail window')
+#    action_wnd_detail.triggered.connect(wnd.on_wnd_detail)
+#    menuWindow.addAction(action_wnd_detail)

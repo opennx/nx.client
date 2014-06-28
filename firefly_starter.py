@@ -10,6 +10,7 @@ class Firestarter(QApplication):
         self.main_window = False
         self.splash = QSplashScreen(pixlib['splash'])
         self.splash.show()
+        self.got_seismic = False
         self.listener = SeismicListener()
 
 
@@ -31,7 +32,9 @@ class Firestarter(QApplication):
     def handle_messaging(self, data):
         if not self.main_window:
             return
+        self.got_seismic = True
         self.main_window.handle_messaging(data)
+
 
 
     def splash_message(self, msg):
@@ -82,6 +85,7 @@ class Firestarter(QApplication):
         self.splash_message("Initializing seismic listener")
         self.listener.listen(config["site_name"], config["seismic_addr"], int(config["seismic_port"]))
         self.listener.add_handler(self.handle_messaging)
+
 
 
     def start(self):

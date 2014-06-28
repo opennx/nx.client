@@ -165,6 +165,13 @@ class SystemDialog(QDialog):
 
         self.setLayout(layout)
         self.load_state()
+        self.parent().subscribe(self.seismic_handler, "hive_heartbeat")
+        self.finished.connect(self.on_close)
+
+
+    def on_close(self, evt):
+        self.save_state()
+        self.parent().unsubscribe(self.seismic_handler)
 
 
     def load(self, q={}):
@@ -178,6 +185,8 @@ class SystemDialog(QDialog):
         settings = ffsettings()
         if "global/system_g" in settings.allKeys():
             self.restoreGeometry(settings.value("global/system_g"))
+        else:
+            self.resize(800,400)
 
         if "global/services_c" in settings.allKeys():
             self.model.header_data = settings.value("global/services_c")
@@ -199,7 +208,7 @@ class SystemDialog(QDialog):
 
 
 
-    def update_status(self, data):
+    def seismic_handler(self, data):
         sstat = {}
         for svc in data.data["service_status"]:
             sstat[svc[0]] = svc[1:]

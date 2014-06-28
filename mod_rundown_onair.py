@@ -128,7 +128,7 @@ class OnAir(QWidget):
         pass
 
 
-    def update_status(self, data):
+    def seismic_handler(self, data):
         status = data.data
         self.pos = status["position"]
         self.request_time = status["request_time"]

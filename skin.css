@@ -1,12 +1,7 @@
-/**********************************************************************
-                MAIN WINDOW
-**********************************************************************/
-
 QMainWindow, QDialog, QWidget, QToolBar, QMenu {
     background-color : #242424;
     color : #c0c0c0;
     } 
-
 
 QStatusBar, QHeaderView, QMenuBar {
     background-color : #161616;
@@ -14,6 +9,9 @@ QStatusBar, QHeaderView, QMenuBar {
     border: 0;
     }
 
+/**********************************************************************
+                MENU
+**********************************************************************/
 
 QMenuBar::item {
     background-color: transparent;
@@ -30,18 +28,17 @@ QMenu::item:selected {
 }
 
 
-
 /**********************************************************************
                 TABLES
 **********************************************************************/
 
 
 QTableView {
-    border : 0;
-    background-color: #1a1a1a;
-    alternate-background-color: #242424;
+    background-color: #101010;
+    alternate-background-color: #181818;
     selection-background-color : rgba(110, 110, 110, 170);
     color : #c0c0c0; 
+    border: 0;
     }
 
 QTableView::item:focus { 
@@ -53,8 +50,6 @@ QHeaderView::section {
     background-color: #161616;
     color: #c0c0c0;
     font-weight: bold;
-    border: 1px solid black;
-    padding: 3px;
     }
 
 QTableCornerButton::section{
@@ -63,27 +58,11 @@ QTableCornerButton::section{
 
 
 
-/**********************************************************************
-                DOCKS
-**********************************************************************/
-
-
-QDockWidget {
-    background-color : #242424;
-    color : #000000;
-    padding-top: 6px;
-    font-weight: bold;
-}
-
-QDockWidget::title {
-    background-color: #323232;
-    padding: 3px;
-    }
-
 
 /**********************************************************************
-                WIDGETS
+                TABS
 **********************************************************************/
+
 
 QTabWidget {
     padding: 0;
@@ -99,16 +78,22 @@ QTabBar::tab {
     background-color: #242424;
     padding: 5px;
     margin-bottom: 5px;
+    border:0;
 }
 
 QTabBar::tab:selected {
     background-color: #161616;   
     padding: 5px;
     margin-bottom: 5px;
-    color: #ffffff;
+    color: #00a5c3;
 }
 
 
+
+
+/**********************************************************************
+                WIDGETS
+**********************************************************************/
 
 
 QLineEdit, QTextEdit, QComboBox, QPushButton {
@@ -119,32 +104,17 @@ QLineEdit, QTextEdit, QComboBox, QPushButton {
 
 
 QTextEdit {
-    /*background-color: #272822;*/ 
     color : #f8f8f2;
     font: 9pt "Courier";
 }
 
 
-QComboBox::drop-down {
-    border-width:1px;
-    }
-
-
-QLineEdit, QComboBox, QPushButton {
-    height: 24px;
-    }
-
-
-QPushButton{
-    width: 45px;
-    }
-
-QPushButton:hover{
-    color : #fff;
-    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #505050,  stop: 1 #545454);
-    }
-
-
+.NXE_timecode {
+    font: 12px "Courier"; 
+    font-weight: bold;
+    min-width : 88px;
+    max-width : 88px;
+}
 
 .RundownDate {
     background-color:  transparent;
@@ -155,16 +125,10 @@ QPushButton:hover{
 
 
 
-.NXE_timecode {
-    font: 12px "Courier"; 
-    font-weight: bold;
-    min-width : 88px;
-    max-width : 88px;
-}
+/**********************************************************************
+                MOVING PARTS
+**********************************************************************/
 
-QVideoWidget {
-    background-color: #000000;
-}
 
 
 QProgressBar {

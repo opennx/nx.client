@@ -129,11 +129,12 @@ class VideoWidget(QVideoWidget):
             IMAGE: "thumb_image",
             TEXT : "thumb_text"
             }[content_type]]
+        self.update()
 
-
-class VideoPlayer(QWidget):
+class Preview(BaseWidget):
     def __init__(self, parent):
-        super(VideoPlayer, self).__init__(parent)
+        super(Preview, self).__init__(parent)
+        parent.setWindowTitle("Asset preview")
 
         self.ddur  = NXE_timecode(self)
         self.dpos  = NXE_timecode(self)
@@ -187,8 +188,13 @@ class VideoPlayer(QWidget):
         self.media_player.error.connect(self.handle_error)
 
 
-    def status(self, message, message_type=INFO):
-        self.parent().parent().parent().status(message, message_type)
+    def save_state(self):
+        state = {}
+        state["class"] = "preview"
+        return state
+
+    def load_state(self, state):
+        pass
 
     def media_state_changed(self, state):
         if self.media_player.state() == QMediaPlayer.PlayingState:
@@ -225,12 +231,11 @@ class VideoPlayer(QWidget):
 
 
     def load(self, obj):
-        self.status("")
+        self.unload()
         id_asset = obj.id
         
         id_asset = obj.id if obj.object_type == "asset" else obj["id_asset"]
         if not id_asset:
-            self.unload()
             return    
 
         try:
@@ -248,8 +253,6 @@ class VideoPlayer(QWidget):
             self.fps = 0
         
         self.video_widget.load_thumb(id_asset, obj["content_type"])
-
-        self.unload()
         self.action_play.setIcon(QIcon(pixlib["play"]))
 
 
@@ -320,3 +323,11 @@ class VideoPlayer(QWidget):
 
     def on_goto_out(self):
         self.status("on_goto_out")
+
+
+
+    def focus(self, objects):
+        if len(objects) == 1 and objects[0].object_type in ["asset", "item"]:
+            self.load(objects[0])
+        else:
+            self.unload()

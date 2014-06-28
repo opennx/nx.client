@@ -6,79 +6,13 @@ import math
 from functools import partial
 
 from firefly_view import *
-from nx.objects import Asset
+from mod_browser_model import BrowserModel
+
+
 from dlg_sendto import SendTo
 
+
 DEFAULT_HEADER_DATA = ["content_type", "title", "duration", "id_folder", "origin"]
-
-class BrowserModel(NXViewModel):
-    def browse(self, **kwargs):
-        start_time = time.time()
-        self.beginResetModel()
-
-        self.object_data = []
-        
-        try:
-            self.header_data = config["views"][kwargs["view"]][2]
-        except:
-            self.header_data =  DEFAULT_HEADER_DATA
-
-        res, data = query("browse", kwargs)
-        if success(res) and "asset_data" in data:    
-            for adata in data["asset_data"]:
-                self.object_data.append(Asset(from_data=adata))
-
-        self.endResetModel()
-        self.parent().status("Got %d assets in %.03f seconds." % (len(self.object_data), time.time()-start_time))
-
-
-    def flags(self,index):
-        flags = super(BrowserModel, self).flags(index)
-        if index.isValid():
-            if self.object_data[index.row()]["id_object"]:
-             flags |= Qt.ItemIsEditable
-             flags |= Qt.ItemIsDragEnabled # Itemy se daji dragovat
-        return flags
-
-
-    def mimeTypes(self):
-        return ["application/nx.asset"]
-     
-   
-    def mimeData(self, indexes):
-        data        = [self.object_data[i] for i in set(index.row() for index in indexes if index.isValid())]
-        encodedData = json.dumps([a.meta for a in data])
-        mimeData = QMimeData()
-        mimeData.setData("application/nx.asset", encodedData.encode("ascii"))
-
-        try:
-            urls =[QUrl.fromLocalFile(asset.get_file_path()) for asset in data]
-            mimeData.setUrls(urls)
-        except:
-            pass
-
-        return mimeData
-
-    def dropMimeData(self, data, action, row, column, parent):
-        #TODO: UPLOAD
-        return False
-
-
-    def setData(self, index, data, role=False):
-        tag = self.header_data[index.column()] 
-        value = data
-        id_object = self.object_data[index.row()].id
-        
-        res, data = query("set_meta", {"id_object":id_object, "tag":tag, "value":value })
-
-        if success(res):
-            self.object_data[index.row()] = Asset(from_data=data)
-            self.dataChanged.emit(index, index)
-        else:
-            QMessageBox.error(self, "Error", "Unable to save")
-        return True
-   
-
 
 
 class SearchWidget(QLineEdit):
@@ -87,12 +21,12 @@ class SearchWidget(QLineEdit):
 
     def keyPressEvent(self, event):
         if event.key() in [Qt.Key_Return,Qt.Key_Enter]:
-           # if event.modifiers() & Qt.ControlModifier:
-           #     print ("extend search")
-                #self.parent().OnSearch(extend=True)
-           # else:
+            if event.modifiers() & Qt.ControlModifier:
+                print ("extend search")
+                self.parent().OnSearch(extend=True)
+            else:
                 self.parent().parent().browse()
-           # return
+            return
 
         elif event.key() == Qt.Key_Escape:
             self.line_edit.setText("")
@@ -107,9 +41,7 @@ class SearchWidget(QLineEdit):
 
 class Browser(BaseWidget):
     def __init__(self, parent):
-        super(Browser, self).__init__(parent)
-        parent.setWindowTitle("Browser")
-        
+        super(Browser, self).__init__(parent)    
         self.search_query = {}
 
         self.search_box = SearchWidget(self)
@@ -135,16 +67,36 @@ class Browser(BaseWidget):
         self.load_view_menu()
 
         toolbar = QToolBar()
-        toolbar.addWidget(self.search_box)
         toolbar.addAction(action_clear)
+        toolbar.addWidget(self.search_box)
         toolbar.addAction(self.action_search.menuAction())
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(2,2,2,2)
-        layout.setSpacing(5)
+        layout.setContentsMargins(0,0,0,0)
+        #layout.setSpacing(5)
         layout.addWidget(toolbar, 0)
         layout.addWidget(self.view, 1)
         self.setLayout(layout)
+        self.setMinimumWidth(300)
+
+    def save_state(self):
+        state = self.state
+        id_view = self.search_query.get("view",0)
+        #state["{}c".format(id_view)] = self.model.header_data
+        state["{}cw".format(id_view)] = self.view.horizontalHeader().saveState()
+        state["class"]  = "browser"
+        state["search_query"]  = self.search_query
+        return state
+
+    def load_state(self, state):
+        self.search_query = state.get("search_query", {})
+        q = self.search_query.get("fulltext","")
+        if q:
+            self.search_box.setText(q)
+        self.state = state
+        default_view = sorted(config["views"].keys())[0]
+        self.set_view(self.search_query.get("view",default_view), initial=True)
+
 
         
     def load_view_menu(self):
@@ -175,6 +127,8 @@ class Browser(BaseWidget):
                 if meta_types[self.model.header_data[id_column]].class_ != BLOB:
                     self.view.resizeColumnToContents(id_column)
 
+        self.parent().setWindowTitle("{}".format(config["views"][id_view][1]))
+
     def on_clear(self):
         self.search_box.setText("")
         self.browse(fulltext="")
@@ -193,25 +147,6 @@ class Browser(BaseWidget):
         dlg = SendTo(self, self.view.selected_objects)
         dlg.exec_()
 
-
-    def save_state(self):
-        state = self.state
-        id_view = self.search_query.get("view",0)
-        #state["{}c".format(id_view)] = self.model.header_data
-        state["{}cw".format(id_view)] = self.view.horizontalHeader().saveState()
-        state["class"]  = "browser"
-        state["search_query"]  = self.search_query
-        return state
-
-
-    def load_state(self, state):
-        self.search_query = state.get("search_query", {})
-        q = self.search_query.get("fulltext","")
-        if q:
-            self.search_box.setText(q)
-        self.state = state
-        default_view = sorted(config["views"].keys())[0]
-        self.set_view(self.search_query.get("view",default_view), initial=True)
 
         
 
