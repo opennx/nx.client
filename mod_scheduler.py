@@ -163,31 +163,56 @@ class TXDayWidget(TXVerticalBar):
             y = i * self.min_size
             qp.drawLine(0, y, self.width(), y)    
 
-        for event in self.calendar.events:
+        for i,event in enumerate(self.calendar.events):
             if not self.is_ts_today(event["start"]):
                 continue
-            self.drawBlock(qp, event)
+            try:
+                end = self.calendar.events[i+1]["start"]
+            except IndexError:
+                end = self.start_time + (3600*24)
+
+            self.drawBlock(qp, event, end=end)
 
         if self.calendar.dragging and self.dragging:
             self.draw_dragging(qp)
             
 
-    def drawBlock(self, qp, event):
+    def drawBlock(self, qp, event, end):
         if type(self.calendar.dragging) == Event and self.calendar.dragging.id == event.id:
             return
 
+
         TEXT_SIZE = 9
         base_t = self.ts2pos(event["start"])
-        base_h = self.min_size * (max(300, event["duration"]) / 60)
+        base_h = self.min_size * (max(300, event["duration"]) / 60) 
+        evt_h = self.ts2pos(end) - base_t
+#        qp.setPen(Qt.NoPen)
         
-        qp.setPen(Qt.NoPen)
-        qp.setBrush(QColor(100,200,200,128))
-        qp.drawRect(0, base_t, self.width(), base_h)
+#        qp.setBrush(QColor(100,200,200,128))
+#        qp.drawRect(0, base_t, self.width(), base_h)
+        
+        lcolor = QColor("#909090")
+        
+
+        erect = QRect(0,base_t,self.width(),evt_h) # EventRectangle Muhehe!
+        gradient = QLinearGradient(erect.topLeft(), erect.bottomLeft())
+        gradient.setColorAt(.0, QColor(40,80,120, 210))
+        gradient.setColorAt(.2, QColor(40,80,120, 180))
+        gradient.setColorAt(1, QColor(0,0,0, 0))
+        qp.fillRect(erect, gradient)
+
+        erect = QRect(0, base_t, self.width(), 2)
+        qp.fillRect(erect, lcolor)
+        if base_h:
+            erect = QRect(0, base_t, 2, base_h)  
+            qp.fillRect(erect, lcolor)
+
+
         qp.setPen(QColor("#e0e0e0"))
         font = QFont("Sans", TEXT_SIZE)
-        if base_h > TEXT_SIZE + 8:
-            text = text_shorten(event["title"], font, self.width()-4)
-            qp.drawText(2, base_t + TEXT_SIZE + 4, text)
+        if evt_h > TEXT_SIZE + 15:
+            text = text_shorten(event["title"], font, self.width()-10)
+            qp.drawText(6, base_t + TEXT_SIZE + 9, text)
 
 
 
@@ -199,8 +224,9 @@ class TXDayWidget(TXVerticalBar):
             exp_dur = self.calendar.dragging["duration"]
         else: 
             return
+
         base_t = self.ts2pos(self.cursor_time)
-        base_h = self.min_size * (exp_dur / 60)
+        base_h = self.min_size * max(5, (exp_dur / 60))
 
         qp.setPen(Qt.NoPen)
         qp.setBrush(QColor(200,200,200,128))
@@ -215,20 +241,24 @@ class TXDayWidget(TXVerticalBar):
 
 
     def mouseMoveEvent(self, e):
-        if e.buttons() != Qt.LeftButton:
-            return
-        
         mx = e.x()
         my = e.y()
         tc = (my/self.min_size*60) + self.start_time
-        for event in self.calendar.events:
-            if event["start"] + event["duration"] >= tc >= event["start"]:
-                print("dragging event", event)
+        for i, event in enumerate(self.calendar.events):
+            try:
+                end = self.calendar.events[i+1]["start"]
+            except IndexError:
+                end = self.start_time + (3600*24)
+
+            if end >= tc > event["start"]:
+                self.setToolTip("<b>{title}</b><br>Start: {start}".format(**event.meta))
                 break
         else:
             return
 
-
+        if e.buttons() != Qt.LeftButton:
+            return
+        
         encodedData = json.dumps([event.meta])
         mimeData = QMimeData()
         mimeData.setData("application/nx.event", encodedData.encode("ascii"))
