@@ -130,6 +130,8 @@ class TXDayWidget(TXVerticalBar):
         self.start_time = start_time
         self.setAcceptDrops(True)
         self.cursor_time = 0
+        self.dragging = False
+        self.drag_outside = False
 
 
     @property 
@@ -179,25 +181,19 @@ class TXDayWidget(TXVerticalBar):
 
     def drawBlock(self, qp, event, end):
         if type(self.calendar.dragging) == Event and self.calendar.dragging.id == event.id:
-            return
-
+            if not self.drag_outside:
+                return
 
         TEXT_SIZE = 9
         base_t = self.ts2pos(event["start"])
         base_h = self.min_size * (max(300, event["duration"]) / 60) 
         evt_h = self.ts2pos(end) - base_t
-#        qp.setPen(Qt.NoPen)
-        
-#        qp.setBrush(QColor(100,200,200,128))
-#        qp.drawRect(0, base_t, self.width(), base_h)
         
         lcolor = QColor("#909090")
         
-
         erect = QRect(0,base_t,self.width(),evt_h) # EventRectangle Muhehe!
         gradient = QLinearGradient(erect.topLeft(), erect.bottomLeft())
-        gradient.setColorAt(.0, QColor(40,80,120, 210))
-        gradient.setColorAt(.2, QColor(40,80,120, 180))
+        gradient.setColorAt(.0, QColor(40,80,120,210))
         gradient.setColorAt(1, QColor(0,0,0, 0))
         qp.fillRect(erect, gradient)
 
@@ -232,10 +228,10 @@ class TXDayWidget(TXVerticalBar):
         qp.setBrush(QColor(200,200,200,128))
         qp.drawRect(0, base_t, self.width(), base_h)
 
-        self.status("Start time: {} End time: {}".format(
-                time.strftime("%H:%M", time.localtime(self.cursor_time)), 
-                time.strftime("%H:%M", time.localtime(self.cursor_time + exp_dur))
-                ))
+       # self.status("Start time: {} End time: {}".format(
+       #         time.strftime("%H:%M", time.localtime(self.cursor_time)), 
+       #         time.strftime("%H:%M", time.localtime(self.cursor_time + exp_dur))
+       #         ))
         
 
 
@@ -264,11 +260,18 @@ class TXDayWidget(TXVerticalBar):
         mimeData.setData("application/nx.event", encodedData.encode("ascii"))
 
         drag = QDrag(self)
+        drag.targetChanged.connect(self.dragTargetChanged)
         drag.setMimeData(mimeData)
         drag.setHotSpot(e.pos() - self.rect().topLeft())
+        self.calendar.drag_source = self
+        dropAction = drag.exec_(Qt.MoveAction)  
 
-        dropAction = drag.exec_(Qt.MoveAction)
-
+    def dragTargetChanged(self, evt):
+        if type(evt) == TXDayWidget:
+            self.drag_outside = False
+        else:
+            self.drag_outside = True
+            self.calendar.drag_source.update()
 
 
     def dragEnterEvent(self, evt):
@@ -299,6 +302,10 @@ class TXDayWidget(TXVerticalBar):
 
         else:
             evt.ignore()
+
+        if self.calendar.drag_source:
+            self.calendar.drag_source.drag_outside = False
+            self.calendar.drag_source.update()
 
 
     def dragMoveEvent(self, evt):
@@ -334,6 +341,7 @@ class TXDayWidget(TXVerticalBar):
                             "events" : [event.meta]
                         })
 
+        self.calendar.drag_source = False
         self.calendar.dragging = False
         self.calendar.load()
         for day in self.calendar.days:
@@ -365,6 +373,7 @@ class TXCalendar(QWidget):
         self.days = []
         self.events = []
         self.dragging = False
+        self.drag_source = False
         
         header_layout = QHBoxLayout()
         header_layout.addSpacing(CLOCKBAR_WIDTH+ 15)
