@@ -19,7 +19,7 @@ TIME_PENS = [
 
 DAY = 3600*24
 MIN_PER_DAY = (60 * 24)
-
+SAFE_OVR = 5 # Do not warn if overflow < 5 mins
 
 def suggested_duration(dur):
     adur = int(dur) + 360
@@ -186,21 +186,24 @@ class TXDayWidget(TXVerticalBar):
 
         TEXT_SIZE = 9
         base_t = self.ts2pos(event["start"])
-        base_h = self.min_size * (max(300, event["duration"]) / 60) 
+        base_h = self.min_size * (event["duration"] / 60) 
         evt_h = self.ts2pos(end) - base_t
         
-        lcolor = QColor("#909090")
-        
+        # Event block (Gradient one)        
         erect = QRect(0,base_t,self.width(),evt_h) # EventRectangle Muhehe!
         gradient = QLinearGradient(erect.topLeft(), erect.bottomLeft())
         gradient.setColorAt(.0, QColor(40,80,120,210))
         gradient.setColorAt(1, QColor(0,0,0, 0))
         qp.fillRect(erect, gradient)
 
+
+        lcolor = QColor("#909090")
         erect = QRect(0, base_t, self.width(), 2)
         qp.fillRect(erect, lcolor)
         if base_h:
-            erect = QRect(0, base_t, 2, base_h)  
+            if base_h > evt_h + (SAFE_OVR * self.min_size):
+                lcolor = QColor("#e01010")
+            erect = QRect(0, base_t, 2, min(base_h, evt_h))  
             qp.fillRect(erect, lcolor)
 
 
