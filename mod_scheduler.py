@@ -4,6 +4,8 @@ import datetime
 from firefly_common import *
 from firefly_view import *
 
+from dlg_event import EventDialog
+
 from nx.objects import *
 from nx.common.utils import *
 
@@ -326,16 +328,16 @@ class TXDayWidget(TXVerticalBar):
         self.update()
 
     def dropEvent(self, evt):
-        QApplication.setOverrideCursor(Qt.WaitCursor)
         if type(self.calendar.dragging) == Asset:
             self.status("Creating event from {} at time {}".format(self.calendar.dragging, time.strftime("%Y-%m-%d %H:%M", time.localtime(self.cursor_time))))
-            query("event_from_asset", {
-                    "id_asset" : self.calendar.dragging.id,
-                    "id_channel" : self.id_channel,
-                    "timestamp" : self.cursor_time
-                })
+            dlg = EventDialog(self,
+                    id_asset=self.calendar.dragging.id,
+                    id_channel=self.id_channel,
+                    timestamp=self.cursor_time
+                )
+            dlg.exec_()
+
         elif type(self.calendar.dragging) == Event:
-            print ("Dropping event")
             event = self.calendar.dragging
             event["start"] = self.cursor_time
             result, data = query("set_day_events", 
@@ -344,12 +346,13 @@ class TXDayWidget(TXVerticalBar):
                             "events" : [event.meta]
                         })
 
+
         self.calendar.drag_source = False
         self.calendar.dragging = False
         self.calendar.load()
         for day in self.calendar.days:
             day.update()
-        QApplication.restoreOverrideCursor()
+
 
 
 
@@ -430,6 +433,9 @@ class TXCalendar(QWidget):
 
 
     def load(self):
+        QApplication.processEvents()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+
         res, data = query("scheduler", {
             "id_channel" : self.id_channel,
             "date" : self.view_start,
@@ -439,7 +445,7 @@ class TXCalendar(QWidget):
             e = Event(from_data=event_data)
             self.events.append(e)
 
-
+        
         # t = datetime.date(syy, smm, sdd)
 
         # if t < datetime.date.today():
@@ -458,7 +464,7 @@ class TXCalendar(QWidget):
             d = time.strftime("%a %x", time.localtime(self.start_time+(i*DAY))).upper()
             header.setText(d)
 
-
+        QApplication.restoreOverrideCursor()
 
 
 
@@ -548,7 +554,6 @@ class Scheduler(BaseWidget):
 
     def save_state(self):
         state = {}
-        state["class"] = "scheduler"
         return state
 
     def load_state(self, state):
