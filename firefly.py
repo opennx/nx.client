@@ -44,6 +44,7 @@ class Firefly(QMainWindow):
             if not dock_key.startswith("docks/"):
                 continue
             dock_data = settings.value(dock_key)
+            parent.splash_message("Loading {} {}".format(dock_data["class"], dock_data["object_name"]))
             self.create_dock(dock_data["class"], state=dock_data, show=False)
 
         if settings.contains("main_window/pos"):
@@ -66,7 +67,7 @@ class Firefly(QMainWindow):
         else:
             self.show()
 
-        for dock in self.docks:
+        for dock in self.docks:                
             dock.show()
 
         self.status("Ready")
@@ -85,6 +86,7 @@ class Firefly(QMainWindow):
                 "preview"   : Preview,
                 "detail"    : Detail
                 }[widget_class]
+
         create = True
         if one_instance:
             for dock in self.docks:
@@ -93,12 +95,17 @@ class Firefly(QMainWindow):
                     create = False
                     break        
         if create:
+            QApplication.processEvents()
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+
             dock = BaseDock(self, widget, state)
             self.docks.append(dock)
             if self.workspace_locked:
                 dock.setAllowedAreas(Qt.NoDockWidgetArea)
             if show:
+                dock.setFloating(True)
                 dock.show()
+            QApplication.restoreOverrideCursor()
         return dock
 
 

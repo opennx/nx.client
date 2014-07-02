@@ -73,11 +73,11 @@ class BaseDock(QDockWidget):
         self.setAllowedAreas(Qt.AllDockWidgetAreas)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        self.setFloating(True)
-
         self.main_widget = main_widget(self)
         self.setWidget(self.main_widget)
         self.main_widget.load_state(state)
+        if state.get("is_floating", False):
+            self.setFloating(True)
 
 
     def reset_object_name(self):
@@ -97,6 +97,7 @@ class BaseDock(QDockWidget):
         state = self.main_widget.save_state()
         state["class"] = self.class_
         state["object_name"] = self.objectName()
+        state["is_floating"] = self.isFloating()
         settings.setValue("docks/{}".format(self.objectName()), state)
 
     def status(self, message, message_type=INFO):

@@ -251,7 +251,7 @@ class TXDayWidget(TXVerticalBar):
             except IndexError:
                 end = self.start_time + (3600*24)
 
-            if end >= tc > event["start"]:
+            if end >= tc > event["start"] > self.start_time:
                 self.setToolTip("<b>{title}</b><br>Start: {start}".format(**event.meta))
                 break
         else:

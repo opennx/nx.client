@@ -26,7 +26,6 @@ class Firestarter(QApplication):
 
         self.splash_message("Loading user workspace...")
         self.main_window = main_window(self)
-        
 
 
     def handle_messaging(self, data):

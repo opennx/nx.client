@@ -16,7 +16,7 @@ def success(retcode):
     return retcode < 300
 
 def query(method, params={}, target="hive"):
-    if config.get("use_zlib",False):
+    if config.get("hive_zlib",False):
       params["use_zlib"] = True
     params = json.dumps(params)
     url = "{protocol}://{host}:{port}/{target}".format(protocol = ["http", "https"][config.get("hive_ssl", False)],
@@ -31,7 +31,7 @@ def query(method, params={}, target="hive"):
                             })
 
     result = urlopen(url, post_data.encode("ascii"), timeout=10).read()
-    if config.get("use_zlib",False):
+    if config.get("hive_zlib",False):
       result = zlib.decompress(result)
     result = json.loads(result.decode('ascii'))
 
