@@ -183,18 +183,18 @@ class SystemDialog(QDialog):
 
     def load_state(self):
         settings = ffsettings()
-        if "global/system_g" in settings.allKeys():
-            self.restoreGeometry(settings.value("global/system_g"))
+        if "dialogs/system_g" in settings.allKeys():
+            self.restoreGeometry(settings.value("dialogs/system_g"))
         else:
             self.resize(800,400)
 
-        if "global/services_c" in settings.allKeys():
-            self.model.header_data = settings.value("global/services_c")
+        if "dialogs/services_c" in settings.allKeys():
+            self.model.header_data = settings.value("dialogs/services_c")
 
         self.load()
 
-        if "global/services_cw" in settings.allKeys():
-            self.view.horizontalHeader().restoreState(settings.value("global/services_cw"))
+        if "dialogs/services_cw" in settings.allKeys():
+            self.view.horizontalHeader().restoreState(settings.value("dialogs/services_cw"))
         else:
             for id_column in range(self.model.columnCount(False)):
                 self.view.resizeColumnToContents(id_column)
@@ -202,9 +202,9 @@ class SystemDialog(QDialog):
 
     def save_state(self):
         settings = ffsettings()
-        settings.setValue("global/system_g", self.saveGeometry())
-        settings.setValue("global/services_c", self.model.header_data)
-        settings.setValue("global/services_cw", self.view.horizontalHeader().saveState())
+        settings.setValue("dialogs/system_g", self.saveGeometry())
+        settings.setValue("dialogs/services_c", self.model.header_data)
+        settings.setValue("dialogs/services_cw", self.view.horizontalHeader().saveState())
 
 
 

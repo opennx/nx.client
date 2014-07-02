@@ -190,7 +190,6 @@ class Preview(BaseWidget):
 
     def save_state(self):
         state = {}
-        state["class"] = "preview"
         return state
 
     def load_state(self, state):

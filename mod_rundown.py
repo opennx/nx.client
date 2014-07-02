@@ -109,7 +109,6 @@ class Rundown(BaseWidget):
 
     def save_state(self):
         state = {}
-        state["class"] = "rundown"
         state["c"] = self.model.header_data
         state["cw"] = self.view.horizontalHeader().saveState()
         return state

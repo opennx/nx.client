@@ -16,6 +16,7 @@ from dlg_system import SystemDialog
 
 from mod_browser import Browser
 from mod_preview import Preview
+from mod_detail import Detail
 from mod_rundown import Rundown
 from mod_scheduler import Scheduler
 
@@ -78,10 +79,11 @@ class Firefly(QMainWindow):
 
     def create_dock(self, widget_class, state={}, show=True, one_instance=False):
         widget = {
-                "browser" : Browser,
+                "browser"   : Browser,
                 "scheduler" : Scheduler,
-                "rundown" : Rundown,
-                "preview" : Preview
+                "rundown"   : Rundown,
+                "preview"   : Preview,
+                "detail"    : Detail
                 }[widget_class]
         create = True
         if one_instance:
@@ -97,6 +99,7 @@ class Firefly(QMainWindow):
                 dock.setAllowedAreas(Qt.NoDockWidgetArea)
             if show:
                 dock.show()
+        return dock
 
 
 
@@ -150,12 +153,15 @@ class Firefly(QMainWindow):
         for d in self.docks:
             if d.class_ == "preview" and objects:
                 d.main_widget.focus(objects)
+            elif d.class_ == "detail" and objects:
+                d.main_widget.focus(objects)
 
     ###############################################################################
     ## Menu actions
     ## FILE
     def on_new_asset(self):
-        pass
+        dock = self.create_dock("detail", state={}, show=True, one_instance=True)
+        dock.main_widget.new_asset()
 
     def on_dlg_system(self):
         self.sys_dlg = SystemDialog(self)

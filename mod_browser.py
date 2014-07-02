@@ -73,7 +73,6 @@ class Browser(BaseWidget):
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
-        #layout.setSpacing(5)
         layout.addWidget(toolbar, 0)
         layout.addWidget(self.view, 1)
         self.setLayout(layout)
@@ -82,9 +81,8 @@ class Browser(BaseWidget):
     def save_state(self):
         state = self.state
         id_view = self.search_query.get("view",0)
-        #state["{}c".format(id_view)] = self.model.header_data
+        state["{}c".format(id_view)] = self.model.header_data
         state["{}cw".format(id_view)] = self.view.horizontalHeader().saveState()
-        state["class"]  = "browser"
         state["search_query"]  = self.search_query
         return state
 
