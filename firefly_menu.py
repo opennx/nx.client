@@ -55,10 +55,16 @@ def create_menu(wnd):
     menuWindow.addAction(action_wnd_browser)    
 
     action_wnd_preview = QAction('&Preview', wnd)        
-    action_wnd_preview.setShortcut('Ctrl+D')
+    action_wnd_preview.setShortcut('Ctrl+P')
     action_wnd_preview.setStatusTip('Open preview window')
     action_wnd_preview.triggered.connect(partial(wnd.create_dock, widget_class="preview", one_instance=True))
     menuWindow.addAction(action_wnd_preview)    
+
+    action_wnd_detail = QAction('&Detail', wnd)        
+    action_wnd_detail.setShortcut('Ctrl+D')
+    action_wnd_detail.setStatusTip('Open detail window')
+    action_wnd_detail.triggered.connect(partial(wnd.create_dock, widget_class="detail", one_instance=True))
+    menuWindow.addAction(action_wnd_detail)    
 
     action_wnd_scheduler = QAction('&Scheduler', wnd)        
     action_wnd_scheduler.setShortcut('F7')
