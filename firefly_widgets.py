@@ -74,31 +74,6 @@ class NXE_datetime(QLineEdit):
         
 
 
-
-
-
-class NXE_date(QLineEdit):
-    def __init__(self, parent, default=0):
-        super(NDate,self).__init__(parent)
-        self.setInputMask("9999-99-99")
-        self.set_timestamp(default)
-        self.default = default
-      
-    def set_timestamp(self, timestamp):
-        if timestamp:
-            self.setText (time.strftime("%Y-%m-%d", time.localtime(timestamp)))
-        else:
-            self.setText (time.strftime("%Y-%m-%d"))
-      
-    def get_timestamp(self):
-        try:
-             t = strptime (self.text(), "%Y-%m-%d")
-             return time.mktime(t)
-        except:
-             #print "Wrong time format"
-             return self.default
-
-
 class NXE_select(QComboBox):
     def __init__(self, parent, data, default=False):
         super(NOption,self).__init__(parent)
@@ -163,15 +138,6 @@ class MetaEditItemDelegate(QStyledItemDelegate):
 
         #########################################################################
 
-
-        elif class_ == DATE:
-            editor = NXE_date(parent)
-            if not default_value: 
-                editor.default = int(time())
-            else: 
-                editor.default = int(default_value)
-            editor.editingFinished.connect(self.commitAndCloseEditor)
-
         elif class_ == SELECT:
             editor = NOption(parent, settings, default_value)
          
@@ -186,7 +152,7 @@ class MetaEditItemDelegate(QStyledItemDelegate):
             parent.text_editor.exec_()
             return None
         
-        elif class_ in [BOOLEAN, STAR]:
+        elif class_ == BOOLEAN:
             model = index.model()
             model.setData(index, int(not default_value))
             return None
@@ -207,7 +173,7 @@ class MetaEditItemDelegate(QStyledItemDelegate):
      #######################################################################
      
     def setEditorData(self, editor, index):
-        if isinstance(editor,NXE_datetime) or isinstance(editor, NXE_date):
+        if isinstance(editor,NXE_datetime):
             editor.set_timestamp(editor.default)
        
         elif isinstance(editor, QLineEdit) or isinstance(editor, QTextEdit) or isinstance(editor, TextEditor):
@@ -216,7 +182,7 @@ class MetaEditItemDelegate(QStyledItemDelegate):
      #######################################################################
      
     def setModelData(self, editor, model, index):
-        if isinstance(editor,NXE_datetime) or isinstance(editor,NXE_date):
+        if isinstance(editor,NXE_datetime):
             val = editor.get_timestamp()
             if val != editor.default: 
                 model.setData(index, val)

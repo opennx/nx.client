@@ -9,7 +9,7 @@ from nx.common.utils import *
 
 from nx.connection import *
 
-from nx.cellformat import NXCellFormat, super_tags
+from nx.cellformat import NXCellFormat
 from nx.colors import *
 
 __all__ = ["Asset", "Item", "Bin", "Event", "Dummy"]

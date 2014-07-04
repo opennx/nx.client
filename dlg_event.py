@@ -78,10 +78,11 @@ class EventDialog(QDialog):
 
     def on_accept(self):
         query("event_from_asset", {
-                    "id_asset" : self.calendar.dragging.id,
-                    "id_channel" : self.id_channel,
-                    "timestamp" : self.cursor_time
+                    "id_asset" : self.kwargs["id_asset"],
+                    "id_channel" : self.kwargs["id_channel"],
+                    "timestamp" : self.kwargs["timestamp"]
                 })
+        self.close()
 
 
 

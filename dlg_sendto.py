@@ -45,4 +45,8 @@ class SendTo(QDialog):
         return objects
 
     def on_send(self, id_action):
-        query("send_to", {"id_action" : id_action, "objects": self.assets, "settings":{}, "restart_existing": True })
+        res, status = query("send_to", {"id_action" : id_action, "objects": self.assets, "settings":{}, "restart_existing": True })
+        if failed(res):
+            QMessageBox.error(self, "Error", "status")
+        else:
+            self.close()

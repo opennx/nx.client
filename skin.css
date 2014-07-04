@@ -41,6 +41,10 @@ QTableView {
     border: 0;
     }
 
+QTableView::item {
+    /*color : #c0c0c0; 
+    */}
+
 QTableView::item:focus { 
     background-color: rgba(160, 160, 160, 160);
 }
@@ -100,6 +104,7 @@ QLineEdit, QTextEdit, QComboBox, QPushButton {
     background-color : #242424;
     color : #c0c0c0;
     border : 1px solid #646464;
+    min-width: 36px;
     }
 
 

@@ -17,9 +17,9 @@ while p.poll() == None:
 
 
 
- f = "Win32GUI"
- f = "Console"
+f = "Win32GUI"
+f = "Console"
 
- p = subprocess.Popen("""C:\\Python34\\Scripts\\cxfreeze.bat firefly.py --base-name=%s --icon=firefly.ico"""%f, shell=True)
- while p.poll() == None:
-     time.sleep(.1)
+p = subprocess.Popen("""python C:\\Python34\\Scripts\\cxfreeze.py firefly.py --base-name=%s --icon=firefly.ico"""%f, shell=True)
+while p.poll() == None:
+    time.sleep(.1)
