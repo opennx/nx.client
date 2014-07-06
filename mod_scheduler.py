@@ -226,7 +226,7 @@ class TXDayWidget(TXVerticalBar):
         else: 
             return
 
-        base_t = self.ts2pos(self.cursor_time)
+        base_t = self.ts2pos(self.cursor_time + self.calendar.drag_offset) 
         base_h = self.min_size * max(5, (exp_dur / 60))
 
         qp.setPen(Qt.NoPen)
@@ -251,7 +251,7 @@ class TXDayWidget(TXVerticalBar):
             except IndexError:
                 end = self.start_time + (3600*24)
 
-            if end >= tc > event["start"] > self.start_time:
+            if end >= tc > event["start"] >= self.start_time:
                 self.setToolTip("<b>{title}</b><br>Start: {start}".format(**event.meta))
                 break
         else:
@@ -260,6 +260,8 @@ class TXDayWidget(TXVerticalBar):
         if e.buttons() != Qt.LeftButton:
             return
         
+        self.calendar.drag_offset = event["start"] - tc
+
         encodedData = json.dumps([event.meta])
         mimeData = QMimeData()
         mimeData.setData("application/nx.event", encodedData.encode("ascii"))
@@ -328,18 +330,19 @@ class TXDayWidget(TXVerticalBar):
         self.update()
 
     def dropEvent(self, evt):
+        drop_tc = max(self.start_time, self.cursor_time + self.calendar.drag_offset) 
         if type(self.calendar.dragging) == Asset:
             self.status("Creating event from {} at time {}".format(self.calendar.dragging, time.strftime("%Y-%m-%d %H:%M", time.localtime(self.cursor_time))))
             dlg = EventDialog(self,
                     id_asset=self.calendar.dragging.id,
                     id_channel=self.id_channel,
-                    timestamp=self.cursor_time
+                    timestamp=drop_tc
                 )
             dlg.exec_()
 
         elif type(self.calendar.dragging) == Event:
             event = self.calendar.dragging
-            event["start"] = self.cursor_time
+            event["start"] = drop_tc
             result, data = query("set_day_events", 
                         {   
                             "id_channel" : self.id_channel,
@@ -379,6 +382,7 @@ class TXCalendar(QWidget):
         self.days = []
         self.events = []
         self.dragging = False
+        self.drag_offset = 0
         self.drag_source = False
         
         header_layout = QHBoxLayout()
