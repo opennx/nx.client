@@ -95,7 +95,6 @@ class TagRundownSymbol(TagFormat):
 
 class TagRundownStatus(TagFormat):
     tag = "rundown_status"
-
     def display(self, obj):
         try:
             return [
@@ -110,7 +109,18 @@ class TagRundownStatus(TagFormat):
         return [NXColors[ASSET_FG_OFFLINE], 
                 NXColors[ASSET_FG_OFFLINE], 
                 DEFAULT_TEXT_COLOR
-                ][int(self["rundown_status"])]
+                ][int(obj[self.tag])]
+
+
+class TagRundownScheduled(TagFormat):
+    tag = "rundown_scheduled"
+    def display(self, obj):
+        return time.strftime("%H:%M", time.localtime(obj[self.tag]))
+
+class TagRundownBroadcast(TagRundownScheduled):
+    tag = "rundown_broadcast"
+
+
 
 ##########################################################################################
 
@@ -121,7 +131,9 @@ format_helpers_list = [
     TagContentType,
     TagPromoted,
     TagRundownSymbol,
-    TagRundownStatus
+    TagRundownStatus,
+    TagRundownScheduled,
+    TagRundownBroadcast
     ]
 
 format_helpers = {}

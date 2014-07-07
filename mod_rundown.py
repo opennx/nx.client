@@ -12,7 +12,7 @@ from mod_rundown_model import RundownModel
 from dlg_sendto import SendTo
 
 
-DEFAULT_COLUMNS = ["rundown_symbol", "title", "duration", "rundown_scheduled", "rundown_broadcast", "rundown_status", "mark_in", "mark_out", "id_asset"]
+DEFAULT_COLUMNS = ["rundown_symbol", "title", "duration", "genre", "rundown_scheduled", "rundown_broadcast", "rundown_status", "mark_in", "mark_out", "id_asset"]
 
 
 class RundownDate(QLabel):
