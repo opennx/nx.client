@@ -61,6 +61,8 @@ class BaseWidget(QWidget):
     def seismic_handler(self, data):
         pass
 
+    def refresh(self):
+        pass
 
 class BaseDock(QDockWidget):
     def __init__(self, parent, main_widget, state={}):

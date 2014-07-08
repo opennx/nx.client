@@ -94,7 +94,6 @@ class NXView(QTableView):
         super(NXView, self).__init__(parent)
         self.setStyleSheet(base_css)
         self.verticalHeader().setVisible(False)
-        #self.horizontalHeader().setStretchLastSection(True)
         self.setWordWrap(False)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setDragEnabled(True)
@@ -110,3 +109,6 @@ class NXView(QTableView):
     def do_edit(self, mi):
         if time.time() - self.editor_closed_at > 0.1:
             self.edit(mi)
+
+
+

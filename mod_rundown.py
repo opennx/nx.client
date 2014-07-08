@@ -42,7 +42,6 @@ def rundown_toolbar(wnd):
     toolbar.addAction(action_calendar)
 
     action_refresh = QAction(QIcon(pixlib["refresh"]), '&Refresh', wnd)        
-    action_refresh.setShortcut('F5')
     action_refresh.setStatusTip('Refresh rundown')
     action_refresh.triggered.connect(partial(wnd.refresh, True))
     toolbar.addAction(action_refresh)
@@ -69,6 +68,38 @@ def rundown_toolbar(wnd):
     return toolbar
 
 
+class RundownView(NXView):    
+    def selectionChanged(self, selected, deselected):     
+        rows = []
+        self.selected_objects = []
+
+        tot_dur = 0
+
+        for idx in self.selectionModel().selectedIndexes():
+            row = idx.row()
+            if row in rows: 
+                continue
+            rows.append(row)
+            obj = self.model().object_data[row]
+            self.selected_objects.append(obj)
+            if obj.object_type in ["asset", "item"]:
+                tot_dur += obj.get_duration()
+
+        if self.selected_objects:
+            self.parent().parent().parent().focus(self.selected_objects)
+            if len(self.selected_objects) > 1 and tot_dur:
+                self.parent().status("{} objects selected. Total duration {}".format(len(self.selected_objects), s2time(tot_dur) ))
+
+        super(NXView, self).selectionChanged(selected, deselected)
+
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Delete:
+            query("del_items", params={"items":[obj.id for obj in self.selected_objects]})
+            return
+        NXView.keyPressEvent(self, event)
+
+
 class Rundown(BaseWidget):
     def __init__(self, parent):
         super(Rundown, self).__init__(parent)
@@ -82,7 +113,7 @@ class Rundown(BaseWidget):
         self.cued_item = False
 
         self.on_air = OnAir(self)
-        self.view  = NXView(self)
+        self.view  = RundownView(self)
         self.model = RundownModel(self)
 
         self.delegate = MetaEditItemDelegate(self.view)
@@ -93,8 +124,6 @@ class Rundown(BaseWidget):
         
         self.view.activated.connect(self.on_activate)
         self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)       
-        self.view.selectionChanged = self.selectionChanged
-        self.view.keyPressEvent = self.view_keyPressEvent
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
@@ -104,7 +133,7 @@ class Rundown(BaseWidget):
         layout.addWidget(self.view, 1)
 
         self.setLayout(layout)
-        self.subscribe("playout_status")
+        self.subscribe("playout_status", "job_progress")
 
 
     def save_state(self):
@@ -126,21 +155,31 @@ class Rundown(BaseWidget):
                 self.view.resizeColumnToContents(id_column)
 
     def seismic_handler(self, data):
-        if data.data["id_channel"] != self.id_channel:
-            return
+        if data.method == "playout_status": 
+            if data.data["id_channel"] != self.id_channel:
+                return
 
-        if data.data["current_item"] != self.current_item:
-            self.current_item = data.data["current_item"]
-            self.refresh()
+            if data.data["current_item"] != self.current_item:
+                self.current_item = data.data["current_item"]
+                self.refresh()
 
-        if data.data["cued_item"] != self.cued_item:
-            self.cued_item = data.data["cued_item"]
-            self.refresh(full=False)
-        
-        self.on_air.seismic_handler(data)
+            if data.data["cued_item"] != self.cued_item:
+                self.cued_item = data.data["cued_item"]
+                self.refresh(full=False)
+            
+            self.on_air.seismic_handler(data)
 
+
+        elif data.method == "job_progress":
+            for i, obj in enumerate(self.model.object_data):
+                if obj["id_asset"] == data.data["id_object"]:
+                    obj["rundown_transfer_progress"] = data.data["progress"]
+                    index = self.model.index(i, len(self.model.header_data)-1)
+                    self.model.dataChanged.emit(index, index)
+                    self.update()
 
     ###########################################################################
+
 
     def load(self, id_channel, date, full=True):
         self.model.load(id_channel, date, full=full)
@@ -165,29 +204,6 @@ class Rundown(BaseWidget):
 
     ################################################################
 
-    def selectionChanged(self, selected, deselected):     
-        rows = []
-        self.view.selected_objects = []
-
-        tot_dur = 0
-
-        for idx in self.view.selectionModel().selectedIndexes():
-            row = idx.row()
-            if row in rows: 
-                continue
-            rows.append(row)
-            obj = self.model.object_data[row]
-            self.view.selected_objects.append(obj)
-            if obj.object_type in ["asset", "item"]:
-                tot_dur += obj.get_duration()
-
-        if self.view.selected_objects:
-            self.parent().parent().focus(self.view.selected_objects)
-            if len(self.view.selected_objects) > 1 and tot_dur:
-                self.status("{} objects selected. Total duration {}".format(len(self.view.selected_objects), s2time(tot_dur) ))
-
-        super(NXView, self.view).selectionChanged(selected, deselected)
-
 
     def on_activate(self, mi):
         item = self.model.object_data[mi.row()]
@@ -196,13 +212,6 @@ class Rundown(BaseWidget):
             "id_item"    : item.id
             }
         query("cue", params, "play{}".format(self.id_channel))
-
-
-    def view_keyPressEvent(self, event):
-        if event.key() == Qt.Key_Delete:
-            query("del_items", params={"items":[obj.id for obj in self.view.selected_objects]})
-            return
-        NXView.keyPressEvent(self.view, event)
 
 
     def contextMenuEvent(self, event):

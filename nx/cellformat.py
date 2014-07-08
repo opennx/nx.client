@@ -96,26 +96,36 @@ class TagRundownSymbol(TagFormat):
 class TagRundownStatus(TagFormat):
     tag = "rundown_status"
     def display(self, obj):
-        try:
-            return [
-                "OFFLINE",
-                "NOT SCHEDULED",
-                "READY"
-                ][obj[self.tag]]
-        except:
+        if not obj[self.tag] or obj.object_type != "item" :
             return ""
 
+        if obj["rundown_transfer_progress"] and float(obj["rundown_transfer_progress"]) > -1:
+            return "{:0.2f}%".format(float(obj["rundown_transfer_progress"]))
+
+        return [
+            "OFFLINE",
+            "NOT SCHEDULED",
+            "READY"
+            ][int(obj[self.tag])]
+
+
+
+
     def foreground(self, obj):
+        if obj["rundown_transfer_progress"] and int(obj["rundown_transfer_progress"]) > -1:
+            return NXColors[ASSET_FG_CREATING]
+
         return [NXColors[ASSET_FG_OFFLINE], 
                 NXColors[ASSET_FG_OFFLINE], 
                 DEFAULT_TEXT_COLOR
                 ][int(obj[self.tag])]
+            
 
 
 class TagRundownScheduled(TagFormat):
     tag = "rundown_scheduled"
     def display(self, obj):
-        return time.strftime("%H:%M", time.localtime(obj[self.tag]))
+        return time.strftime("%H:%M:%S", time.localtime(obj[self.tag]))
 
 class TagRundownBroadcast(TagRundownScheduled):
     tag = "rundown_broadcast"

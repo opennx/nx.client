@@ -92,8 +92,9 @@ class RundownModel(NXViewModel):
             items = json.loads(d.decode("ascii"))
             if not items or items[0].get("rundown_row","") in [row, row-1]:
                 return False
-            for obj in items:
-                drop_objects.append(Item(from_data=obj))
+            else:
+                for obj in items:
+                    drop_objects.append(Item(from_data=obj))
             
         elif data.hasFormat("application/nx.asset"):
             iformat = ASSET
@@ -162,6 +163,7 @@ class RundownModel(NXViewModel):
             i+=1
         
         if pre_items:
+            QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
             try:
                 query("bin_order",params={"id_bin":to_bin, "order":pre_items, "sender":self.parent().parent().objectName() })

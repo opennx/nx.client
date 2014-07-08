@@ -252,7 +252,10 @@ class TXDayWidget(TXVerticalBar):
                 end = self.start_time + (3600*24)
 
             if end >= tc > event["start"] >= self.start_time:
-                self.setToolTip("<b>{title}</b><br>Start: {start}".format(**event.meta))
+                self.setToolTip("<b>{title}</b><br>Start: {start}".format(
+                    title=event["title"],
+                    start=time.strftime("%H:%M",time.localtime(event["start"]))
+                    ))
                 break
         else:
             return
@@ -332,13 +335,21 @@ class TXDayWidget(TXVerticalBar):
     def dropEvent(self, evt):
         drop_tc = max(self.start_time, self.cursor_time + self.calendar.drag_offset) 
         if type(self.calendar.dragging) == Asset:
-            self.status("Creating event from {} at time {}".format(self.calendar.dragging, time.strftime("%Y-%m-%d %H:%M", time.localtime(self.cursor_time))))
-            dlg = EventDialog(self,
-                    id_asset=self.calendar.dragging.id,
-                    id_channel=self.id_channel,
-                    timestamp=drop_tc
-                )
-            dlg.exec_()
+
+            if evt.keyboardModifiers() & Qt.AltModifier:
+                self.status("Creating event from {} at time {}".format(self.calendar.dragging, time.strftime("%Y-%m-%d %H:%M", time.localtime(self.cursor_time))))
+                dlg = EventDialog(self,
+                        id_asset=self.calendar.dragging.id,
+                        id_channel=self.id_channel,
+                        timestamp=drop_tc
+                    )
+                dlg.exec_()
+            else:
+                query("event_from_asset", {
+                        "id_asset" : self.calendar.dragging.id,
+                        "id_channel" : self.id_channel,
+                        "timestamp" : drop_tc
+                    })
 
         elif type(self.calendar.dragging) == Event:
             event = self.calendar.dragging
@@ -507,8 +518,7 @@ def scheduler_toolbar(wnd):
     toolbar.addAction(action_calendar)
 
     action_refresh = QAction(QIcon(pixlib["refresh"]), '&Refresh', wnd)        
-    action_refresh.setShortcut('F5')
-    action_refresh.setStatusTip('Refresh rundown')
+    action_refresh.setStatusTip('Refresh scheduler')
     #action_refresh.triggered.connect(partial(wnd.refresh, True))
     toolbar.addAction(action_refresh)
 

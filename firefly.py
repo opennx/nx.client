@@ -5,6 +5,7 @@ import locale
 locale.setlocale(locale.LC_ALL, '')
 
 import sys
+from pprint import pprint
 
 from version_info import VERSION_INFO
 
@@ -71,6 +72,7 @@ class Firefly(QMainWindow):
             dock.show()
 
         self.status("Ready")
+        pprint (config)
             
 
     def resizeEvent(self, evt):
@@ -204,6 +206,10 @@ class Firefly(QMainWindow):
             self.unlock_workspace()
         else:
             self.lock_workspace()
+
+    def on_refresh(self):
+        for dock in self.docks:
+            dock.main_widget.refresh()
 
 
     ## Menu actions

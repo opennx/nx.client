@@ -80,6 +80,12 @@ def create_menu(wnd):
 
     menuWindow.addSeparator()
 
+    action_refresh = QAction('&Refresh', wnd)        
+    action_refresh.setShortcut('F5')
+    action_refresh.setStatusTip('Refresh views')
+    action_refresh.triggered.connect(wnd.on_refresh)
+    menuWindow.addAction(action_refresh)
+
     action_lock_workspace = QAction('&Lock workspace', wnd)        
     action_lock_workspace.setShortcut('Ctrl+L')
     action_lock_workspace.setStatusTip('Lock widgets position')

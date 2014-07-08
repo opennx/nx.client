@@ -40,9 +40,7 @@ class EventDialog(QDialog):
         super(EventDialog, self).__init__(parent)
         self.setWindowTitle("Scheduler")
         self.kwargs = kwargs
-
         self.setStyleSheet(base_css)
-
 
         self.toolbar = event_toolbar(self)
 

@@ -6,6 +6,8 @@ from functools import partial
 from firefly_common import *
 
 
+class SendToButton(QPushButton):
+    pass
 
 class SendTo(QDialog):
     def __init__(self,  parent, objects=[]):
@@ -27,9 +29,13 @@ class SendTo(QDialog):
 
             layout = QVBoxLayout()
             for id_action, title in data:
-                btn_send = QPushButton(title)
+                btn_send = SendToButton(title)
                 btn_send.clicked.connect(partial(self.on_send, id_action))
-                layout.addWidget(btn_send,0)
+                layout.addWidget(btn_send,1)
+
+            self.restart = QCheckBox('Restart existing actions', self)
+            self.restart.setChecked(True)
+            layout.addWidget(self.restart,0)
 
             self.setLayout(layout)
             self.setMinimumWidth(400)
@@ -45,7 +51,7 @@ class SendTo(QDialog):
         return objects
 
     def on_send(self, id_action):
-        res, status = query("send_to", {"id_action" : id_action, "objects": self.assets, "settings":{}, "restart_existing": True })
+        res, status = query("send_to", {"id_action" : id_action, "objects": self.assets, "settings":{}, "restart_existing": self.restart.isChecked() })
         if failed(res):
             QMessageBox.error(self, "Error", "status")
         else:
