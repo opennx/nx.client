@@ -41,12 +41,9 @@ class SeismicListener(QThread):
                 data, addr = self.sock.recvfrom(1024)
                 self.last_msg = time.time()
             except (socket.error):
-
                 if time.time() - self.last_msg < 3:
                     continue
-                
                 self.listen_http()
-
             else:
                 self.parse_message(data)
 

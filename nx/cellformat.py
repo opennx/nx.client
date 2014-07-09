@@ -35,7 +35,7 @@ class TagFormat(object):
         return None
 
     def foreground(self, obj):
-        return DEFAULT_TEXT_COLOR
+        return None
 
 ##########################################################################################
 
@@ -90,7 +90,7 @@ class TagRundownSymbol(TagFormat):
     def decoration(self, obj):
         if obj.object_type == "event":
             return ["star_disabled", "star_enabled"][int(obj["promoted"])]
-        else:
+        elif obj["id_folder"]:
             return "folder_{}".format(obj["id_folder"])
 
 class TagRundownStatus(TagFormat):
@@ -102,30 +102,31 @@ class TagRundownStatus(TagFormat):
         if obj["rundown_transfer_progress"] and float(obj["rundown_transfer_progress"]) > -1:
             return "{:0.2f}%".format(float(obj["rundown_transfer_progress"]))
 
-        return [
-            "OFFLINE",
-            "NOT SCHEDULED",
-            "READY"
-            ][int(obj[self.tag])]
-
-
-
+        return {
+            -2 : "PART AIRED",
+            -1 : "AIRED",
+             0 : "OFFLINE",
+             1 : "NOT SCHEDULED",
+             2 : "READY"
+        }.get(int(obj[self.tag]), "UNKNOWN")
 
     def foreground(self, obj):
         if obj["rundown_transfer_progress"] and int(obj["rundown_transfer_progress"]) > -1:
             return NXColors[ASSET_FG_CREATING]
 
-        return [NXColors[ASSET_FG_OFFLINE], 
-                NXColors[ASSET_FG_OFFLINE], 
-                DEFAULT_TEXT_COLOR
-                ][int(obj[self.tag])]
+        if obj.object_type == "item":
+            return [NXColors[ASSET_FG_OFFLINE], 
+                    NXColors[ASSET_FG_OFFLINE], 
+                    DEFAULT_TEXT_COLOR
+                    ][int(obj[self.tag])]
             
 
 
 class TagRundownScheduled(TagFormat):
     tag = "rundown_scheduled"
     def display(self, obj):
-        return time.strftime("%H:%M:%S", time.localtime(obj[self.tag]))
+        if obj[self.tag]:
+            return time.strftime("%H:%M:%S", time.localtime(obj[self.tag]))
 
 class TagRundownBroadcast(TagRundownScheduled):
     tag = "rundown_broadcast"
@@ -227,7 +228,12 @@ class NXCellFormat():
 
     def format_foreground(self, key):
         if key in format_helpers:
-            return format_helpers[key].foreground(self)       
+            val = format_helpers[key].foreground(self)       
+            if val is not None:
+                return val
+
+        if self.object_type == "item" and self["rundown_status"] == -1:
+            return "#404040"
 
         elif key == "title" and self.object_type == "asset":
             return NXColors[[ASSET_FG_OFFLINE, ASSET_FG_ONLINE, ASSET_FG_CREATING, ASSET_FG_TRASHED, ASSET_FG_RESET][self["status"]]]

@@ -12,7 +12,7 @@ from mod_rundown_model import RundownModel
 from dlg_sendto import SendTo
 
 
-DEFAULT_COLUMNS = ["rundown_symbol", "title", "duration", "genre", "rundown_scheduled", "rundown_broadcast", "rundown_status", "mark_in", "mark_out", "id_asset"]
+DEFAULT_COLUMNS = ["rundown_symbol", "title", "duration", "rundown_scheduled", "rundown_broadcast", "rundown_status", "mark_in", "mark_out", "id_asset"]
 
 
 class RundownDate(QLabel):
@@ -95,7 +95,12 @@ class RundownView(NXView):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Delete:
-            query("del_items", params={"items":[obj.id for obj in self.selected_objects]})
+            QApplication.processEvents()
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            stat, res = query("del_items", params={"items":[obj.id for obj in self.selected_objects]})
+            self.parent().status("Delete item: {}".format(res))
+            QApplication.restoreOverrideCursor()
+            self.parent().refresh()
             return
         NXView.keyPressEvent(self, event)
 
@@ -143,7 +148,7 @@ class Rundown(BaseWidget):
         return state
 
     def load_state(self, state):
-        self.model.header_data = state.get("c") or DEFAULT_COLUMNS
+        self.model.header_data = state.get("c", False) or DEFAULT_COLUMNS
         self.id_channel = state.get("id_channel", min(config["playout_channels"].keys()))
         self.load(self.id_channel, self.current_date)
 
@@ -173,7 +178,11 @@ class Rundown(BaseWidget):
         elif data.method == "job_progress":
             for i, obj in enumerate(self.model.object_data):
                 if obj["id_asset"] == data.data["id_object"]:
-                    obj["rundown_transfer_progress"] = data.data["progress"]
+                    if data.data["progress"] == COMPLETED:
+                        obj["rundown_status"] = 2
+                        obj["rundown_transfer_progress"] = COMPLETED
+                    else:
+                        obj["rundown_transfer_progress"] = data.data["progress"]
                     index = self.model.index(i, len(self.model.header_data)-1)
                     self.model.dataChanged.emit(index, index)
                     self.update()

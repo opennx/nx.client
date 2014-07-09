@@ -8,6 +8,8 @@ class RundownModel(NXViewModel):
         self.id_channel = id_channel
         self.date = date
 
+        QApplication.processEvents()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         self.beginResetModel()
 
         if full:
@@ -42,7 +44,7 @@ class RundownModel(NXViewModel):
                         row += 1
         
         self.endResetModel()
-
+        QApplication.restoreOverrideCursor()
 
 
 
@@ -169,7 +171,7 @@ class RundownModel(NXViewModel):
                 query("bin_order",params={"id_bin":to_bin, "order":pre_items, "sender":self.parent().parent().objectName() })
             except:
                 return False
-            self.load(self.id_channel, self.date)
             QApplication.restoreOverrideCursor()
+            self.load(self.id_channel, self.date)
         return True
 

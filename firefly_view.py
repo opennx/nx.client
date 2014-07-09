@@ -44,7 +44,7 @@ class NXViewModel(QAbstractTableModel):
         tag = self.header_data[index.column()]
                   
         if   role == Qt.DisplayRole:     return obj.format_display(tag)
-        elif role == Qt.ForegroundRole:  return self.color_edited if obj.id in self.changed_objects else QColor(obj.format_foreground(tag))
+        elif role == Qt.ForegroundRole:  return QColor(obj.format_foreground(tag))
         elif role == Qt.BackgroundRole:  
             bkg = obj.format_background(tag, self)
             if bkg: 

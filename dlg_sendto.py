@@ -42,13 +42,13 @@ class SendTo(QDialog):
 
     @property
     def assets(self):
-        if self.objects and self.objects[0].object_type == "asset":
-            objects = [obj.id for obj in self.objects]
-        elif self.objects and self.objects[0].object_type == "item":
-            objects = [obj["id_asset"] for obj in self.objects]
-        else:
-            return []
-        return objects
+        result = []
+        for obj in self.objects:
+            if obj.object_type == "asset":
+                result.append(obj.id)
+            elif obj.object_type == "item" and obj["id_asset"]:
+                result.append(obj["id_asset"])
+        return result
 
     def on_send(self, id_action):
         res, status = query("send_to", {"id_action" : id_action, "objects": self.assets, "settings":{}, "restart_existing": self.restart.isChecked() })

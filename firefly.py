@@ -36,7 +36,6 @@ class Firefly(QMainWindow):
         self.setDockNestingEnabled(True)
         self.setStyleSheet(base_css)
 
-
         settings = ffsettings() 
 
         self.workspace_locked = settings.value("main_window/locked", False)
@@ -223,6 +222,7 @@ class Firefly(QMainWindow):
         del self.subscribers[handler]
 
     def handle_messaging(self, data):
+#        self.status(str(data.data))
         for subscriber in self.subscribers:
             if data.method in self.subscribers[subscriber]:
                 subscriber(data)
