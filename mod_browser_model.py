@@ -1,6 +1,8 @@
 from firefly_view import *
 from nx.objects import Asset
 
+DEFAULT_HEADER_DATA = ["title", "duration", "id_folder"]
+
 class BrowserModel(NXViewModel):
     def browse(self, **kwargs):
         start_time = time.time()

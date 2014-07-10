@@ -336,7 +336,7 @@ class TXDayWidget(TXVerticalBar):
         drop_tc = max(self.start_time, self.cursor_time + self.calendar.drag_offset) 
         if type(self.calendar.dragging) == Asset:
 
-            if evt.keyboardModifiers() & Qt.AltModifier:
+            if evt.keyboardModifiers() & Qt.ControlModifier:
                 self.status("Creating event from {} at time {}".format(self.calendar.dragging, time.strftime("%Y-%m-%d %H:%M", time.localtime(self.cursor_time))))
                 dlg = EventDialog(self,
                         id_asset=self.calendar.dragging.id,
@@ -345,16 +345,20 @@ class TXDayWidget(TXVerticalBar):
                     )
                 dlg.exec_()
             else:
-                query("event_from_asset", {
-                        "id_asset" : self.calendar.dragging.id,
+                query("set_events", {
                         "id_channel" : self.id_channel,
-                        "timestamp" : drop_tc
+
+                        "events" : [{
+                            "id_asset" : self.calendar.dragging.id,
+                            "start" : drop_tc
+                            # TODO: If Alt modifier is pressed add id_event of original event here
+                            }]
                     })
 
         elif type(self.calendar.dragging) == Event:
             event = self.calendar.dragging
             event["start"] = drop_tc
-            result, data = query("set_day_events", 
+            result, data = query("set_events", 
                         {   
                             "id_channel" : self.id_channel,
                             "events" : [event.meta]
@@ -376,6 +380,14 @@ class HeaderWidget(QLabel):
         self.setStyleSheet("background-color:#161616; text-align:center; qproperty-alignment: AlignCenter; font-size:14px; min-height:24px")
         self.setMinimumWidth(120)
 
+    def set_rundown(self, id_channel, date):
+        self.id_channel = id_channel
+        self.date = date
+        # TODO: SHOW DATE
+
+    def mouseDoubleClickEvent(self, event):
+        self.parent().parent().parent().parent().focus_rundown(self.id_channel, self.date) # Please kill me
+
 
 class TXCalendar(QWidget):
     def __init__(self, parent, id_channel, view_start):
@@ -388,7 +400,9 @@ class TXCalendar(QWidget):
         self.append_condition = False
         self.playout_config = config["playout_channels"][self.id_channel]
         self.day_start = self.playout_config["day_start"]
+
         self.start_time = datestr2ts(view_start, *self.day_start)
+        self.end_time = self.start_time + (3600*24*7)
 
         self.days = []
         self.events = []
@@ -451,12 +465,14 @@ class TXCalendar(QWidget):
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
-        res, data = query("scheduler", {
+        res, data = query("get_events", {
             "id_channel" : self.id_channel,
-            "date" : self.view_start,
+            "start_time" : self.start_time,
+            "end_time" : self.end_time,
+            "extend"   : True
             })
         self.events = []
-        for event_data in data["data"]:
+        for event_data in data["events"]:
             e = Event(from_data=event_data)
             self.events.append(e)
 
@@ -478,6 +494,7 @@ class TXCalendar(QWidget):
         for i, header in enumerate(self.headers):
             d = time.strftime("%a %x", time.localtime(self.start_time+(i*DAY))).upper()
             header.setText(d)
+            header.set_rundown(self.id_channel, time.strftime("%Y-%m-%d", time.localtime(self.start_time+(i*DAY))))
 
         QApplication.restoreOverrideCursor()
 
