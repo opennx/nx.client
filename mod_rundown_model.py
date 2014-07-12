@@ -4,9 +4,9 @@ from firefly_view import *
 from nx.objects import *
 
 class RundownModel(NXViewModel):
-    def load(self, id_channel, date, full=True):
+    def load(self, id_channel, start_time, full=True):
         self.id_channel = id_channel
-        self.date = date
+        self.start_time = start_time
 
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -14,7 +14,7 @@ class RundownModel(NXViewModel):
 
         if full:
             self.object_data = []
-            res, data = query("rundown",{"id_channel":id_channel,"date":date})
+            res, data = query("rundown",{"id_channel":id_channel, "start_time":start_time})
             if success(res) and data: 
                 row = 0
                 current_bin = False
@@ -172,6 +172,6 @@ class RundownModel(NXViewModel):
             except:
                 return False
             QApplication.restoreOverrideCursor()
-            self.load(self.id_channel, self.date)
+            self.load(self.id_channel, self.start_time)
         return True
 

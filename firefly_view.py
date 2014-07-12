@@ -58,14 +58,15 @@ class NXViewModel(QAbstractTableModel):
 
 
     def setData(self, index, data, role=False):
-        self.beginResetModel()
         tag = self.header_data[index.column()] 
         id_object = self.object_data[index.row()].id
         self.object_data[index.row()][tag] = data
         
         if not id_object in self.changed_objects:
             self.changed_objects.append(id_object)
-        self.endResetModel()
+        
+        self.model.dataChanged.emit(index, index)
+        self.update()
 
         self.refresh()
         return True

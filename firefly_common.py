@@ -31,9 +31,7 @@ class Pixlib(dict):
         return self.get(key, None)
 
 pixlib = Pixlib()
-
-
-
+asset_cache = {}
 
 
 

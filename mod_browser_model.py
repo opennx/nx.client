@@ -7,21 +7,27 @@ class BrowserModel(NXViewModel):
     def browse(self, **kwargs):
         start_time = time.time()
         self.beginResetModel()
-
-        self.object_data = []
-        
         try:
             self.header_data = config["views"][kwargs["view"]][2]
         except:
             self.header_data =  DEFAULT_HEADER_DATA
 
         res, data = query("browse", kwargs)
-        if success(res) and "asset_data" in data:    
-            for adata in data["asset_data"]:
-                self.object_data.append(Asset(from_data=adata))
+        to_update = []
+        if success(res) and "result" in data:
+            asset_ids = data["result"]
+            for id_asset, mtime in asset_ids:
+                if not (id_asset in asset_cache and asset_cache[id_asset]["mtime"] == mtime):
+                    to_update.append(id_asset)
+            if to_update:
+                res, data = query("get_assets", {"asset_ids" : to_update})
+                if success(res):
+                    for id_asset in data:
+                        asset_cache[int(id_asset)] = Asset(from_data=data[id_asset])
+            self.object_data = [asset_cache[id_asset] for id_asset, mtime in asset_ids]
 
         self.endResetModel()
-        self.parent().status("Got %d assets in %.03f seconds." % (len(self.object_data), time.time()-start_time))
+        self.parent().status("Got {} assets in {:.03f} seconds. ({} updated)".format(len(self.object_data), time.time()-start_time, len(to_update)))
 
 
     def flags(self,index):
@@ -29,7 +35,7 @@ class BrowserModel(NXViewModel):
         if index.isValid():
             if self.object_data[index.row()]["id_object"]:
              flags |= Qt.ItemIsEditable
-             flags |= Qt.ItemIsDragEnabled # Itemy se daji dragovat
+             flags |= Qt.ItemIsDragEnabled
         return flags
 
 
@@ -42,31 +48,26 @@ class BrowserModel(NXViewModel):
         encodedData = json.dumps([a.meta for a in data])
         mimeData = QMimeData()
         mimeData.setData("application/nx.asset", encodedData.encode("ascii"))
-
         try:
-            urls =[QUrl.fromLocalFile(asset.get_file_path()) for asset in data]
+            urls =[QUrl.fromLocalFile(asset.get_file_path()) for asset in data if asset.get_file_path()]
             mimeData.setUrls(urls)
         except:
             pass
-
         return mimeData
-
-    def dropMimeData(self, data, action, row, column, parent):
-        #TODO: UPLOAD
-        return False
-
 
     def setData(self, index, data, role=False):
         tag = self.header_data[index.column()] 
         value = data
         id_object = self.object_data[index.row()].id
-        
         res, data = query("set_meta", {"id_object":id_object, "tag":tag, "value":value })
-
         if success(res):
             self.object_data[index.row()] = Asset(from_data=data)
             self.dataChanged.emit(index, index)
         else:
             QMessageBox.error(self, "Error", "Unable to save")
         return True
+
    
+    def dropMimeData(self, data, action, row, column, parent):
+        #TODO: UPLOAD
+        return False

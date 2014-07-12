@@ -14,6 +14,9 @@ from dlg_sendto import SendTo
 
 DEFAULT_COLUMNS = ["rundown_symbol", "title", "duration", "rundown_scheduled", "rundown_broadcast", "rundown_status", "mark_in", "mark_out", "id_asset"]
 
+def ts_today():
+    return time.mktime(datetime.datetime.combine(datetime.date.today(), datetime.time.min).timetuple()) 
+
 
 class RundownDate(QLabel):
     pass
@@ -109,9 +112,11 @@ class Rundown(BaseWidget):
     def __init__(self, parent):
         super(Rundown, self).__init__(parent)
         toolbar = rundown_toolbar(self)
+
+        self.id_channel   = 1 # TODO (get default from playout config, overide in setState).... also get start time from today + playout_config channel day start
+        self.start_time = ts_today()
         
-        self.current_date = time.strftime("%Y-%m-%d")
-        self.id_channel   = 1 # TODO (get default from playout config, overide in setState)
+
         self.update_header()
 
         self.current_item = False
@@ -122,7 +127,7 @@ class Rundown(BaseWidget):
         self.model = RundownModel(self)
 
         self.delegate = MetaEditItemDelegate(self.view)
-        self.delegate.settings["base_date"] = datestr2ts(self.current_date)
+        #self.delegate.settings["base_date"] = datestr2ts(self.current_date)
 
         self.view.setModel(self.model)
         self.view.setItemDelegate(self.delegate)
@@ -150,7 +155,7 @@ class Rundown(BaseWidget):
     def load_state(self, state):
         self.model.header_data = state.get("c", False) or DEFAULT_COLUMNS
         self.id_channel = state.get("id_channel", min(config["playout_channels"].keys()))
-        self.load(self.id_channel, self.current_date)
+        self.load(self.id_channel, self.start_time)
 
         cw = state.get("cw", False)
         if cw:
@@ -190,15 +195,17 @@ class Rundown(BaseWidget):
     ###########################################################################
 
 
-    def load(self, id_channel, date, full=True):
-        self.model.load(id_channel, date, full=full)
+    def load(self, id_channel, start_time, full=True):
+        self.id_channel = id_channel
+        self.start_time = start_time
+        self.update_header()
+        self.model.load(id_channel, start_time, full=full)
 
     def refresh(self, full=True):
-        self.load(self.id_channel, self.current_date, full=full)
+        self.load(self.id_channel, self.start_time, full=full)
 
     def update_header(self):
-        syy,smm,sdd = [int(i) for i in self.current_date.split("-")]
-        t = datetime.date(syy, smm, sdd)
+        t = datetime.date.fromtimestamp(self.start_time)
 
         if t < datetime.date.today():
             s = " color='red'"
@@ -243,32 +250,23 @@ class Rundown(BaseWidget):
     ################################################################
     ## Toolbar actions
 
-    def set_date(self, date):
-        self.current_date = date
+    def set_date(self, start_time):
+        self.start_time = start_time
         self.update_header()
-        self.load(self.id_channel, self.current_date)
+        self.load(self.id_channel, self.start_time)
 
     def on_day_prev(self):
-        syy,smm,sdd = [int(i) for i in self.current_date.split("-")]
-        go = time.mktime(time.struct_time([syy,smm,sdd,0,0,0,False,False,False])) - (24*3600)
-        self.set_date(time.strftime("%Y-%m-%d",time.localtime(go)))
+        self.set_date(self.start_time - (3600*24))
 
     def on_day_next(self):
-        syy,smm,sdd = [int(i) for i in self.current_date.split("-")]
-        go = time.mktime(time.struct_time([syy,smm,sdd,0,0,0,False,False,False])) + (24*3600)
-        self.set_date(time.strftime("%Y-%m-%d",time.localtime(go)))
+        self.set_date(self.start_time + (3600*24))
 
     def on_now(self):
-        self.set_date(time.strftime("%Y-%m-%d"))
+        self.set_date(ts_today())
 
 
     def on_calendar(self):
         pass
-
-    def on_scheduler(self):
-        scheduler = Scheduler(self, self.id_channel, self.current_date)
-        scheduler.exec_()
-        self.refresh()
 
     def on_onair(self):
         if self.on_air.isVisible():
