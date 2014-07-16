@@ -174,7 +174,7 @@ class TXDayWidget(TXVerticalBar):
             else:
                 continue
             y = i * self.min_size
-            qp.drawLine(0, y, self.width(), y)    
+            qp.drawLine(0, y, self.width(), y)
 
         for i,event in enumerate(self.calendar.events):
             if not self.is_ts_today(event["start"]):
@@ -189,6 +189,18 @@ class TXDayWidget(TXVerticalBar):
         if self.calendar.dragging and self.dragging:
             self.draw_dragging(qp)
             
+        # Draw runs
+        run_pens = [
+            QPen( QColor("#dddd00"), 2 , Qt.SolidLine ),
+            QPen( QColor("#dd0000"), 2 , Qt.SolidLine )
+            ]
+        for id_event, id_asset, start, aired in self.calendar.focus_data:
+            if self.is_ts_today(start):
+                y = self.ts2pos(start)
+                qp.setPen(run_pens[aired])
+                qp.drawLine(0, y, self.width(), y)
+
+
 
     def drawBlock(self, qp, event, end):
         if type(self.calendar.dragging) == Event and self.calendar.dragging.id == event.id:
@@ -380,8 +392,9 @@ class TXDayWidget(TXVerticalBar):
         self.calendar.drag_source = False
         self.calendar.dragging = False
         self.calendar.refresh()
-        for day in self.calendar.days:
-            day.update()
+
+        #for day in self.calendar.days:
+        #    day.update()
 
 
 
@@ -415,6 +428,7 @@ class TXCalendar(QWidget):
         self.num_days = 7
 
         self.events = []
+        self.focus_data = []
         self.dragging = False
         self.drag_offset = 0
         self.drag_source = False
@@ -526,6 +540,11 @@ class TXCalendar(QWidget):
         QApplication.restoreOverrideCursor()
 
 
+    def update(self):
+        for day_widget in self.days:
+            day_widget.update()
+        super(TXCalendar, self).update()
+
 
 
 def scheduler_toolbar(wnd):
@@ -542,7 +561,6 @@ def scheduler_toolbar(wnd):
     toolbar.addAction(action_refresh)
 
     action_week_next = QAction(QIcon(pixlib["next"]), '&Next week', wnd)        
-    action_week_next.setShortcut('Alt+Right')
     action_week_next.setStatusTip('Go to next week')
     action_week_next.triggered.connect(wnd.on_week_next)
     toolbar.addAction(action_week_next)
@@ -585,4 +603,13 @@ class Scheduler(BaseWidget):
     
     def on_week_next(self):
         self.calendar.load(self.calendar.id_channel, self.calendar.start_time+(3600*24*7))
-        
+    
+    def focus(self, objects):
+        if True: # if focus enabled
+            asset_ids = [obj.id for obj in objects if obj.object_type == "asset"]
+            if not asset_ids:
+                return 
+            res, data = query("get_runs", {"id_channel":self.id_channel, "asset_ids":asset_ids })
+            if success(res):
+                self.calendar.focus_data = data["data"]
+                self.calendar.update()

@@ -12,7 +12,7 @@ from mod_rundown_model import RundownModel
 from dlg_sendto import SendTo
 
 
-DEFAULT_COLUMNS = ["rundown_symbol", "title", "duration", "rundown_scheduled", "rundown_broadcast", "rundown_status", "mark_in", "mark_out", "id_asset"]
+DEFAULT_COLUMNS = ["rundown_symbol", "title", "duration", "run_mode", "rundown_scheduled", "rundown_broadcast", "rundown_status", "mark_in", "mark_out", "id_asset"]
 
 def ts_today():
     return time.mktime(datetime.datetime.combine(datetime.date.today(), datetime.time.min).timetuple()) 

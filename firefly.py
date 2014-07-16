@@ -163,6 +163,8 @@ class Firefly(QMainWindow):
                 d.main_widget.focus(objects)
             elif d.class_ == "detail" and objects:
                 d.main_widget.focus(objects)
+            elif d.class_ == "scheduler" and objects:
+                d.main_widget.focus(objects)
 
     def focus_rundown(self, id_channel, date):
         dock = self.create_dock("rundown", state={}, show=True, one_instance=True)
