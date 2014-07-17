@@ -104,7 +104,8 @@ QLineEdit, QTextEdit, QComboBox, QPushButton {
     background-color : #242424;
     color : #c0c0c0;
     border : 1px solid #646464;
-    min-width: 36px;
+    min-width: 80px;
+    min-height: 24px;
     }
 
 
@@ -121,7 +122,7 @@ QTextEdit {
     max-width : 88px;
 }
 
-.RundownDate {
+.RundownDate QLabel {
     background-color:  transparent;
     color : #c0c0c0;
     margin-right: 10px;

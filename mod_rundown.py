@@ -32,11 +32,9 @@ def rundown_toolbar(wnd):
     toolbar.addAction(action_day_prev)
 
     action_now = QAction(QIcon(pixlib["now"]), '&Now', wnd)        
-    action_now.setShortcut('F1')
     action_now.setStatusTip('Go to now')
     action_now.triggered.connect(wnd.on_now)
     toolbar.addAction(action_now)
-
 
     action_calendar = QAction(QIcon(pixlib["calendar"]), '&Calendar', wnd)        
     action_calendar.setShortcut('Ctrl+D')

@@ -170,6 +170,16 @@ class Firefly(QMainWindow):
         dock = self.create_dock("rundown", state={}, show=True, one_instance=True)
         dock.main_widget.load(id_channel, date)
 
+    def on_search(self):
+        for d in self.docks:
+            if d.class_ == "browser":
+                d.main_widget.search_box.setFocus()
+                d.main_widget.search_box.selectAll()
+
+    def on_now(self):
+        dock = self.create_dock("rundown", state={}, show=True, one_instance=True)
+        dock.main_widget.on_now()
+
     ###############################################################################
     ## Menu actions
     ## FILE

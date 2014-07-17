@@ -12,9 +12,6 @@ from mod_browser_model import BrowserModel
 from dlg_sendto import SendTo
 
 
-DEFAULT_HEADER_DATA = ["content_type", "title", "duration", "id_folder", "origin"]
-
-
 class SearchWidget(QLineEdit):
     def __init__(self, parent):
         super(QLineEdit, self).__init__()
@@ -32,7 +29,7 @@ class SearchWidget(QLineEdit):
             self.line_edit.setText("")
 
         elif event.key() == Qt.Key_Down:
-            self.parent().view.setFocus()
+            self.parent().parent().view.setFocus()
 
         QLineEdit.keyPressEvent(self, event)
 
@@ -115,8 +112,9 @@ class Browser(BaseWidget):
     def set_view(self, id_view, initial=False):
         if not initial:
             self.parent().save()
-        self.state.get("{}c".format("id_view"), DEFAULT_HEADER_DATA)
         self.browse(view=id_view)
+        
+        self.state.get("{}c".format("id_view"), config["views"][id_view][2])
         cw = self.state.get("{}cw".format(id_view), False)
         if cw:
             self.view.horizontalHeader().restoreState(cw)
@@ -140,31 +138,63 @@ class Browser(BaseWidget):
         self.view.do_edit(mi)
         self.view.update()
 
-
-    def send_to(self):
-        dlg = SendTo(self, self.view.selected_objects)
-        dlg.exec_()
-
-
-        
-
     def hideEvent(self, event):
         pass
-
-
-
 
     def contextMenuEvent(self, event):
         if not self.view.selected_objects: return
         menu = QMenu(self)
         
-        menu.addSeparator()
         action_send_to = QAction('&Send to...', self)        
         action_send_to.setStatusTip('Create action for selected asset(s)')
-        action_send_to.triggered.connect(self.send_to)
+        action_send_to.triggered.connect(self.on_send_to)
         menu.addAction(action_send_to)
-                
+    
+        menu.addSeparator()
+
+        action_move_to_trash = QAction('Move to trash', self)        
+        action_move_to_trash.setStatusTip('Move selected asset(s) to trash')
+        action_move_to_trash.triggered.connect(self.on_trash)
+        menu.addAction(action_move_to_trash)
+
+        action_move_to_archive = QAction('Move to archive', self)        
+        action_move_to_archive.setStatusTip('Move selected asset(s) to archive')
+        action_move_to_archive.triggered.connect(self.on_archive)
+        menu.addAction(action_move_to_archive)
+    
         menu.exec_(event.globalPos()) 
+
+    def on_send_to(self):
+        dlg = SendTo(self, self.view.selected_objects)
+        dlg.exec_()
+
+    def on_trash(self):
+        ret = QMessageBox.question(self,
+            "Trash",
+            "Do you really want to trash {} selected asset(s)?\n\nThis will also remove all instances from future playlists.".format(len(self.view.selected_objects)),
+            QMessageBox.Yes | QMessageBox.No
+            )
+        if ret == QMessageBox.Yes:
+            QMessageBox.warning(self,
+                "Not available",
+                "This feature is not available in preview version",
+                QMessageBox.Cancel
+                )
+
+    def on_archive(self):
+        ret = QMessageBox.question(self,
+            "Archive",
+            "Do you really want to move {} selected asset(s) to archive?\n\nThis will also remove all instances from future playlists.".format(len(self.view.selected_objects)),
+            QMessageBox.Yes | QMessageBox.No
+            )
+        if ret == QMessageBox.Yes:
+            QMessageBox.warning(self,
+                "Not available",
+                "This feature is not available in preview version",
+                QMessageBox.Cancel
+                )
+
+    
 
 
 

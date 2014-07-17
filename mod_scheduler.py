@@ -20,6 +20,13 @@ TIME_PENS = [
         (5  , QPen( QColor("#444444"), 1 , Qt.SolidLine ))
     ]
 
+
+RUN_PENS = [
+    QPen( QColor("#dddd00"), 2 , Qt.SolidLine ),
+    QPen( QColor("#dd0000"), 2 , Qt.SolidLine )
+    ]
+
+
 DAY = 3600*24
 MIN_PER_DAY = (60 * 24)
 SAFE_OVR = 5 # Do not warn if overflow < 5 mins
@@ -119,17 +126,6 @@ class TXClockBar(TXVerticalBar):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 class TXDayWidget(TXVerticalBar):  
     def __init__(self, parent):      
         super(TXDayWidget, self).__init__(parent)
@@ -137,6 +133,7 @@ class TXDayWidget(TXVerticalBar):
         self.start_time = 0
         self.setAcceptDrops(True)
         self.cursor_time = 0
+        self.cursor_event = False
         self.dragging = False
         self.drag_outside = False
 
@@ -186,19 +183,16 @@ class TXDayWidget(TXVerticalBar):
 
             self.drawBlock(qp, event, end=end)
 
-        if self.calendar.dragging and self.dragging:
-            self.draw_dragging(qp)
-            
         # Draw runs
-        run_pens = [
-            QPen( QColor("#dddd00"), 2 , Qt.SolidLine ),
-            QPen( QColor("#dd0000"), 2 , Qt.SolidLine )
-            ]
         for id_event, id_asset, start, aired in self.calendar.focus_data:
             if self.is_ts_today(start):
                 y = self.ts2pos(start)
-                qp.setPen(run_pens[aired])
+                qp.setPen(RUN_PENS[aired])
                 qp.drawLine(0, y, self.width(), y)
+
+        if self.calendar.dragging and self.dragging:
+            self.draw_dragging(qp)
+            
 
 
 
@@ -273,13 +267,14 @@ class TXDayWidget(TXVerticalBar):
                 end = self.start_time + (3600*24)
 
             if end >= ts > event["start"] >= self.start_time:
+                self.cursor_event = event
                 self.setToolTip("<b>{title}</b><br>Start: {start}".format(
                     title=event["title"],
                     start=time.strftime("%H:%M",time.localtime(event["start"]))
                     ))
                 break
         else:
-            return
+            self.cursor_event = False
 
         if e.buttons() != Qt.LeftButton:
             return
@@ -345,6 +340,7 @@ class TXDayWidget(TXVerticalBar):
 
     def dragMoveEvent(self, evt):
         self.dragging= True
+        #self.calendar.focus_data = []
         self.mx = evt.pos().x()
         self.my = evt.pos().y()
         cursor_time = (self.my / self.min_size*60) + self.start_time
@@ -361,7 +357,10 @@ class TXDayWidget(TXVerticalBar):
         if type(self.calendar.dragging) == Asset:
 
             if evt.keyboardModifiers() & Qt.ControlModifier:
-                self.status("Creating event from {} at time {}".format(self.calendar.dragging, time.strftime("%Y-%m-%d %H:%M", time.localtime(self.cursor_time))))
+                self.status("Creating event from {} at time {}".format(
+                    self.calendar.dragging, 
+                    time.strftime("%Y-%m-%d %H:%M", time.localtime(self.cursor_time))
+                    ))
                 dlg = EventDialog(self,
                         id_asset=self.calendar.dragging.id,
                         id_channel=self.id_channel,
@@ -388,13 +387,58 @@ class TXDayWidget(TXVerticalBar):
                             "events" : [event.meta]
                         })
 
-
         self.calendar.drag_source = False
         self.calendar.dragging = False
         self.calendar.refresh()
 
-        #for day in self.calendar.days:
-        #    day.update()
+
+    def contextMenuEvent(self, event):
+        menu = QMenu(self.parent())
+        menu.setStyleSheet(base_css)
+
+        self.calendar.selected_event = self.cursor_event
+
+        action_show_rundown = QAction('Show in rundown', self)        
+        action_show_rundown.triggered.connect(self.on_show_rundown)
+        menu.addAction(action_show_rundown)
+
+        menu.addSeparator()
+
+        action_edit_event = QAction('Edit', self)
+        action_edit_event.triggered.connect(self.on_show_rundown)
+        menu.addAction(action_edit_event)
+
+        action_delete_event = QAction('Delete event', self)        
+        action_delete_event.triggered.connect(self.on_delete_event)
+        menu.addAction(action_delete_event)
+        
+        menu.exec_(event.globalPos())
+
+    def on_edit_event(self):
+        pass
+
+    def on_show_rundown(self):
+        pass
+
+    def on_delete_event(self):
+        ret = QMessageBox.question(self,
+            "Delete event",
+            "Do you really want to delete {}?\nThis operation cannot be undone.".format(self.cursor_event),
+            QMessageBox.Yes | QMessageBox.No
+            )
+        if ret == QMessageBox.Yes:
+            QApplication.processEvents()
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            stat, res = query("set_events",{
+                  "delete": [self.cursor_event.id]  
+                })
+            QApplication.restoreOverrideCursor()
+            if success(stat):
+                self.status("Event deleted")
+                self.calendar.refresh()
+            else:
+                QMessageBox.error("Unable to delete event", res)
+
 
 
 
@@ -416,9 +460,47 @@ class HeaderWidget(QLabel):
         else:
             self.setText(t)
 
-
     def mouseDoubleClickEvent(self, event):
+        self.on_open_rundown()
+    
+    def contextMenuEvent(self, event):
+        menu = QMenu(self.parent())
+        menu.setStyleSheet(base_css)
+        
+        action_rundown = QAction('Open rundown', self)        
+        action_rundown.triggered.connect(self.on_open_rundown)
+        menu.addAction(action_rundown)
+
+        menu.addSeparator()
+
+        action_clear = QAction('Clear all', self)        
+        action_clear.triggered.connect(self.on_clear)
+        menu.addAction(action_clear)
+
+        action_template = QAction('Apply template', self)        
+        action_template.triggered.connect(self.on_template)
+        menu.addAction(action_template)
+
+        action_solve = QAction('Solve', self)        
+        action_solve.triggered.connect(self.on_solve)
+        menu.addAction(action_solve)
+        
+        menu.exec_(event.globalPos())
+
+    def on_open_rundown(self):
         self.parent().parent().parent().parent().focus_rundown(self.id_channel, self.date) # Please kill me
+
+    def on_clear(self):
+        pass
+
+    def on_template(self):
+        pass
+
+    def on_solve(self):
+        pass
+
+
+
 
 
 class TXCalendar(QWidget):
