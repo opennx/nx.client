@@ -44,6 +44,7 @@ class OnAir(QWidget):
         self.current  = "(loading)"
         self.cued     = "(loading)"
         self.request_time = 0
+        self.paused = True
         self.local_request_time = time.time()
 
         self.fps = 25.0
@@ -59,6 +60,11 @@ class OnAir(QWidget):
         self.btn_retake  = OnAirButton(u"Retake", self, self.on_retake)
         self.btn_abort   = OnAirButton(u"Abort",  self, self.on_abort)
         
+        self.btn_take.setShortcut("F9")
+        self.btn_freeze.setShortcut("F10")
+        self.btn_retake.setShortcut("F11")
+        self.btn_abort.setShortcut("F12")
+
         btns_layout = QHBoxLayout()
         
         btns_layout.addStretch(1)
@@ -132,6 +138,7 @@ class OnAir(QWidget):
         status = data.data
         self.pos = status["position"]
         self.request_time = status["request_time"]
+        self.paused = status["paused"]
         self.local_request_time = time.time()
 
         if self.dur !=  status["duration"]:
@@ -150,7 +157,11 @@ class OnAir(QWidget):
 
     def update_display(self):
         try:
-            adv = time.time() - self.local_request_time
+            if self.paused:
+                adv = 0
+            else:
+                adv = time.time() - self.local_request_time
+
             rtime = self.request_time+adv
             rpos = self.pos + (adv*self.fps)
 

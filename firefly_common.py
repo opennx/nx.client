@@ -79,6 +79,12 @@ class BaseDock(QDockWidget):
         if state.get("is_floating", False):
             self.setFloating(True)
 
+        if not "object_name" in state:
+            if self.class_ == "browser":
+                self.resize(600,600)
+            elif self.class_ == "rundown":
+                self.resize(800,600)
+
 
     def reset_object_name(self):
         self.setObjectName(str(uuid.uuid1()))

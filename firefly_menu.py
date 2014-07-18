@@ -82,12 +82,14 @@ def create_menu(wnd):
     action_wnd_preview.triggered.connect(partial(wnd.create_dock, widget_class="preview", one_instance=True))
     menu_window.addAction(action_wnd_preview)    
 
-    action_wnd_detail = QAction('&Editor', wnd)        
-    action_wnd_detail.setStatusTip('Open editor window')
+    action_wnd_detail = QAction('&Object detail', wnd)        
+    action_wnd_detail.setShortcut('F8')
+    action_wnd_detail.setStatusTip('Open detail/editor window')
     action_wnd_detail.triggered.connect(partial(wnd.create_dock, widget_class="detail", one_instance=True))
     menu_window.addAction(action_wnd_detail)    
 
     action_wnd_scheduler = QAction('&Scheduler', wnd)        
+    action_wnd_scheduler.setShortcut('F7')
     action_wnd_scheduler.setStatusTip('Open scheduler window')
     action_wnd_scheduler.triggered.connect(partial(wnd.create_dock, widget_class="scheduler", one_instance=True))
     menu_window.addAction(action_wnd_scheduler)    

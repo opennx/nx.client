@@ -30,14 +30,10 @@ class BrowserModel(NXViewModel):
         self.parent().status("Got {} assets in {:.03f} seconds. ({} updated)".format(len(self.object_data), time.time()-start_time, len(to_update)))
 
     def refresh_assets(self, assets):
-        #self.beginResetModel()
         for i in range(len(self.object_data)):
             if self.object_data[i].id in assets:
                 self.object_data[i] = asset_cache[self.object_data[i].id]
-               # print ("refresh {} : {}".format(i, obj), self.index(i,0))
                 self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.header_data)-1))
-        #self.endResetModel()
-
 
     def flags(self,index):
         flags = super(BrowserModel, self).flags(index)

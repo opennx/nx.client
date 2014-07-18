@@ -93,8 +93,14 @@ class Firefly(QMainWindow):
         create = True
         if one_instance:
             for dock in self.docks:
-                if dock.class_ == widget_class:
+                if dock.class_ == widget_class:                
+                    if dock.class_ == "detail":
+                        if dock.hasFocus():
+                            dock.main_widget.switch_tabs()
+                        else:
+                            dock.main_widget.switch_tabs(0)
                     dock.raise_()
+                    dock.setFocus()
                     create = False
                     break        
         if create:
@@ -133,7 +139,6 @@ class Firefly(QMainWindow):
             dock.setAllowedAreas(Qt.AllDockWidgetAreas)
             if not dock.isFloating():
                 dock.setTitleBarWidget(wdgt)
-        #self.setDockOptions(QMainWindow.AllowNestedDocks or QMainWindow.AllowTabbedDocks)
         self.workspace_locked = False
 
     def status(self, message, message_type=INFO):
@@ -167,11 +172,7 @@ class Firefly(QMainWindow):
 
     def focus(self, objects):
         for d in self.docks:
-            if d.class_ == "preview" and objects:
-                d.main_widget.focus(objects)
-            elif d.class_ == "detail" and objects:
-                d.main_widget.focus(objects)
-            elif d.class_ == "scheduler" and objects:
+            if d.class_ in ["preview", "detail", "scheduler"] and objects:
                 d.main_widget.focus(objects)
 
     def focus_rundown(self, id_channel, date):

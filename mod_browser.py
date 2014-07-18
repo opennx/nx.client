@@ -73,9 +73,9 @@ class Browser(BaseWidget):
         layout.addWidget(toolbar, 0)
         layout.addWidget(self.view, 1)
         self.setLayout(layout)
-        self.setMinimumWidth(300)
-
         self.subscribe("objects_changed")
+
+
 
     def save_state(self):
         state = self.state
