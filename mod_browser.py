@@ -75,6 +75,8 @@ class Browser(BaseWidget):
         self.setLayout(layout)
         self.setMinimumWidth(300)
 
+        self.subscribe("objects_changed")
+
     def save_state(self):
         state = self.state
         id_view = self.search_query.get("view",0)
@@ -224,3 +226,10 @@ class Browser(BaseWidget):
 
         super(NXView, self.view).selectionChanged(selected, deselected)
 
+
+
+
+    def seismic_handler(self, data):
+        if data.method == "objects_changed" and data.data["object_type"] == "asset": 
+            self.model.refresh_assets(data.data["objects"])
+            self.update()

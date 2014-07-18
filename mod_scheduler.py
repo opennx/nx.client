@@ -368,24 +368,22 @@ class TXDayWidget(TXVerticalBar):
                     )
                 dlg.exec_()
             else:
-                query("set_events", {
-                        "id_channel" : self.id_channel,
-
-                        "events" : [{
-                            "id_asset" : self.calendar.dragging.id,
-                            "start" : drop_tc
-                            # TODO: If Alt modifier is pressed add id_event of original event here
-                            }]
-                    })
+                query("set_events", 
+                        id_channel=self.id_channel,
+                        events=[{
+                                "id_asset" : self.calendar.dragging.id,
+                                "start" : drop_tc
+                                # TODO: If Alt modifier is pressed add id_event of original event here
+                                }]
+                    )
 
         elif type(self.calendar.dragging) == Event:
             event = self.calendar.dragging
             event["start"] = drop_tc
             result, data = query("set_events", 
-                        {   
-                            "id_channel" : self.id_channel,
-                            "events" : [event.meta]
-                        })
+                    id_channel=self.id_channel,
+                    events=event.meta
+                    )
 
         self.calendar.drag_source = False
         self.calendar.dragging = False
@@ -429,9 +427,7 @@ class TXDayWidget(TXVerticalBar):
         if ret == QMessageBox.Yes:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            stat, res = query("set_events",{
-                  "delete": [self.cursor_event.id]  
-                })
+            stat, res = query("set_events", delete=[self.cursor_event.id])
             QApplication.restoreOverrideCursor()
             if success(stat):
                 self.status("Event deleted")
@@ -597,12 +593,12 @@ class TXCalendar(QWidget):
 
         self.events = []
 
-        res, data = query("get_events", {
-            "id_channel" : self.id_channel,
-            "start_time" : self.start_time,
-            "end_time" : self.end_time,
-            "extend"   : True
-            })
+        res, data = query("get_events", 
+            id_channel=self.id_channel,
+            start_time=self.start_time,
+            end_time=self.end_time,
+            extend=True
+            )
 
         for event_data in data["events"]:
             e = Event(from_data=event_data)
@@ -691,7 +687,7 @@ class Scheduler(BaseWidget):
             asset_ids = [obj.id for obj in objects if obj.object_type == "asset"]
             if not asset_ids:
                 return 
-            res, data = query("get_runs", {"id_channel":self.id_channel, "asset_ids":asset_ids })
+            res, data = query("get_runs", id_channel=self.id_channel, asset_ids=asset_ids )
             if success(res):
                 self.calendar.focus_data = data["data"]
                 self.calendar.update()

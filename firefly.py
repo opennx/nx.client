@@ -21,6 +21,8 @@ from mod_detail import Detail
 from mod_rundown import Rundown
 from mod_scheduler import Scheduler
 
+from nx.objects import Asset
+
 class Firefly(QMainWindow):
     def __init__(self, parent):
         super(Firefly, self).__init__()
@@ -106,6 +108,12 @@ class Firefly(QMainWindow):
             if show:
                 dock.setFloating(True)
                 dock.show()
+
+            qr = dock.frameGeometry()
+            cp = QDesktopWidget().availableGeometry().center()
+            qr.moveCenter(cp)
+            dock.move(qr.topLeft())
+
             QApplication.restoreOverrideCursor()
         return dock
 
@@ -238,7 +246,12 @@ class Firefly(QMainWindow):
         del self.subscribers[handler]
 
     def handle_messaging(self, data):
-#        self.status(str(data.data))
+        if data.method == "objects_changed" and data.data["object_type"] == "asset": 
+            res, adata = query("get_assets", asset_ids=[aid for aid in data.data["objects"] if aid in asset_cache.keys()] )
+            if success(res):
+                for id_asset in adata:
+                    asset_cache[int(id_asset)] = Asset(from_data=adata[id_asset])
+
         for subscriber in self.subscribers:
             if data.method in self.subscribers[subscriber]:
                 subscriber(data)

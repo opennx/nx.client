@@ -15,9 +15,9 @@ AUTH_KEY = "dev"
 def success(retcode):
     return retcode < 300
 
-def query(method, params={}, target="hive"):
+def query(method, target="hive", **kwargs):
     if config.get("hive_zlib",False):
-      params["hive_zlib"] = True
+        kwargs["hive_zlib"] = True
     url = "{protocol}://{host}:{port}/{target}".format(protocol = ["http", "https"][config.get("hive_ssl", False)],
                                                        host     = config["hive_host"], 
                                                        port     = config["hive_port"], 
@@ -25,10 +25,10 @@ def query(method, params={}, target="hive"):
                                                       )
     post_data = urlencode({ "method" : method,
                             "auth_key" : AUTH_KEY, 
-                            "params" : json.dumps(params)
+                            "params" : json.dumps(kwargs)
                             })
     result = urlopen(url, post_data.encode("ascii"), timeout=10).read()
-    if params.get("hive_zlib",False):
-      result = zlib.decompress(result)
+    if kwargs.get("hive_zlib",False):
+        result = zlib.decompress(result)
     result = json.loads(result.decode('ascii'))
     return 200, result

@@ -14,7 +14,7 @@ class RundownModel(NXViewModel):
 
         if full:
             self.object_data = []
-            res, data = query("rundown",{"id_channel":id_channel, "start_time":start_time})
+            res, data = query("rundown",id_channel=id_channel, start_time=start_time)
             if success(res) and data: 
                 row = 0
                 current_bin = False
@@ -168,7 +168,7 @@ class RundownModel(NXViewModel):
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
             try:
-                query("bin_order",params={"id_bin":to_bin, "order":pre_items, "sender":self.parent().parent().objectName() })
+                query("bin_order", id_bin=to_bin, order=pre_items, sender=self.parent().parent().objectName())
             except:
                 return False
             QApplication.restoreOverrideCursor()

@@ -12,7 +12,7 @@ class BrowserModel(NXViewModel):
         except:
             self.header_data =  DEFAULT_HEADER_DATA
 
-        res, data = query("browse", kwargs)
+        res, data = query("browse", **kwargs)
         to_update = []
         if success(res) and "result" in data:
             asset_ids = data["result"]
@@ -20,7 +20,7 @@ class BrowserModel(NXViewModel):
                 if not (id_asset in asset_cache and asset_cache[id_asset]["mtime"] == mtime):
                     to_update.append(id_asset)
             if to_update:
-                res, data = query("get_assets", {"asset_ids" : to_update})
+                res, data = query("get_assets", asset_ids=to_update)
                 if success(res):
                     for id_asset in data:
                         asset_cache[int(id_asset)] = Asset(from_data=data[id_asset])
@@ -29,13 +29,22 @@ class BrowserModel(NXViewModel):
         self.endResetModel()
         self.parent().status("Got {} assets in {:.03f} seconds. ({} updated)".format(len(self.object_data), time.time()-start_time, len(to_update)))
 
+    def refresh_assets(self, assets):
+        #self.beginResetModel()
+        for i in range(len(self.object_data)):
+            if self.object_data[i].id in assets:
+                self.object_data[i] = asset_cache[self.object_data[i].id]
+               # print ("refresh {} : {}".format(i, obj), self.index(i,0))
+                self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.header_data)-1))
+        #self.endResetModel()
+
 
     def flags(self,index):
         flags = super(BrowserModel, self).flags(index)
         if index.isValid():
             if self.object_data[index.row()]["id_object"]:
-             flags |= Qt.ItemIsEditable
-             flags |= Qt.ItemIsDragEnabled
+                flags |= Qt.ItemIsEditable
+                flags |= Qt.ItemIsDragEnabled
         return flags
 
 
@@ -59,7 +68,7 @@ class BrowserModel(NXViewModel):
         tag = self.header_data[index.column()] 
         value = data
         id_object = self.object_data[index.row()].id
-        res, data = query("set_meta", {"id_object":id_object, "tag":tag, "value":value })
+        res, data = query("set_meta", objects=[id_object], tag=tag, value=value)
         if success(res):
             self.object_data[index.row()] = Asset(from_data=data)
             self.dataChanged.emit(index, index)

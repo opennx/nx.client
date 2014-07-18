@@ -24,7 +24,7 @@ class SendTo(QDialog):
         self.setWindowTitle("Send {} to...".format(what))
 
         self.actions = []
-        res, data = query("actions", {"assets":self.assets})
+        res, data = query("actions", assets=self.assets)
         if success(res):
 
             layout = QVBoxLayout()
@@ -51,7 +51,7 @@ class SendTo(QDialog):
         return result
 
     def on_send(self, id_action):
-        res, status = query("send_to", {"id_action" : id_action, "objects": self.assets, "settings":{}, "restart_existing": self.restart.isChecked() })
+        res, status = query("send_to", id_action=id_action, objects=self.assets, settings={}, restart_existing=self.restart.isChecked())
         if failed(res):
             QMessageBox.error(self, "Error", "status")
         else:

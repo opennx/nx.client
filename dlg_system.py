@@ -139,7 +139,7 @@ class ServiceView(QTableView):
                 }[svc["state"]]
 
 
-            query("services", {"command":cmd, "id_service":id_service})
+            query("services", command=cmd, id_service=id_service)
         
 
 
@@ -174,8 +174,8 @@ class SystemDialog(QDialog):
         self.parent().unsubscribe(self.seismic_handler)
 
 
-    def load(self, q={}):
-        res, data = query("services",q)
+    def load(self):
+        res, data = query("services")
         self.model.beginResetModel()
         self.model.object_data = data
         self.model.endResetModel()

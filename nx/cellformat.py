@@ -131,6 +131,37 @@ class TagRundownScheduled(TagFormat):
 class TagRundownBroadcast(TagRundownScheduled):
     tag = "rundown_broadcast"
 
+class TagRunMode(TagFormat):
+    tag = "run_mode"
+    def display(self, obj):
+        if obj[self.tag] == 1:
+            return "MANUAL"
+        if obj[self.tag] == 2:
+            return "SOFT"
+        elif obj[self.tag] == 3:
+            return "HARD"
+        return "AUTO"
+
+
+class TagState(TagFormat):
+    tag = "qc/state"
+    def decoration(self, obj):
+        return {
+            0 : "qc_new",
+            1 : "qc_failed",
+            2 : "qc_passed",
+            3 : "qc_rejected",
+            4 : "qc_approved"
+        }[int(obj.meta.get(self.tag, 0))]
+
+    def foreground(self, obj):
+        return {
+            0 : None,
+            1 : "#cc0000",
+            2 : "#cccc00",
+            3 : "#cc0000",
+            4 : "#00cc00"
+        }[int(obj.meta.get(self.tag, 0))]
 
 
 ##########################################################################################
@@ -144,7 +175,9 @@ format_helpers_list = [
     TagRundownSymbol,
     TagRundownStatus,
     TagRundownScheduled,
-    TagRundownBroadcast
+    TagRundownBroadcast,
+    TagRunMode,
+    TagState
     ]
 
 format_helpers = {}

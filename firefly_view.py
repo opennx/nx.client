@@ -106,10 +106,6 @@ class NXView(QTableView):
         self.editor_closed_at = time.time() 
         self.selected_objects = []
 
-
     def do_edit(self, mi):
         if time.time() - self.editor_closed_at > 0.1:
             self.edit(mi)
-
-
-

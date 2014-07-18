@@ -108,16 +108,16 @@ class OnAir(QWidget):
         return "play{}".format(self.parent().id_channel)
 
     def on_take(self, evt=False):
-        query("take", {"id_channel":self.parent().id_channel}, self.route)
+        query("take", self.route, id_channel=self.parent().id_channel)
 
     def on_freeze(self, evt=False):
-        query("freeze", {"id_channel":self.parent().id_channel}, self.route)
+        query("freeze", self.route, id_channel=self.parent().id_channel)
 
     def on_retake(self, evt=False):
-        query("retake", {"id_channel":self.parent().id_channel}, self.route)
+        query("retake", self.route, id_channel=self.parent().id_channel)
 
     def on_abort(self, evt=False):
-        query("abort", {"id_channel":self.parent().id_channel}, self.route)
+        query("abort", self.route, id_channel=self.parent().id_channel)
 
     def getState(self):
         state = {}

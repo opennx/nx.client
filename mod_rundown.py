@@ -55,11 +55,10 @@ def rundown_toolbar(wnd):
 
     toolbar.addSeparator()
 
-    action_onair = QAction(QIcon(pixlib["onair"]), '&Playout controls', wnd)        
-    action_onair.setShortcut('F6')
-    action_onair.setStatusTip('Toggle playout controls')
-    action_onair.triggered.connect(wnd.on_onair)
-    toolbar.addAction(action_onair)
+    action_toggle_mcr = QAction(QIcon(pixlib["onair"]), '&Playout controls', wnd)        
+    action_toggle_mcr.setStatusTip('Toggle playout controls')
+    action_toggle_mcr.triggered.connect(wnd.on_toggle_mcr)
+    toolbar.addAction(action_toggle_mcr)
 
     toolbar.addWidget(ToolBarStretcher(wnd))
 
@@ -98,7 +97,7 @@ class RundownView(NXView):
         if event.key() == Qt.Key_Delete:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            stat, res = query("del_items", params={"items":[obj.id for obj in self.selected_objects]})
+            stat, res = query("del_items", items=[obj.id for obj in self.selected_objects])
             self.parent().status("Delete item: {}".format(res))
             QApplication.restoreOverrideCursor()
             self.parent().refresh()
@@ -120,7 +119,11 @@ class Rundown(BaseWidget):
         self.current_item = False
         self.cued_item = False
 
-        self.on_air = OnAir(self)
+        if "user is allowed to use MCR": #TODO
+            self.mcr = OnAir(self)
+        else:
+            self.mcr = False
+
         self.view  = RundownView(self)
         self.model = RundownModel(self)
 
@@ -137,7 +140,7 @@ class Rundown(BaseWidget):
         layout.setContentsMargins(0,0,0,0)
         layout.setSpacing(2)
         layout.addWidget(toolbar, 0)
-        layout.addWidget(self.on_air)
+        layout.addWidget(self.mcr)
         layout.addWidget(self.view, 1)
 
         self.setLayout(layout)
@@ -175,7 +178,8 @@ class Rundown(BaseWidget):
                 self.cued_item = data.data["cued_item"]
                 self.refresh(full=False)
             
-            self.on_air.seismic_handler(data)
+            if self.mcr:
+                self.mcr.seismic_handler(data)
 
 
         elif data.method == "job_progress":
@@ -186,8 +190,7 @@ class Rundown(BaseWidget):
                         obj["rundown_transfer_progress"] = COMPLETED
                     else:
                         obj["rundown_transfer_progress"] = data.data["progress"]
-                    index = self.model.index(i, len(self.model.header_data)-1)
-                    self.model.dataChanged.emit(index, index)
+                    self.model.dataChanged.emit(self.model.index(i, 0), self.model.index(i, len(self.model.header_data)-1))
                     self.update()
 
     ###########################################################################
@@ -220,12 +223,9 @@ class Rundown(BaseWidget):
 
 
     def on_activate(self, mi):
-        item = self.model.object_data[mi.row()]
-        params = {
-            "id_channel" : self.id_channel,
-            "id_item"    : item.id
-            }
-        query("cue", params, "play{}".format(self.id_channel))
+        if self.mcr and self.mcr.isVisible():
+            item = self.model.object_data[mi.row()]
+            query("cue", self.mcr.route, id_channel=self.id_channel, id_item=item.id)
 
 
     def contextMenuEvent(self, event):
@@ -266,11 +266,12 @@ class Rundown(BaseWidget):
     def on_calendar(self):
         pass
 
-    def on_onair(self):
-        if self.on_air.isVisible():
-            self.on_air.hide()
-        else:
-            self.on_air.show()
+    def on_toggle_mcr(self):
+        if self.mcr:
+            if self.mcr.isVisible():
+                self.mcr.hide()
+            else:
+                self.mcr.show()
 
     ## Toolbar actions
     ################################################################
