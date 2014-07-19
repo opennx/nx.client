@@ -270,6 +270,8 @@ class Preview(BaseWidget):
         return self.media_player.position()
 
     def set_position(self, position):
+        if self.media_player.state() == QMediaPlayer.StoppedState:
+            return
         self.media_player.setPosition(position)
 
     def handle_error(self):
@@ -315,6 +317,8 @@ class Preview(BaseWidget):
     ## navigation
 
     def on_frame_step(self, frames):
+        if self.media_player.state() == QMediaPlayer.StoppedState:
+            return
         fps = self.fps or 25.0 # default
         toffset = (frames / fps) * 1000
         self.media_player.pause()
@@ -342,6 +346,8 @@ class Preview(BaseWidget):
 
 
     def on_shuttle_left(self):
+        if self.media_player.state() == QMediaPlayer.StoppedState:
+            return
         old_rate = self.media_player.playbackRate()
         new_rate = min(-.5, old_rate - 0.5)
         self.media_player.play()
@@ -349,6 +355,8 @@ class Preview(BaseWidget):
         self.status("Playing {}x".format(self.media_player.playbackRate()))
 
     def on_shuttle_right(self):
+        if self.media_player.state() == QMediaPlayer.StoppedState:
+            return
         old_rate = self.media_player.playbackRate()
         new_rate = max(.5, old_rate + 0.5)
         self.media_player.play()

@@ -98,16 +98,20 @@ class Browser(BaseWidget):
         
     def load_view_menu(self):
         for id_view in sorted(config["views"].keys(), key=lambda k: config["views"][k][0]):
-
             pos, title, columns = config["views"][id_view]
-
             if title == "-":
                 self.action_search.addSeparator()
                 continue
-
             action = QAction(title, self)
             action.triggered.connect(partial(self.set_view, id_view))
             self.action_search.addAction(action)
+
+        self.action_search.addSeparator()
+
+        action = QAction("Reset view", self)
+        action.triggered.connect(self.reset_view)
+        self.action_search.addAction(action)
+
 
 
 
@@ -116,7 +120,7 @@ class Browser(BaseWidget):
             self.parent().save()
         self.browse(view=id_view)
         
-        self.state.get("{}c".format("id_view"), config["views"][id_view][2])
+        self.model.header_data = self.state.get("{}c".format("id_view"), config["views"][id_view][2])
         cw = self.state.get("{}cw".format(id_view), False)
         if cw:
             self.view.horizontalHeader().restoreState(cw)
@@ -124,8 +128,15 @@ class Browser(BaseWidget):
             for id_column in range(self.model.columnCount(False)):
                 if meta_types[self.model.header_data[id_column]].class_ != BLOB:
                     self.view.resizeColumnToContents(id_column)
-
         self.parent().setWindowTitle("{}".format(config["views"][id_view][1]))
+
+
+    def reset_view(self):
+        self.model.header_data = config["views"][self.search_query["view"]][2]
+        for id_column in range(self.model.columnCount(False)):
+            if meta_types[self.model.header_data[id_column]].class_ != BLOB:
+                self.view.resizeColumnToContents(id_column)
+
 
     def on_clear(self):
         self.search_box.setText("")

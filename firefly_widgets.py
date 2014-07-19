@@ -74,6 +74,21 @@ class NXE_datetime(QLineEdit):
         
 
 
+class NXE_text_edit(QLineEdit):
+    def set_value(self, value):
+        self.setText(str(value))
+
+    def get_value(self):
+        return self.text()
+
+class NXE_blob_edit(QTextEdit):
+    def set_value(self, value):
+        self.setText(str(value))
+
+    def get_value(self):
+        return self.toPlainText()
+
+
 class NXE_select(QComboBox):
     def __init__(self, parent, data, default=False):
         super(NOption,self).__init__(parent)
@@ -93,6 +108,32 @@ class NXE_select(QComboBox):
     def get_value(self):
         return self.cdata[self.currentIndex()]
 
+
+class NXE_enum(QComboBox):
+    def __init__(self, parent, data, default=False):
+        super(NXE_enum,self).__init__(parent)
+        self.set_data(data,default)
+        self.default = default
+      
+    def set_data(self, data, default=False):
+        self.cdata = []
+        for i, d in enumerate(data):
+            k, v = d
+            self.addItem(v)
+            self.cdata.append(k)
+            if default == k:
+                self.setCurrentIndex(i)   
+        if not default:
+            self.setCurrentIndex(0)
+
+    def set_value(self, value):
+        for i, val in enumerate(self.cdata):
+            if val == value:
+                self.setCurrentIndex(i)
+                break
+
+    def get_value(self):
+        return self.cdata[self.currentIndex()]
 
 
 

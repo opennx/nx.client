@@ -259,4 +259,4 @@ class Firefly(QMainWindow):
 
 if __name__ == "__main__":
     app = Firestarter(Firefly)
-    app.start()
+    app.start() 

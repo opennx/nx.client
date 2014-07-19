@@ -382,7 +382,7 @@ class TXDayWidget(TXVerticalBar):
             event["start"] = drop_tc
             result, data = query("set_events", 
                     id_channel=self.id_channel,
-                    events=event.meta
+                    events=[event.meta]
                     )
 
         self.calendar.drag_source = False
@@ -433,7 +433,7 @@ class TXDayWidget(TXVerticalBar):
                 self.status("Event deleted")
                 self.calendar.refresh()
             else:
-                QMessageBox.error("Unable to delete event", res)
+                QMessageBox.warning("Unable to delete event", res)
 
 
 
@@ -600,20 +600,23 @@ class TXCalendar(QWidget):
             extend=True
             )
 
-        for event_data in data["events"]:
-            e = Event(from_data=event_data)
-            self.events.append(e)
+        if success(res):
+            for event_data in data["events"]:
+                e = Event(from_data=event_data)
+                self.events.append(e)
 
-        self.clock_bar.day_start = self.day_start
-        self.clock_bar.update()
+            self.clock_bar.day_start = self.day_start
+            self.clock_bar.update()
 
-        for i, day_widget in enumerate(self.days):
-            day_widget.start_time = self.start_time+(i*DAY)
-            day_widget.update()
+            for i, day_widget in enumerate(self.days):
+                day_widget.start_time = self.start_time+(i*DAY)
+                day_widget.update()
 
-        for i, header in enumerate(self.headers):
-            d = time.strftime("%a %x", time.localtime(self.start_time+(i*DAY))).upper()
-            header.set_rundown(self.id_channel, self.start_time+(i*DAY))
+            for i, header in enumerate(self.headers):
+                d = time.strftime("%a %x", time.localtime(self.start_time+(i*DAY))).upper()
+                header.set_rundown(self.id_channel, self.start_time+(i*DAY))
+        else:
+            QMessageBox.error("Error", data)
 
         QApplication.restoreOverrideCursor()
 
