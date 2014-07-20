@@ -103,7 +103,10 @@ class RundownView(NXView):
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
             stat, res = query("del_items", items=[obj.id for obj in self.selected_objects])
-            self.parent().status("Delete item: {}".format(res))
+            if success(stat):
+                self.parent().status("Delete item: {}".format(res))
+            else:
+                self.parent().status("Item deletion failed")
             QApplication.restoreOverrideCursor()
             self.parent().refresh()
             return
@@ -117,7 +120,13 @@ class Rundown(BaseWidget):
 
         self.id_channel   = 1 # TODO (get default from playout config, overide in setState).... also get start time from today + playout_config channel day start
         self.start_time = ts_today()
+
+        self.playout_config = config["playout_channels"][self.id_channel]
         
+
+        dt = datetime.datetime.fromtimestamp(time.time() - 86400).replace(hour = self.playout_config["day_start"][0], minute = self.playout_config["day_start"][1], second = 0)
+        self.start_time = time.mktime(dt.timetuple()) 
+
 
         self.update_header()
 

@@ -167,10 +167,9 @@ class RundownModel(NXViewModel):
         if pre_items:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            try:
-                query("bin_order", id_bin=to_bin, order=pre_items, sender=self.parent().parent().objectName())
-            except:
-                return False
+            stat, res = query("bin_order", id_bin=to_bin, order=pre_items, sender=self.parent().parent().objectName())
+            if success(stat):
+                self.parent().status("Bin order changed")
             QApplication.restoreOverrideCursor()
             self.load(self.id_channel, self.start_time)
         return True

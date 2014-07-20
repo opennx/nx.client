@@ -16,13 +16,13 @@ class NXE_timecode(QLineEdit):
         self.setCursorPosition(0)
         self.default = default
       
-    def set_seconds(self,seconds):
+    def set_value(self,seconds):
         try:
             self.setText(s2time(seconds))
         except:
             self.setText("00:00:00.00")
 
-    def get_seconds(self):
+    def get_value(self):
         try:
             hh,mm,ss = self.text().split(":")
             hh = int(hh)
@@ -53,17 +53,17 @@ class NXE_datetime(QLineEdit):
         
         self.setInputMask(mask)
         self.tfmt = tfmt
-        self.set_timestamp(default)
+        self.set_value(default)
         self.default = default
       
-    def set_timestamp(self, timestamp):
+    def set_value(self, timestamp):
         if timestamp:
             tt = time.localtime(timestamp)
         else:
             tt = time.localtime(time.time())
         self.setText(time.strftime(self.tfmt, tt))
 
-    def get_timestamp(self):
+    def get_value(self):
         ttext = self.text()
         if self.base_date:
             ttext = "{} {}".format(time.strftime("%Y-%m-%d",time.localtime(self.base_date)), ttext)
@@ -74,14 +74,14 @@ class NXE_datetime(QLineEdit):
         
 
 
-class NXE_text_edit(QLineEdit):
+class NXE_text(QLineEdit):
     def set_value(self, value):
         self.setText(str(value))
 
     def get_value(self):
         return self.text()
 
-class NXE_blob_edit(QTextEdit):
+class NXE_blob(QTextEdit):
     def set_value(self, value):
         self.setText(str(value))
 

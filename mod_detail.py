@@ -18,13 +18,13 @@ def create_form(parent, tags):
         tagname = meta_types.tag_alias(tag, config.get("language","en-US"))
         
         if meta_types[tag].class_ == TEXT:
-            widget.inputs[tag] = NXE_text_edit(widget)
+            widget.inputs[tag] = NXE_text(widget)
 
         elif meta_types[tag].class_ == BLOB:
-            widget.inputs[tag] = NXE_blob_edit(widget)
+            widget.inputs[tag] = NXE_blob(widget)
 
         else:
-            widget.inputs[tag] = NXE_text_edit(widget)
+            widget.inputs[tag] = NXE_text(widget)
             widget.inputs[tag].setReadOnly(True)
 
         layout.addRow(tagname, widget.inputs[tag])

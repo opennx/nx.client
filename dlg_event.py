@@ -2,6 +2,7 @@ import time
 import datetime
 
 from firefly_common import *
+from firefly_widgets import *
 
 
 def event_toolbar(wnd):
@@ -9,17 +10,17 @@ def event_toolbar(wnd):
     toolbar.setMovable(False)
     toolbar.setFloatable(False)
 
-    action_add_event = QAction(QIcon(pixlib["add"]), 'Add reprise', wnd)
-    action_add_event.setShortcut('+')
-    action_add_event.triggered.connect(wnd.on_add_reprise)
-    toolbar.addAction(action_add_event)
+    # action_add_event = QAction(QIcon(pixlib["add"]), 'Add reprise', wnd)
+    # action_add_event.setShortcut('+')
+    # action_add_event.triggered.connect(wnd.on_add_reprise)
+    # toolbar.addAction(action_add_event)
 
-    action_remove_event = QAction(QIcon(pixlib["remove"]), 'Remove selected reprise', wnd)
-    action_remove_event.setShortcut('-')
-    action_remove_event.triggered.connect(wnd.on_remove_reprise)
-    toolbar.addAction(action_remove_event)
+    # action_remove_event = QAction(QIcon(pixlib["remove"]), 'Remove selected reprise', wnd)
+    # action_remove_event.setShortcut('-')
+    # action_remove_event.triggered.connect(wnd.on_remove_reprise)
+    # toolbar.addAction(action_remove_event)
 
-    toolbar.addSeparator()
+    # toolbar.addSeparator()
 
     action_accept = QAction(QIcon(pixlib["accept"]), 'Accept changes', wnd)
     action_accept.setShortcut('ESC')
@@ -35,6 +36,25 @@ def event_toolbar(wnd):
 
 
 
+class EventForm(QWidget):
+    def __init__(self, parent):
+        super(EventForm, self).__init__(parent)
+
+        self.timestamp  = NXE_datetime(self)
+        self.title = NXE_text(self)
+        self.description = NXE_blob(self)
+
+        layout = QFormLayout()
+        layout.addRow("Event start", self.timestamp)
+        layout.addRow("Title", self.title)
+        layout.addRow("Description", self.description)
+
+        self.setLayout(layout)
+
+
+
+
+
 class EventDialog(QDialog):
     def __init__(self,  parent, **kwargs):
         super(EventDialog, self).__init__(parent)
@@ -43,17 +63,35 @@ class EventDialog(QDialog):
         self.setStyleSheet(base_css)
 
         self.toolbar = event_toolbar(self)
+        self.form = EventForm(self)
+
+        print ("kwargs", self.kwargs)
+
+        if "timestamp" in self.kwargs:
+          self.form.timestamp.set_value(self.kwargs["timestamp"])
+
+        if "id_event" in self.kwargs:
+            pass # TODO
+
+        elif "asset" in self.kwargs:
+            asset = self.kwargs["asset"]
+            self.form.title.set_value(asset["title"])
+            self.form.description.set_value(asset["description"])
+
+
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
         layout.setSpacing(5)
 
         layout.addWidget(self.toolbar, 1)
-        layout.addWidget(QWidget(), 2)
+        layout.addWidget(self.form, 2)
 
         self.setLayout(layout)
         self.load_state()
         self.setModal(True)
+
+
 
     def load_state(self):
         settings = ffsettings()
@@ -75,11 +113,17 @@ class EventDialog(QDialog):
 
 
     def on_accept(self):
-        query("event_from_asset", {
-                    "id_asset" : self.kwargs["id_asset"],
-                    "id_channel" : self.kwargs["id_channel"],
-                    "timestamp" : self.kwargs["timestamp"]
-                })
+        timestamp = self.form.timestamp.get_value()
+        title = self.form.title.get_value().strip()
+        description = self.form.description.get_value().strip()
+
+        if timestamp < time.time():
+            QMessageBox.warning(self, "Error", "Event start cannot be in the past")
+            return
+        elif not title:
+            QMessageBox.warning(self, "Error", "You must specify event title")
+            return
+
         self.close()
 
 
