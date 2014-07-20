@@ -55,6 +55,11 @@ def rundown_toolbar(wnd):
 
     toolbar.addSeparator()
 
+    action_toggle_run_mode = QAction(QIcon(pixlib["run_mode"]), '&Toggle run mode', wnd)        
+    action_toggle_run_mode.setStatusTip('Toggle item run mode')
+    action_toggle_run_mode.triggered.connect(wnd.on_toggle_run_mode)
+    toolbar.addAction(action_toggle_run_mode)
+
     action_toggle_mcr = QAction(QIcon(pixlib["onair"]), '&Playout controls', wnd)        
     action_toggle_mcr.setStatusTip('Toggle playout controls')
     action_toggle_mcr.triggered.connect(wnd.on_toggle_mcr)
@@ -272,6 +277,11 @@ class Rundown(BaseWidget):
                 self.mcr.hide()
             else:
                 self.mcr.show()
+
+    def on_toggle_run_mode(self):
+        obj = self.view.selected_objects[0]
+        print (obj)
+
 
     ## Toolbar actions
     ################################################################

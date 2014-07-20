@@ -70,6 +70,7 @@ class Firestarter(QApplication):
                 config["ingest_channels"] = nch
 
         else:
+            QMessageBox.critical(self.splash, "Critical error", "Unable to contact NX server.")
             critical_error("Unable to load site settings")
 
     def load_meta_types(self):

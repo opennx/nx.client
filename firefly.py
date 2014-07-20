@@ -248,7 +248,12 @@ class Firefly(QMainWindow):
 
     def handle_messaging(self, data):
         if data.method == "objects_changed" and data.data["object_type"] == "asset": 
-            res, adata = query("get_assets", asset_ids=[aid for aid in data.data["objects"] if aid in asset_cache.keys()] )
+            aids = [aid for aid in data.data["objects"] if aid in asset_cache.keys()]
+            if not aids:
+                return
+            self.status ("{} has been changed by {}".format(asset_cache[aids[0]], data.data.get("user", "anonymous"))  )
+
+            res, adata = query("get_assets", asset_ids=aids )
             if success(res):
                 for id_asset in adata:
                     asset_cache[int(id_asset)] = Asset(from_data=adata[id_asset])

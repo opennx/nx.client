@@ -32,10 +32,10 @@ def query(method, target="hive", **kwargs):
         "params" : json.dumps(kwargs)
         })
 
-    try:
-        result = urlopen(url, post_data.encode("ascii"), timeout=10).read()
-    except:
-        return 400, "TODO: Return specific error message"
+    #try:
+    result = urlopen(url, post_data.encode("ascii"), timeout=10).read()
+    #except:
+    #    return 400, "TODO: Return specific error message"
 
     if kwargs.get("hive_zlib",False):
         result = zlib.decompress(result)

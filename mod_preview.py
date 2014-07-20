@@ -198,7 +198,7 @@ class Preview(BaseWidget):
         self.din.setStatusTip ("Mark In")
         self.dout.setStatusTip("Mark Out")
 
-        self.media_player = QMediaPlayer(None, QMediaPlayer.VideoSurface)
+        self.media_player = QMediaPlayer(self, QMediaPlayer.VideoSurface or QMediaPlayer.StreamPlayback)
         self.video_widget = VideoWidget(self)
         self.current_id = False
 
@@ -273,6 +273,7 @@ class Preview(BaseWidget):
         if self.media_player.state() == QMediaPlayer.StoppedState:
             return
         self.media_player.setPosition(position)
+        
 
     def handle_error(self):
         self.status(self.media_player.errorString(), ERROR)

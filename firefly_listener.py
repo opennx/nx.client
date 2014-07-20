@@ -42,13 +42,14 @@ class SeismicListener(QThread):
         while not self._halt:
             try:
                 data, addr = self.sock.recvfrom(1024)
-                self.last_msg = time.time()
             except (socket.error):
-                if time.time() - self.last_msg < 3:
-                    continue
-                self.listen_http()
+                pass
             else:
                 self.parse_message(data)
+                
+            if time.time() - self.last_msg < 3:
+                continue
+            self.listen_http()
 
         print ("Listener halted")
         self.halted = True
@@ -78,6 +79,7 @@ class SeismicListener(QThread):
             if message.site_name == self.site_name:
                 if addr:
                     message.address = addr
+                self.last_msg = time.time()
                 self.signal.sig.emit(message)
         except:
             print ("Malformed seismic message detected:")

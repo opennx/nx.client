@@ -137,9 +137,9 @@ class ServiceView(QTableView):
                 3 : 4,
                 4 : 4
                 }[svc["state"]]
-
-
             query("services", command=cmd, id_service=id_service)
+        elif action == "autostart":
+            query("services", command=-1, id_service=id_service)
         
 
 
