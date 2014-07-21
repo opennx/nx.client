@@ -6,6 +6,7 @@ class EmptyEventButton(QToolButton):
         super(EmptyEventButton, self).__init__() 
         self.pressed.connect(self.startDrag)
         self.setIcon(QIcon(pixlib["empty_event"]))
+        self.setToolTip("Drag this to scheduler to create empty event.")
 
     def startDrag(self):
         drag = QDrag(self);

@@ -124,7 +124,7 @@ class Rundown(BaseWidget):
         self.playout_config = config["playout_channels"][self.id_channel]
         
 
-        dt = datetime.datetime.fromtimestamp(time.time() - 86400).replace(hour = self.playout_config["day_start"][0], minute = self.playout_config["day_start"][1], second = 0)
+        dt = datetime.datetime.fromtimestamp(time.time() - (self.playout_config["day_start"][0]*3600 + self.playout_config["day_start"][1]*60)   ).replace(hour = self.playout_config["day_start"][0], minute = self.playout_config["day_start"][1], second = 0)
         self.start_time = time.mktime(dt.timetuple()) 
 
 

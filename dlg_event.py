@@ -65,19 +65,19 @@ class EventDialog(QDialog):
         self.toolbar = event_toolbar(self)
         self.form = EventForm(self)
 
-        print ("kwargs", self.kwargs)
-
-        if "timestamp" in self.kwargs:
-          self.form.timestamp.set_value(self.kwargs["timestamp"])
-
-        if "id_event" in self.kwargs:
-            pass # TODO
-
+        if "event" in self.kwargs:
+            event = self.kwargs["event"]
+            self.form.title.set_value(event["title"])
+            self.form.description.set_value(event["description"])
+            self.form.timestamp.set_value(event["start"])
+            
         elif "asset" in self.kwargs:
             asset = self.kwargs["asset"]
             self.form.title.set_value(asset["title"])
             self.form.description.set_value(asset["description"])
 
+        if "timestamp" in self.kwargs:
+          self.form.timestamp.set_value(self.kwargs["timestamp"])
 
 
         layout = QVBoxLayout()
@@ -123,6 +123,25 @@ class EventDialog(QDialog):
         elif not title:
             QMessageBox.warning(self, "Error", "You must specify event title")
             return
+
+        
+        id_channel = self.kwargs.get("id_channel", False)
+
+        data = {}
+        if "event" in self.kwargs:
+            data["id_event"] = self.kwargs["event"].id
+        elif "asset" in self.kwargs:
+            data["id_asset"] = self.kwargs["asset"].id
+
+
+        data["start"] = self.form.timestamp.get_value()
+        data["title"] = self.form.title.get_value()
+        data["description"] = self.form.description.get_value()
+
+        stat, res = query("set_events", 
+                id_channel=id_channel,
+                events=[data]
+                    )
 
         self.close()
 

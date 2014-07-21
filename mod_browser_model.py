@@ -64,7 +64,7 @@ class BrowserModel(NXViewModel):
         tag = self.header_data[index.column()] 
         value = data
         id_object = self.object_data[index.row()].id
-        res, data = query("set_meta", objects=[id_object], tag=tag, value=value)
+        res, data = query("set_meta", objects=[id_object], data={tag: value})
         if success(res):
             self.object_data[index.row()] = Asset(from_data=data)
             self.dataChanged.emit(index, index)

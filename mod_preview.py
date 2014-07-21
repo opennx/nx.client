@@ -190,6 +190,8 @@ class Preview(BaseWidget):
         self.din   = NXE_timecode(self)
         self.dout  = NXE_timecode(self)
 
+        self.position = self.mark_in = self.mark_out = 0
+
         self.ddur.setEnabled(False)
         self.dpos.setEnabled(False)
 
@@ -253,10 +255,17 @@ class Preview(BaseWidget):
 
     def position_changed(self, position):
         self.timeline.setValue(position)
+        self.position = position / 1000.0
+        self.update_displays()
+        
+    def update_displays(self):
         if self.fps:
-            self.dpos.setText(s2tc(position/1000.0, self.fps))
+            self.dpos.setText(s2tc(self.position, self.fps))
+            self.din.setText(s2tc(self.mark_in, self.fps))
+            self.dout.setText(s2tc(self.mark_out, self.fps))
         else:
             self.dpos.setText(s2time(position/1000.0))
+            #TODO REMAINING DISPLAYS
 
     def duration_changed(self, duration):
         self.timeline.setRange(0, duration)
@@ -303,6 +312,12 @@ class Preview(BaseWidget):
             self.fps = fract2float(self.current_object["video/fps"])
         except:
             self.fps = 0
+
+        self.mark_in = self.current_object["mark_in"] or 0
+        self.mark_out = self.current_object["mark_out"] or 0
+        self.duration_changed(self.current_object["duration"]*1000)
+        self.update_displays()
+
         
         self.video_widget.load_thumb(id_asset, obj["content_type"])
         self.action_play.setIcon(QIcon(pixlib["play"]))
@@ -365,36 +380,54 @@ class Preview(BaseWidget):
         self.status("Playing {}x".format(self.media_player.playbackRate()))
 
     def on_mark_in(self):
-        self.status("on_mark_in")
+        self.mark_in = self.position
+        self.update_displays()
 
     def on_mark_out(self):
-        self.status("on_mark_out")
+        self.mark_out = self.position
+        self.update_displays()
 
     def on_clear_in(self):
-        self.status("on_clear_in")
+        self.mark_in = 0
+        self.update_displays()
 
     def on_clear_out(self):
-        self.status("on_clear_out")
+        self.mark_out = 0
+        self.update_displays()
 
     def on_goto_in(self):
-        self.status("on_goto_in")
+        self.set_position(self.mark_in*1000)
 
     def on_goto_out(self):
-        self.status("on_goto_out")
+        self.set_position(self.mark_out*1000)
 
 
 
     def on_save_marks(self):
-        pass
+        data = {}
+        if self.current_object["mark_in"] != self.mark_in:
+            data["mark_in"] = self.mark_in
+
+        if self.current_object["mark_out"] != self.mark_out:
+            data["mark_out"] = self.mark_out
+
+        if data:
+            res, data = query("set_meta", object_type=self.current_object.object_type, objects=[self.current_object.id], data=data)
+            if success(res):
+                self.status("Marks saved")
+            else:
+                self.status("Unable to set marks")
+        else:
+            self.status("Marks unchanged")
 
     def on_approve(self):
-        res, data = query("set_meta", objects=[self.current_object.id], tag="qc/state", value=4 )
+        res, data = query("set_meta", objects=[self.current_object.id], data={"qc/state" : 4} )
 
     def on_qc_reset(self):
-        res, data = query("set_meta", objects=[self.current_object.id], tag="qc/state", value=0 )
+        res, data = query("set_meta", objects=[self.current_object.id], data={"qc/state" : 0} )
 
     def on_reject(self):
-        res, data = query("set_meta", objects=[self.current_object.id], tag="qc/state", value=3 )
+        res, data = query("set_meta", objects=[self.current_object.id], data={"qc/state" : 3} )
 
 
 

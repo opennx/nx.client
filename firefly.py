@@ -143,7 +143,10 @@ class Firefly(QMainWindow):
 
     def status(self, message, message_type=INFO):
         if message:
-            print(message)
+            try:
+                print(message)
+            except:
+                pass
         if message_type > DEBUG:
             self.statusBar().showMessage(message)
 

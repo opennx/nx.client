@@ -232,9 +232,14 @@ class Detail(BaseWidget):
 
 
     def on_apply(self):
+        QMessageBox.warning(self,
+                "Not available",
+                "This feature is not available in preview version",
+                QMessageBox.Cancel
+                )
         print (self.object.meta)
         return
-        stat, res = query("set_meta", objects=[self.object.id], tag="id_folder", value=self.folder_select.get_value())
+        stat, res = query("set_meta", objects=[self.object.id], data={"id_folder":self.folder_select.get_value()})
 
     def on_revert(self):
         if self.object:
