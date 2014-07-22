@@ -68,14 +68,47 @@ class DetailTabMain(QWidget):
 
 
 
-class DetailTabExtended(QWidget):
+class DetailTabExtended(QTextEdit):
+    def __init__(self, parent):
+        super(DetailTabExtended, self).__init__(parent)
+        self.setReadOnly(True)
+        self.setStyleSheet("border:0;")
+
     def load(self, obj):
-        pass
+
+        self.tag_groups = {
+                "core" :  [],
+                "other"  : [],
+            }
+
+        for tag in sorted(meta_types):
+            if meta_types[tag].namespace in ["a", "i", "e", "b", "o"]:
+                self.tag_groups["core"].append(tag)
+            elif meta_types[tag].namespace in ("fmt", "qc"):
+                continue
+            elif tag not in [r[0] for r in config["folders"][obj["id_folder"]][2]]:
+                self.tag_groups["other"].append(tag)
+
+        data = ""
+        for tag_group in ["core", "other"]:
+            for tag in self.tag_groups[tag_group]:
+                if not tag in obj.meta:
+                    continue
+                tag_title = meta_types.tag_alias(tag, config.get("language","en-US"))
+                value = obj.format_display(tag) or obj["tag"] or ""
+                if value:
+                    data += "{:<40}: {}\n".format(tag_title, value)
+            data += "\n\n"
+
+        self.setText(data)
+
+
 
 class DetailTabTechnical(QTextEdit):
     def __init__(self, parent):
         super(DetailTabTechnical, self).__init__(parent)
         self.setReadOnly(True)
+        self.setStyleSheet("border:0;")
 
         self.tag_groups = {
                 "File" : [],
@@ -99,7 +132,8 @@ class DetailTabTechnical(QTextEdit):
                     continue
                 tag_title = meta_types.tag_alias(tag, config.get("language","en-US"))
                 value = obj.format_display(tag) or obj["tag"] or ""
-                data += "{:<40}: {}\n".format(tag_title, value)
+                if value:
+                    data += "{:<40}: {}\n".format(tag_title, value)
             data += "\n\n"
 
         self.setText(data)

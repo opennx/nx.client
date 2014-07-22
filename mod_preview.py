@@ -190,7 +190,7 @@ class Preview(BaseWidget):
         self.din   = NXE_timecode(self)
         self.dout  = NXE_timecode(self)
 
-        self.position = self.mark_in = self.mark_out = 0
+        self.position = self.mark_in = self.mark_out = self.fps = 0
 
         self.ddur.setEnabled(False)
         self.dpos.setEnabled(False)
@@ -264,7 +264,9 @@ class Preview(BaseWidget):
             self.din.setText(s2tc(self.mark_in, self.fps))
             self.dout.setText(s2tc(self.mark_out, self.fps))
         else:
-            self.dpos.setText(s2time(position/1000.0))
+            self.dpos.setText(s2time(self.position))
+            self.din.setText(s2time(self.mark_in))
+            self.dout.setText(s2time(self.mark_out))
             #TODO REMAINING DISPLAYS
 
     def duration_changed(self, duration):

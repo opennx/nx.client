@@ -183,15 +183,18 @@ class Rundown(BaseWidget):
         if data.method == "playout_status": 
             if data.data["id_channel"] != self.id_channel:
                 return
-
+            r = 0
             if data.data["current_item"] != self.current_item:
                 self.current_item = data.data["current_item"]
-                self.refresh()
-
+                r = 1
+                
             if data.data["cued_item"] != self.cued_item:
                 self.cued_item = data.data["cued_item"]
-                self.refresh(full=False)
+                r = 2
             
+            if r:
+                self.refresh(full=r==2)
+
             if self.mcr:
                 self.mcr.seismic_handler(data)
 

@@ -20,10 +20,14 @@ class BrowserModel(NXViewModel):
                 if not (id_asset in asset_cache and asset_cache[id_asset]["mtime"] == mtime):
                     to_update.append(id_asset)
             if to_update:
-                res, data = query("get_assets", asset_ids=to_update)
-                if success(res):
-                    for id_asset in data:
-                        asset_cache[int(id_asset)] = Asset(from_data=data[id_asset])
+                self.parent().parent().parent().update_assets(to_update)
+                # res, data = query("get_assets", asset_ids=to_update)
+                # if success(res):
+                #     for id_asset in data:
+                #         try:
+                #             asset_cache[int(id_asset)] = Asset(from_data=data[id_asset])
+                #         except:
+                #             print(id_asset)
             self.object_data = [asset_cache[id_asset] for id_asset, mtime in asset_ids]
 
         self.endResetModel()

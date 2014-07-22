@@ -142,11 +142,11 @@ class Firefly(QMainWindow):
         self.workspace_locked = False
 
     def status(self, message, message_type=INFO):
-        if message:
-            try:
-                print(message)
-            except:
-                pass
+        #if message:
+            #try:
+            #    print(message)
+            #except:
+            #    pass
         if message_type > DEBUG:
             self.statusBar().showMessage(message)
 
@@ -255,15 +255,19 @@ class Firefly(QMainWindow):
             if not aids:
                 return
             self.status ("{} has been changed by {}".format(asset_cache[aids[0]], data.data.get("user", "anonymous"))  )
-
-            res, adata = query("get_assets", asset_ids=aids )
-            if success(res):
-                for id_asset in adata:
-                    asset_cache[int(id_asset)] = Asset(from_data=adata[id_asset])
+            self.update_assets(aids)
 
         for subscriber in self.subscribers:
             if data.method in self.subscribers[subscriber]:
                 subscriber(data)
+
+
+    def update_assets(self, asset_ids=[]):
+        res, adata = query("get_assets", handler=self.update_asset , asset_ids=asset_ids )
+
+    def update_asset(self, data):
+        a = Asset(from_data=data)
+        asset_cache[a.id] = a
 
 if __name__ == "__main__":
     app = Firestarter(Firefly)

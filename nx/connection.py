@@ -15,7 +15,7 @@ AUTH_KEY = "dev"
 def success(retcode):
     return retcode < 300
 
-def query(method, target="hive", **kwargs):
+def query(method, target="hive", handler=False, **kwargs):
     if config.get("hive_zlib",False):
         kwargs["hive_zlib"] = True
 
@@ -32,12 +32,22 @@ def query(method, target="hive", **kwargs):
         "params" : json.dumps(kwargs)
         })
 
-    try:
-        result = urlopen(url, post_data.encode("ascii"), timeout=10).read()
-    except:
-        return 400, "TODO: Return specific error message"
+    with urlopen(url, post_data.encode("ascii"), timeout=5) as feed:
+        while True:
+            line = feed.readline()
+            if not line:
+                break
 
-    if kwargs.get("hive_zlib",False):
-        result = zlib.decompress(result)
-    result = json.loads(result.decode('ascii'))
-    return 200, result
+            if kwargs.get("hive_zlib",False):
+                result = zlib.decompress(result)
+
+            response, result = json.loads(line.decode('ascii'))
+            if response == -1:
+                if handler:
+                    handler(result)
+            else:
+                break
+
+
+
+    return response, result

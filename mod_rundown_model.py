@@ -14,7 +14,7 @@ class RundownModel(NXViewModel):
 
         if full:
             self.object_data = []
-            res, data = query("rundown",id_channel=id_channel, start_time=start_time)
+            res, data = query("rundown",handler=self.handle_load, id_channel=id_channel, start_time=start_time)
             if success(res) and data: 
                 row = 0
                 current_bin = False
@@ -42,9 +42,14 @@ class RundownModel(NXViewModel):
                         item["rundown_row"] = row
                         self.object_data.append(item)
                         row += 1
-        
+                        
+        self.parent().status("Rundown loaded")
         self.endResetModel()
         QApplication.restoreOverrideCursor()
+
+    def handle_load(self,msg):
+        self.parent().status("Loading rundown. {:0.0%}".format(msg["progress"]))
+        QApplication.processEvents()
 
 
 

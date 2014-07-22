@@ -412,7 +412,7 @@ class TXDayWidget(TXVerticalBar):
         menu.addSeparator()
 
         action_edit_event = QAction('Edit', self)
-        action_edit_event.triggered.connect(self.on_show_rundown)
+        action_edit_event.triggered.connect(self.on_edit_event)
         menu.addAction(action_edit_event)
 
         action_delete_event = QAction('Delete event', self)        
@@ -422,7 +422,9 @@ class TXDayWidget(TXVerticalBar):
         menu.exec_(event.globalPos())
 
     def on_edit_event(self):
-        pass
+        dlg = EventDialog(self, event=self.cursor_event)
+        if dlg.exec_() == QDialog.Accepted:
+            self.calendar.refresh()
 
     def on_show_rundown(self):
         pass
@@ -478,15 +480,7 @@ class HeaderWidget(QLabel):
 
         menu.addSeparator()
 
-        action_clear = QAction('Clear all', self)        
-        action_clear.triggered.connect(self.on_clear)
-        menu.addAction(action_clear)
-
-        action_template = QAction('Apply template', self)        
-        action_template.triggered.connect(self.on_template)
-        menu.addAction(action_template)
-
-        action_solve = QAction('Solve', self)        
+        action_solve = QAction('Dramatica', self)        
         action_solve.triggered.connect(self.on_solve)
         menu.addAction(action_solve)
         
@@ -495,15 +489,24 @@ class HeaderWidget(QLabel):
     def on_open_rundown(self):
         self.parent().parent().parent().parent().focus_rundown(self.id_channel, self.date) # Please kill me
 
-    def on_clear(self):
-        pass
-
-    def on_template(self):
-        pass
 
     def on_solve(self):
-        pass
+        ret = QMessageBox.warning(self.parent(),
+            "Dramatica solver is dangerous",
+            "This action will delete all events of this day, then apply default template and solve rundown.\nDo you really want to proceed?\n\nThis operation cannot be undone!",
+            QMessageBox.Yes | QMessageBox.No
+            )
+        if ret == QMessageBox.Yes:
+            QApplication.processEvents()
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            stat, res = query("dramatica", handler=self.handle_drama, id_channel=self.id_channel, date=time.strftime("%Y-%m-%d", time.localtime(self.date)))
+            QApplication.restoreOverrideCursor()
+            self.parent().refresh()
 
+
+    def handle_drama(self, msg):
+        self.parent().status(msg.get("message",""))
+        QApplication.processEvents()
 
 
 

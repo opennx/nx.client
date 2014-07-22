@@ -51,8 +51,14 @@ class SendTo(QDialog):
         return result
 
     def on_send(self, id_action):
-        res, status = query("send_to", id_action=id_action, objects=self.assets, settings={}, restart_existing=self.restart.isChecked())
+        QApplication.processEvents()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        res, status = query("send_to", handler=self.handle_query, id_action=id_action, objects=self.assets, settings={}, restart_existing=self.restart.isChecked())
+        QApplication.restoreOverrideCursor()
         if failed(res):
-            QMessageBox.error(self, "Error", "status")
+            QMessageBox.critical(self, "Error", status)
         else:
             self.close()
+
+    def handle_query(self, msg):
+        QApplication.processEvents()

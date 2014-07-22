@@ -58,7 +58,7 @@ class EventForm(QWidget):
 class EventDialog(QDialog):
     def __init__(self,  parent, **kwargs):
         super(EventDialog, self).__init__(parent)
-        self.setWindowTitle("Scheduler")
+        self.setWindowTitle("New event")
         self.kwargs = kwargs
         self.setStyleSheet(base_css)
 
@@ -70,11 +70,13 @@ class EventDialog(QDialog):
             self.form.title.set_value(event["title"])
             self.form.description.set_value(event["description"])
             self.form.timestamp.set_value(event["start"])
+            self.setWindowTitle(event.__repr__())
             
         elif "asset" in self.kwargs:
             asset = self.kwargs["asset"]
             self.form.title.set_value(asset["title"])
             self.form.description.set_value(asset["description"])
+            self.setWindowTitle("New event ({})".format(asset["title"]))
 
         if "timestamp" in self.kwargs:
           self.form.timestamp.set_value(self.kwargs["timestamp"])
@@ -106,6 +108,7 @@ class EventDialog(QDialog):
 
     def on_cancel(self):
         self.close()
+        self.setResult(QDialog.Rejected)
 
     def closeEvent(self, event):
          self.save_state()
@@ -129,7 +132,7 @@ class EventDialog(QDialog):
 
         data = {}
         if "event" in self.kwargs:
-            data["id_event"] = self.kwargs["event"].id
+            data["id_object"] = self.kwargs["event"].id
         elif "asset" in self.kwargs:
             data["id_asset"] = self.kwargs["asset"].id
 
@@ -144,6 +147,7 @@ class EventDialog(QDialog):
                     )
 
         self.close()
+        self.setResult(QDialog.Accepted)
 
 
 
