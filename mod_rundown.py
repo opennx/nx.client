@@ -119,8 +119,6 @@ class Rundown(BaseWidget):
         toolbar = rundown_toolbar(self)
 
         self.id_channel   = 1 # TODO (get default from playout config, overide in setState).... also get start time from today + playout_config channel day start
-        self.start_time = ts_today()
-
         self.playout_config = config["playout_channels"][self.id_channel]
         
 
@@ -277,7 +275,13 @@ class Rundown(BaseWidget):
         self.set_date(self.start_time + (3600*24))
 
     def on_now(self):
-        self.set_date(ts_today())
+        if not (self.start_time+86400 > time.time() > self.start_time):
+            self.set_date(ts_today())
+
+        for i,r in enumerate(self.model.object_data):
+            if self.current_item == r.id and r.object_type=="item":
+                self.view.scrollTo(self.model.index(i, 0, QModelIndex()), QAbstractItemView.PositionAtCenter  )
+                break
 
 
     def on_calendar(self):

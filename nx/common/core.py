@@ -56,12 +56,7 @@ class Config(dict):
         super(Config, self).__init__()
         self["host"] = socket.gethostname()  # Machine hostname
         self["user"] = "Core"                # Service identifier. Should be overwritten by service/script.
-        try:
-            local_settings = json.loads(open("local_settings.json").read())
-        except:
-            critical_error("Unable to open site_settings file.")
-        self.update(local_settings)
-
+   
     def __getitem__(self,key):
         return self.get(key,False)
 

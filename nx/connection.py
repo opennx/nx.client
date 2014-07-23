@@ -1,10 +1,11 @@
-from nx.common import *
-
 import json
 import zlib
 
 from urllib.parse import urlencode
 from urllib.request import urlopen
+from urllib.error import URLError, HTTPError
+
+from nx.common import *
 
 __all__ = ["connection_type", "query", "success"]
 
@@ -32,22 +33,32 @@ def query(method, target="hive", handler=False, **kwargs):
         "params" : json.dumps(kwargs)
         })
 
-    with urlopen(url, post_data.encode("ascii"), timeout=5) as feed:
-        while True:
-            line = feed.readline()
-            if not line:
-                break
+    response = False
 
-            if kwargs.get("hive_zlib",False):
-                result = zlib.decompress(result)
+    try:
+        with urlopen(url, post_data.encode("ascii"), timeout=config.get("hive_timeout", 3)) as feed:
+            while True:
+                line = feed.readline()
+                if not line:
+                    break
 
-            response, result = json.loads(line.decode('ascii'))
-            if response == -1:
-                if handler:
-                    handler(result)
-            else:
-                break
+                if kwargs.get("hive_zlib",False):
+                    result = zlib.decompress(result)
 
+                response, result = json.loads(line.decode('ascii'))
+                if response == -1:
+                    if handler:
+                        handler(result)
+                else:
+                    break
 
+    except URLError as e:
+        return 503, e.reason
 
-    return response, result
+    except HTTPError as e:
+        return e.code, "HTTP Errror {}".format(e.code)
+
+    if response:
+        return response, result
+    else:
+        return 418, "I'm a teapot"

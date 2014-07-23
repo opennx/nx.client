@@ -405,11 +405,11 @@ class TXDayWidget(TXVerticalBar):
 
         self.calendar.selected_event = self.cursor_event
 
-        action_show_rundown = QAction('Show in rundown', self)        
-        action_show_rundown.triggered.connect(self.on_show_rundown)
-        menu.addAction(action_show_rundown)
+        #action_show_rundown = QAction('Show in rundown', self)        
+        #action_show_rundown.triggered.connect(self.on_show_rundown)
+        #menu.addAction(action_show_rundown)
 
-        menu.addSeparator()
+        #menu.addSeparator()
 
         action_edit_event = QAction('Edit', self)
         action_edit_event.triggered.connect(self.on_edit_event)
@@ -499,7 +499,14 @@ class HeaderWidget(QLabel):
         if ret == QMessageBox.Yes:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            stat, res = query("dramatica", handler=self.handle_drama, id_channel=self.id_channel, date=time.strftime("%Y-%m-%d", time.localtime(self.date)))
+            stat, res = query("dramatica", 
+                handler=self.handle_drama, 
+                id_channel=self.id_channel, 
+                date=time.strftime("%Y-%m-%d", time.localtime(self.date)),
+                clear=True,
+                template="nxtv_template",
+                solve=True
+                )
             QApplication.restoreOverrideCursor()
             self.parent().refresh()
 

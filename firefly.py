@@ -26,7 +26,7 @@ from nx.objects import Asset
 class Firefly(QMainWindow):
     def __init__(self, parent):
         super(Firefly, self).__init__()
-        self.setWindowTitle(VERSION_INFO)
+        self.setWindowTitle("{} - {}".format(config["site_name"], VERSION_INFO))
         self.setWindowIcon(QIcon(":/images/firefly.ico"))
         self.parent = parent
 
@@ -142,11 +142,6 @@ class Firefly(QMainWindow):
         self.workspace_locked = False
 
     def status(self, message, message_type=INFO):
-        #if message:
-            #try:
-            #    print(message)
-            #except:
-            #    pass
         if message_type > DEBUG:
             self.statusBar().showMessage(message)
 
@@ -195,6 +190,7 @@ class Firefly(QMainWindow):
     ###############################################################################
     ## Menu actions
     ## FILE
+
     def on_new_asset(self):
         dock = self.create_dock("detail", state={}, show=True, one_instance=True)
         dock.main_widget.new_asset()

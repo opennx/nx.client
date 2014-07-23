@@ -2,7 +2,7 @@ import sys
 
 from firefly_common import *
 from firefly_listener import SeismicListener
-
+from dlg_sites import SiteSelect
 
 class Firestarter(QApplication):
     def __init__(self, main_window):
@@ -13,6 +13,17 @@ class Firestarter(QApplication):
         self.got_seismic = False
         self.listener = SeismicListener()
 
+        try:
+            local_settings = json.loads(open("local_settings.json").read())
+        except:
+            critical_error("Unable to open site_settings file.")
+        
+        i = 0
+        if len(local_settings) > 1:
+            dlg = SiteSelect(None, local_settings)
+            i = dlg.exec_()
+        
+        config.update(local_settings[i])
 
         self.tasks = [
                       self.load_site_settings,
