@@ -12,6 +12,8 @@ class RundownModel(NXViewModel):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         self.beginResetModel()
 
+        self.event_ids = [] # helper function for auto refresh
+
         if full:
             self.object_data = []
             res, data = query("rundown",handler=self.handle_load, id_channel=id_channel, start_time=start_time)
@@ -22,6 +24,7 @@ class RundownModel(NXViewModel):
                     evt = Event(from_data=edata["event_meta"])
                     evt.bin = Bin(from_data=edata["bin_meta"])
                     current_bin = evt.bin.id
+                    self.event_ids.append(evt.id)
 
                     evt["rundown_bin"] = current_bin
                     evt["rundown_row"] = row

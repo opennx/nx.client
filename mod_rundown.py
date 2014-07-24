@@ -36,11 +36,11 @@ def rundown_toolbar(wnd):
     action_now.triggered.connect(wnd.on_now)
     toolbar.addAction(action_now)
 
-    action_calendar = QAction(QIcon(pixlib["calendar"]), '&Calendar', wnd)        
-    action_calendar.setShortcut('Ctrl+D')
-    action_calendar.setStatusTip('Open calendar')
-    action_calendar.triggered.connect(wnd.on_calendar)
-    toolbar.addAction(action_calendar)
+#    action_calendar = QAction(QIcon(pixlib["calendar"]), '&Calendar', wnd)        
+#    action_calendar.setShortcut('Ctrl+D')
+#    action_calendar.setStatusTip('Open calendar')
+#    action_calendar.triggered.connect(wnd.on_calendar)
+#    toolbar.addAction(action_calendar)
 
     action_refresh = QAction(QIcon(pixlib["refresh"]), '&Refresh', wnd)        
     action_refresh.setStatusTip('Refresh rundown')
@@ -156,7 +156,7 @@ class Rundown(BaseWidget):
         layout.addWidget(self.view, 1)
 
         self.setLayout(layout)
-        self.subscribe("playout_status", "job_progress")
+        self.subscribe("playout_status", "job_progress", "events_changed")
 
 
     def save_state(self):
@@ -208,6 +208,16 @@ class Rundown(BaseWidget):
                     self.model.dataChanged.emit(self.model.index(i, 0), self.model.index(i, len(self.model.header_data)-1))
                     self.update()
 
+        elif data.method == "events_changed":
+            my_name =self.parent().objectName()
+            print (data.data)
+            print (my_name)
+            for event in data.data["events"]:#  
+                if data.data["sender"] != my_name and event["id_object"] in self.model.event_ids :
+                    self.refresh(full=True)
+                    break
+
+
     ###########################################################################
 
 
@@ -218,7 +228,19 @@ class Rundown(BaseWidget):
         self.model.load(id_channel, start_time, full=full)
 
     def refresh(self, full=True):
+        selection = []
+        for idx in self.view.selectionModel().selectedIndexes():
+            selection.append([self.model.object_data[idx.row()].object_type, self.model.object_data[idx.row()].id]) 
+
         self.load(self.id_channel, self.start_time, full=full)
+
+        item_selection = QItemSelection()
+        for i, row in enumerate(self.model.object_data):
+            if [row.object_type, row.id] in selection:
+               i1 = self.model.index(i, 0, QModelIndex())
+               i2 = self.model.index(i, len(self.model.header_data)-1, QModelIndex())
+               item_selection.select(i1,i2)
+        self.view.selectionModel().select(item_selection, QItemSelectionModel.ClearAndSelect)
 
     def update_header(self):
         t = datetime.date.fromtimestamp(self.start_time)

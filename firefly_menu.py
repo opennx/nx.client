@@ -7,7 +7,7 @@ def about_dialog(parent):
     "Firefly is free software; "
     "you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; "
     "either version 3 of the License, or (at your option) any later version.\n\n"
-    "For more information visit project homepage at http://opennx.eu"
+#    "For more information visit project homepage at http://opennx.eu"
     )
 
 
@@ -60,12 +60,12 @@ def create_menu(wnd):
     menu_navigate.addAction(action_now)
 
 
-    menu_navigate.addSeparator()
-
-    action_debug = QAction('Debug', wnd)        
-    action_debug.setStatusTip('Show debug dump')
-    action_debug.triggered.connect(wnd.on_debug)
-    menu_navigate.addAction(action_debug)
+#    menu_navigate.addSeparator()
+#
+#    action_debug = QAction('Debug', wnd)        
+#    action_debug.setStatusTip('Show debug dump')
+#    action_debug.triggered.connect(wnd.on_debug)
+#    menu_navigate.addAction(action_debug)
 
 
 

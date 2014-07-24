@@ -10,7 +10,7 @@ from firefly_rc import *
 
 
 def ffsettings():
-    return QSettings(".state.%s.nxsettings" % socket.gethostname(), QSettings.IniFormat)
+    return QSettings(".state.{}.{}.nxsettings".format(socket.gethostname(), config["site_name"]), QSettings.IniFormat)
 
 def get_pix(name):
     if not name:
@@ -80,10 +80,11 @@ class BaseDock(QDockWidget):
             self.setFloating(True)
 
         if not "object_name" in state:
-            if self.class_ == "browser":
+            if self.class_ in ["browser", "detail"]:
                 self.resize(600,600)
             elif self.class_ == "rundown":
                 self.resize(800,600)
+
 
 
     def reset_object_name(self):

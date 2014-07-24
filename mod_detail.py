@@ -271,7 +271,6 @@ class Detail(BaseWidget):
                 "This feature is not available in preview version",
                 QMessageBox.Cancel
                 )
-        print (self.object.meta)
         return
         stat, res = query("set_meta", objects=[self.object.id], data={"id_folder":self.folder_select.get_value()})
 

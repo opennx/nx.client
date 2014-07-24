@@ -73,7 +73,7 @@ class Firefly(QMainWindow):
             dock.show()
 
         self.status("Ready")
-        pprint (config)
+        #pprint (config)
             
 
     def resizeEvent(self, evt):

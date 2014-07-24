@@ -189,11 +189,14 @@ class Preview(BaseWidget):
         self.dpos  = NXE_timecode(self)
         self.din   = NXE_timecode(self)
         self.dout  = NXE_timecode(self)
+        
+        self.din.setReadOnly(True) # FIX THIS
+        self.dout.setReadOnly(True)
 
         self.position = self.mark_in = self.mark_out = self.fps = 0
 
-        self.ddur.setEnabled(False)
-        self.dpos.setEnabled(False)
+        self.ddur.setReadOnly(True)
+        self.dpos.setReadOnly(True)
 
         self.ddur.setStatusTip("Duration")
         self.dpos.setStatusTip("Position")
