@@ -22,6 +22,47 @@ class RundownDate(QLabel):
     pass
 
 
+
+
+class LeadInButton(QToolButton):
+    def __init__(self, parent):
+        super(LeadInButton, self).__init__() 
+        self.pressed.connect(self.startDrag)
+        self.setIcon(QIcon(pixlib["mark_in"]))
+        self.setToolTip("Drag this to rundown to create Lead-in.")
+
+    def startDrag(self):
+        drag = QDrag(self);
+        mimeData = QMimeData()
+        mimeData.setData(
+           "application/nx.item",
+           '[{"item_role":"lead_in", "title":"Lead in"}]'
+           )
+        drag.setMimeData(mimeData)
+        if drag.exec_(Qt.CopyAction):
+            pass # nejak to rozumne ukoncit
+
+
+class LeadOutButton(QToolButton):
+    def __init__(self, parent):
+        super(LeadOutButton, self).__init__() 
+        self.pressed.connect(self.startDrag)
+        self.setIcon(QIcon(pixlib["mark_out"]))
+        self.setToolTip("Drag this to rundown to create Lead-out.")
+
+    def startDrag(self):
+        drag = QDrag(self);
+        mimeData = QMimeData()
+        mimeData.setData(
+           "application/nx.item",
+           '[{"item_role":"lead_out", "title":"Lead out"}]'
+           )
+        drag.setMimeData(mimeData)
+        if drag.exec_(Qt.CopyAction):
+            pass # nejak to rozumne ukoncit
+
+
+
 def rundown_toolbar(wnd):
     toolbar = QToolBar(wnd)
 
@@ -64,6 +105,11 @@ def rundown_toolbar(wnd):
     action_toggle_mcr.setStatusTip('Toggle playout controls')
     action_toggle_mcr.triggered.connect(wnd.on_toggle_mcr)
     toolbar.addAction(action_toggle_mcr)
+
+    toolbar.addWidget(ToolBarStretcher(wnd))
+
+    toolbar.addWidget(LeadInButton(wnd))
+    toolbar.addWidget(LeadOutButton(wnd))
 
     toolbar.addWidget(ToolBarStretcher(wnd))
 

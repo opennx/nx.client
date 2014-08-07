@@ -92,11 +92,15 @@ class TagRundownSymbol(TagFormat):
             return ["star_disabled", "star_enabled"][int(obj["promoted"])]
         elif obj["id_folder"]:
             return "folder_{}".format(obj["id_folder"])
+        elif obj["item_role"] == "lead_in":
+            return "mark_in"
+        elif obj["item_role"] == "lead_out":
+            return "mark_out"
 
 class TagRundownStatus(TagFormat):
     tag = "rundown_status"
     def display(self, obj):
-        if not obj[self.tag] or obj.object_type != "item" :
+        if obj.object_type != "item" :
             return ""
 
         if obj["rundown_transfer_progress"] and float(obj["rundown_transfer_progress"]) > -1:
@@ -253,6 +257,8 @@ class NXCellFormat():
                 return "#059005"
             elif model.parent().current_item == self.id:
                 return "#900505"
+            elif not self["id_asset"]:
+                return "#121240"
 
         if self.object_type == "event" and self.model.parent().__class__.__name__ == "Rundown":
             return RUNDOWN_EVENT_BACKGROUND_COLOR
@@ -269,7 +275,7 @@ class NXCellFormat():
             return "#404040"
 
         elif key == "title" and self.object_type == "asset":
-            return NXColors[[ASSET_FG_OFFLINE, ASSET_FG_ONLINE, ASSET_FG_CREATING, ASSET_FG_TRASHED, ASSET_FG_RESET][self["status"]]]
+            return NXColors[[ASSET_FG_OFFLINE, ASSET_FG_ONLINE, ASSET_FG_CREATING, ASSET_FG_TRASHED, ASSET_FG_ARCHIVED][self["status"]]]
 
         return DEFAULT_TEXT_COLOR
 

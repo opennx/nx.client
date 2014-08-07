@@ -3,6 +3,7 @@ from firefly_view import *
 
 from nx.objects import *
 
+
 class RundownModel(NXViewModel):
     def load(self, id_channel, start_time, full=True):
         self.id_channel = id_channel
@@ -135,7 +136,7 @@ class RundownModel(NXViewModel):
         
         for obj in drop_objects: 
             if data.hasFormat("application/nx.item"):  
-                pre_items.append({"object_type" : ITEM, "id_object" : obj.id, "params" : {}})
+                pre_items.append({"object_type" : ITEM, "id_object" : obj.id, "params" : obj.meta})
                 dbg.append(obj.id)
 
             elif data.hasFormat("application/nx.asset"): 

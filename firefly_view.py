@@ -15,12 +15,10 @@ class NXViewModel(QAbstractTableModel):
         self.header_data     = []
         self.changed_objects = []
 
-        self.font_normal = QFont()
-        self.font_edited = QFont()
-        self.font_edited.setItalic(True)
-        self.color_edited = QBrush(QColor("#ffdd00"))
-        self.color_new = QBrush(QColor("#44ff00"))
-
+        self.font_normal  = QFont()
+        self.font_virtual = QFont()
+        self.font_virtual.setItalic(True)
+        
 
     def rowCount(self, parent):    
         return len(self.object_data)   
@@ -52,7 +50,7 @@ class NXViewModel(QAbstractTableModel):
         elif role == Qt.EditRole:        return obj.format_edit(tag)
         elif role == Qt.UserRole:        return obj.format_sort(tag)
         elif role == Qt.DecorationRole:  return pixlib[obj.format_decoration(tag)]
-        elif role == Qt.FontRole:        return self.font_edited if obj.id in self.changed_objects or not obj.id else self.font_normal
+       # elif role == Qt.FontRole:        return self.font_normal #if obj.id  else self.font_virtual
         
         return None
 
