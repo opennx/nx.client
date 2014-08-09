@@ -234,7 +234,7 @@ class Rundown(BaseWidget):
                 
             if data.data["cued_item"] != self.cued_item:
                 self.cued_item = data.data["cued_item"]
-                r = 2
+                r = 2 # Az zas jednou budes resit, proc je tu dvojka, tak kvuli prepocitavani casu a ukazovani "aired" itemu
             
             if r:
                 self.refresh(full=r==2)

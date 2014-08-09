@@ -165,6 +165,11 @@ class Browser(BaseWidget):
     
         menu.addSeparator()
 
+        action_reset = QAction('Reset', self)        
+        action_reset.setStatusTip('Reload asset metadata')
+        action_reset.triggered.connect(self.on_reset)
+        menu.addAction(action_reset)
+
         action_move_to_trash = QAction('Move to trash', self)        
         action_move_to_trash.setStatusTip('Move selected asset(s) to trash')
         action_move_to_trash.triggered.connect(self.on_trash)
@@ -181,6 +186,17 @@ class Browser(BaseWidget):
         dlg = SendTo(self, self.view.selected_objects)
         dlg.exec_()
 
+
+    def on_reset(self):
+        #ret = QMessageBox.question(self,
+        #    "Trash",
+        #    "Do you really want to trash {} selected asset(s)?\n\nThis will also remove all instances from future playlists.".format(len(self.view.selected_objects)),
+        #    QMessageBox.Yes | QMessageBox.No
+        #    )
+        #if ret == QMessageBox.Yes:
+            stat, res = query("set_meta", objects=[obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED, RESET]], data={"status" : RESET} )
+
+
     def on_trash(self):
         ret = QMessageBox.question(self,
             "Trash",
@@ -188,11 +204,7 @@ class Browser(BaseWidget):
             QMessageBox.Yes | QMessageBox.No
             )
         if ret == QMessageBox.Yes:
-            QMessageBox.warning(self,
-                "Not available",
-                "This feature is not available in preview version",
-                QMessageBox.Cancel
-                )
+            stat, res = query("trash", objects=[obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED]])
 
     def on_archive(self):
         ret = QMessageBox.question(self,
@@ -206,6 +218,7 @@ class Browser(BaseWidget):
                 "This feature is not available in preview version",
                 QMessageBox.Cancel
                 )
+
 
     
 

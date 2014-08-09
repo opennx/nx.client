@@ -201,6 +201,7 @@ def detail_toolbar(wnd):
     toolbar.addAction(action_revert)
 
     action_apply = QAction(QIcon(pixlib["accept"]), '&Apply changes', wnd)        
+    action_apply.setShortcut('Ctrl+S')
     action_apply.setStatusTip('Apply changes')
     action_apply.triggered.connect(wnd.on_apply)
     toolbar.addAction(action_apply)
@@ -266,12 +267,12 @@ class Detail(BaseWidget):
 
 
     def on_apply(self):
-        QMessageBox.warning(self,
-                "Not available",
-                "This feature is not available in preview version",
-                QMessageBox.Cancel
-                )
-        return
+#        QMessageBox.warning(self,
+#                "Not available",
+#                "This feature is not available in preview version",
+#                QMessageBox.Cancel
+#                )
+#        return
         stat, res = query("set_meta", objects=[self.object.id], data={"id_folder":self.folder_select.get_value()})
 
     def on_revert(self):
