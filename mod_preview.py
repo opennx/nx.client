@@ -31,25 +31,6 @@ def action_toolbar(wnd):
     #action_create_region.triggered.connect(wnd.on_goto_in)
 #    toolbar.addAction(action_manage_regions)
 
-    toolbar.addSeparator()
-
-    wnd.action_approve = QAction(QIcon(pixlib["qc_approved"]),'Approve', wnd)        
-    wnd.action_approve.setShortcut('Y')
-    wnd.action_approve.triggered.connect(wnd.on_approve)
-    wnd.action_approve.setEnabled(False)
-    toolbar.addAction(wnd.action_approve)
-
-    wnd.action_qc_reset = QAction(QIcon(pixlib["qc_new"]),'QC Reset', wnd)        
-    wnd.action_qc_reset.setShortcut('T')
-    wnd.action_qc_reset.triggered.connect(wnd.on_qc_reset)
-    wnd.action_qc_reset.setEnabled(False)
-    toolbar.addAction(wnd.action_qc_reset)
-
-    wnd.action_reject = QAction(QIcon(pixlib["qc_rejected"]),'Reject', wnd)        
-    wnd.action_reject.setShortcut('U')
-    wnd.action_reject.triggered.connect(wnd.on_reject)
-    wnd.action_reject.setEnabled(False)
-    toolbar.addAction(wnd.action_reject)
 
 
     toolbar.addWidget(ToolBarStretcher(wnd))
@@ -425,28 +406,10 @@ class Preview(BaseWidget):
         else:
             self.status("Marks unchanged")
 
-    def on_approve(self):
-        res, data = query("set_meta", objects=[self.current_object.id], data={"qc/state" : 4} )
-
-    def on_qc_reset(self):
-        res, data = query("set_meta", objects=[self.current_object.id], data={"qc/state" : 0} )
-
-    def on_reject(self):
-        res, data = query("set_meta", objects=[self.current_object.id], data={"qc/state" : 3} )
-
-
 
     def focus(self, objects):
         if len(objects) == 1 and objects[0].object_type in ["asset", "item"]:
             o = objects[0]
             self.load(o)
-            if o.object_type == "asset":
-                self.action_approve.setEnabled(True)
-                self.action_qc_reset.setEnabled(True)
-                self.action_reject.setEnabled(True)
-            else:
-                self.action_approve.setEnabled(False)
-                self.action_qc_reset.setEnabled(False)
-                self.action_reject.setEnabled(False)
         else:
             self.unload()

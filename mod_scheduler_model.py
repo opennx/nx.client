@@ -9,6 +9,7 @@ from firefly_common import *
 from firefly_view import *
 
 from dlg_event import EventDialog
+from dlg_dramatica import DramaticaDialog
 
 
 COLOR_CALENDAR_BACKGROUND = QColor("#161616")
@@ -491,21 +492,19 @@ class HeaderWidget(QLabel):
 
 
     def on_solve(self):
-        ret = QMessageBox.warning(self.parent(),
-            "Dramatica solver is dangerous",
-            "This action will delete all events of this day, then apply default template and solve rundown.\nDo you really want to proceed?\n\nThis operation cannot be undone!",
-            QMessageBox.Yes | QMessageBox.No
-            )
-        if ret == QMessageBox.Yes:
+        dlg = DramaticaDialog(self)
+        dlg.exec_()
+
+        if dlg.result:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
             stat, res = query("dramatica", 
                 handler=self.handle_drama, 
                 id_channel=self.id_channel, 
                 date=time.strftime("%Y-%m-%d", time.localtime(self.date)),
-                clear=True,
-                template="nxtv_template",
-                solve=True
+                clear=dlg.chk_clear.isChecked(),
+                solve=dlg.chk_solve.isChecked(),
+                template=[False, "default_template"][dlg.chk_aptpl.isChecked()],
                 )
             QApplication.restoreOverrideCursor()
             self.parent().refresh()

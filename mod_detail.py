@@ -193,6 +193,26 @@ def detail_toolbar(wnd):
     wnd.folder_select.setEnabled(False)
     toolbar.addWidget(wnd.folder_select)
 
+    toolbar.addSeparator()
+
+    wnd.action_approve = QAction(QIcon(pixlib["qc_approved"]),'Approve', wnd)        
+    wnd.action_approve.setShortcut('Y')
+    wnd.action_approve.triggered.connect(wnd.on_approve)
+    wnd.action_approve.setEnabled(False)
+    toolbar.addAction(wnd.action_approve)
+
+    wnd.action_qc_reset = QAction(QIcon(pixlib["qc_new"]),'QC Reset', wnd)        
+    wnd.action_qc_reset.setShortcut('T')
+    wnd.action_qc_reset.triggered.connect(wnd.on_qc_reset)
+    wnd.action_qc_reset.setEnabled(False)
+    toolbar.addAction(wnd.action_qc_reset)
+
+    wnd.action_reject = QAction(QIcon(pixlib["qc_rejected"]),'Reject', wnd)        
+    wnd.action_reject.setShortcut('U')
+    wnd.action_reject.triggered.connect(wnd.on_reject)
+    wnd.action_reject.setEnabled(False)
+    toolbar.addAction(wnd.action_reject)
+
     toolbar.addWidget(ToolBarStretcher(wnd))
     
     action_revert = QAction(QIcon(pixlib["cancel"]), '&Revert changes', wnd)        
@@ -225,6 +245,10 @@ class Detail(BaseWidget):
         self.setLayout(layout)
         self.subscribe("objects_changed")
 
+    @property 
+    def form(self):
+        return self.detail_tabs.tab_main.form
+
     def save_state(self):
         state = {}
         return state
@@ -247,6 +271,12 @@ class Detail(BaseWidget):
             
             self.folder_select.set_value(self.object["id_folder"])
 
+            self.action_approve.setEnabled(True)
+            self.action_qc_reset.setEnabled(True)
+            self.action_reject.setEnabled(True)
+
+
+
     def on_folder_changed(self):
         self.update_data()
         self.detail_tabs.load(self.object)
@@ -267,20 +297,32 @@ class Detail(BaseWidget):
 
 
     def on_apply(self):
-#        QMessageBox.warning(self,
-#                "Not available",
-#                "This feature is not available in preview version",
-#                QMessageBox.Cancel
-#                )
-#        return
-        stat, res = query("set_meta", objects=[self.object.id], data={"id_folder":self.folder_select.get_value()})
+        data = {"id_folder":self.folder_select.get_value()}
+        for key in self.form.inputs:
+            data[key] = self.form.inputs[key].get_value()
+
+        stat, res = query("set_meta", objects=[self.object.id], data=data)
 
     def on_revert(self):
         if self.object:
             self.focus([asset_cache[self.object.id]])
 
 
+    def on_approve(self):
+        res, data = query("set_meta", objects=[self.object.id], data={"qc/state" : 4} )
+
+    def on_qc_reset(self):
+        res, data = query("set_meta", objects=[self.object.id], data={"qc/state" : 0} )
+
+    def on_reject(self):
+        res, data = query("set_meta", objects=[self.object.id], data={"qc/state" : 3} )
+
+
+
+
     def seismic_handler(self, data):
         if data.method == "objects_changed" and data.data["object_type"] == "asset" and self.object: 
             if self.object.id in data.data["objects"]:
                 self.focus([asset_cache[self.object.id]])
+
+
