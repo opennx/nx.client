@@ -61,6 +61,10 @@ def query(method, target="hive", handler=False, **kwargs):
     except HTTPError as e:
         print ("Query failed")
         return e.code, "HTTP Errror {}".format(e.code)
+        
+    except socket.timeout:
+
+        return 400, "Operation timeout"
 
     if response:
         print ("Query completed in {:0.2f} seconds".format(time.time() - start_time))

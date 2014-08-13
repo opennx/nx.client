@@ -99,6 +99,10 @@ QTabBar::tab:selected {
                 WIDGETS
 **********************************************************************/
 
+QGroupBox {
+    border:0;
+}
+
 
 QLineEdit, QTextEdit, QComboBox, QPushButton {
     background-color : #242424;
@@ -108,6 +112,10 @@ QLineEdit, QTextEdit, QComboBox, QPushButton {
     min-height: 24px;
     }
 
+QPushButton:checked{
+    background : QLinearGradient(x1: 0, y1: 0,x2: 0, y2: 1,  stop: 0 #009fbc, stop: 1 #00a5c3);
+    color: #000000;
+}
 
 QTextEdit {
     color : #f8f8f2;

@@ -47,7 +47,7 @@ def suggested_duration(dur):
 
 def text_shorten(text, font, target_width):
     fm = QFontMetrics(font)
-    exps =  [r"\W|_", r"[a-z]([aeiou])", r"[a-z]", r"."]
+    exps =  [r"\W|_", r"[a-z]([aáeéěiíoóuůú])", r"[a-z]", r"."]
     r = exps.pop(0)
     text = text[::-1]
     while fm.width(text) > target_width:
@@ -207,10 +207,16 @@ class TXDayWidget(TXVerticalBar):
         base_h = self.min_size * (event["duration"] / 60) 
         evt_h = self.ts2pos(end) - base_t
         
+        if event["color"]:
+            bcolor = QColor(event["color"])
+        else:
+            bcolor = QColor(40,80,120)
+        bcolor.setAlpha(210)
+
         # Event block (Gradient one)        
         erect = QRect(0,base_t,self.width(),evt_h) # EventRectangle Muhehe!
         gradient = QLinearGradient(erect.topLeft(), erect.bottomLeft())
-        gradient.setColorAt(.0, QColor(40,80,120,210))
+        gradient.setColorAt(.0, bcolor)
         gradient.setColorAt(1, QColor(0,0,0, 0))
         qp.fillRect(erect, gradient)
 
@@ -634,7 +640,7 @@ class TXCalendar(QWidget):
                 d = time.strftime("%a %x", time.localtime(self.start_time+(i*DAY))).upper()
                 header.set_rundown(self.id_channel, self.start_time+(i*DAY))
         else:
-            QMessageBox.error("Error", data)
+            QMessageBox.warning("Error", data)
 
         QApplication.restoreOverrideCursor()
 

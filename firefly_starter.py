@@ -83,6 +83,7 @@ class Firestarter(QApplication):
         else:
             QMessageBox.critical(self.splash, "Critical error", "Unable to contact NX server.")
             critical_error("Unable to load site settings")
+    
 
     def load_meta_types(self):
         self.splash_message("Loading metadata types")

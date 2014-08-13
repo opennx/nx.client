@@ -35,6 +35,10 @@ def event_toolbar(wnd):
     return toolbar
 
 
+def RepeatsView(QWidget):
+    pass
+
+
 
 class EventForm(QWidget):
     def __init__(self, parent):
@@ -44,12 +48,16 @@ class EventForm(QWidget):
         self.title = NXE_text(self)
         self.description = NXE_blob(self)
 
+        self.repeats_view = RepeatsView(self)
+
         layout = QFormLayout()
         layout.addRow("Event start", self.timestamp)
         layout.addRow("Title", self.title)
         layout.addRow("Description", self.description)
+        layout.addRow("Repeats", self.repeats_view)
 
         self.setLayout(layout)
+
 
 
 
@@ -58,6 +66,7 @@ class EventForm(QWidget):
 class EventDialog(QDialog):
     def __init__(self,  parent, **kwargs):
         super(EventDialog, self).__init__(parent)
+        parent.calendar.update()
         self.setWindowTitle("New event")
         self.kwargs = kwargs
         self.setStyleSheet(base_css)
@@ -92,7 +101,6 @@ class EventDialog(QDialog):
         self.setLayout(layout)
         self.load_state()
         self.setModal(True)
-
 
 
     def load_state(self):

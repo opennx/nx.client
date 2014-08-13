@@ -1,26 +1,112 @@
 import time
+from functools import partial
 
 from qt_common import *
 from nx.common.constants import *
+from nx.common.utils import *
 from dlg_texteditor import TextEditor
 
 
+# radio or select data . array of [value, label] or array of values
+
+class NXE_select(QComboBox):
+    def __init__(self, parent, data):
+        super(NXE_select,self).__init__(parent)
+        self.cdata = []
+        self.set_data(data)
+        self.default = False
+      
+    def set_data(self, data):
+        for i, row in enumerate(sorted(data)):
+            value, label = row
+            if not label:
+                label = value
+            self.cdata.append(value)
+            self.addItem(label)
+        self.setCurrentIndex(-1)
+
+    def set_value(self, value):
+        self.default = value
+        for i, val in enumerate(self.cdata):
+            if val == value:
+                self.setCurrentIndex(i)
+                break
+
+    def get_value(self):
+        if self.currentIndex() == -1:
+            return ""
+        return self.cdata[self.currentIndex()]
+
+
+
+class NXE_radio(QWidget):
+    def __init__(self, parent, data):
+        super(NXE_radio,self).__init__(parent)
+        self.cdata = []
+        self.default = False
+        self.current_index = -1
+        self.buttons = []
+        self.set_data(data)
+
+    def set_data(self, data):
+        self.current_index = -1
+        groupBox = QButtonGroup()
+        vbox = QHBoxLayout()
+        for i, row in enumerate(sorted(data)):
+            value, label = row
+            if not label:
+                label = value
+            self.cdata.append(value)
+
+            self.buttons.append(QPushButton(label))
+            self.buttons[-1].setCheckable(True)
+            self.buttons[-1].setAutoExclusive(True)
+            self.buttons[-1].clicked.connect(partial(self.switch, i))
+            vbox.addWidget(self.buttons[-1])
+
+        self.setLayout(vbox)
+        #layout = QVBoxLayout()
+        #layout.addWidget(groupBox)
+        #self.setLayout(layout)
+
+    def switch(self, index):
+        self.current_index = index
+
+    def set_value(self, value):
+        self.default = value
+        for i, val in enumerate(self.cdata):
+            if val == value:
+                self.buttons[i].setChecked(True)
+                self.current_index = i
+                break
+        else:
+            self.current_index = -1
+            for button in self.buttons:
+                button.setAutoExclusive(False);
+                button.setChecked(False);
+                button.setAutoExclusive(True);
+                
+    def get_value(self):
+        if self.current_index == -1:
+            return ""
+        return self.cdata[self.current_index]
+
+
+
+
+
+
+
 class NXE_timecode(QLineEdit):
-    def __init__(self, parent, default=0):
+    def __init__(self, parent):
         super(NXE_timecode,self).__init__(parent)
         self.setInputMask("99:99:99:99")
-        if default:  
-            self.SetSeconds(default)
-        else:
-            self.setText("00:00:00:00")
+        self.setText("00:00:00:00")
+       
+    def set_value(self, value):
+        self.default = value
+        self.setText(s2time(value))
         self.setCursorPosition(0)
-        self.default = default
-      
-    def set_value(self,seconds):
-        try:
-            self.setText(s2time(seconds))
-        except:
-            self.setText("00:00:00.00")
 
     def get_value(self):
         try:
@@ -37,7 +123,7 @@ class NXE_timecode(QLineEdit):
 
 
 class NXE_datetime(QLineEdit):
-    def __init__(self, parent, base_date=False, default=0, show_seconds=False):
+    def __init__(self, parent, base_date=False, show_seconds=False):
         super(NXE_datetime,self).__init__(parent)
         self.show_seconds = show_seconds
         self.base_date    = base_date
@@ -57,6 +143,7 @@ class NXE_datetime(QLineEdit):
         self.default = default
       
     def set_value(self, timestamp):
+        self.default = timestamp
         if timestamp:
             tt = time.localtime(timestamp)
         else:
@@ -76,6 +163,7 @@ class NXE_datetime(QLineEdit):
 
 class NXE_text(QLineEdit):
     def set_value(self, value):
+        self.default = value
         self.setText(str(value))
 
     def get_value(self):
@@ -83,57 +171,13 @@ class NXE_text(QLineEdit):
 
 class NXE_blob(QTextEdit):
     def set_value(self, value):
+        self.default = value
         self.setText(str(value))
 
     def get_value(self):
         return self.toPlainText()
 
 
-class NXE_select(QComboBox):
-    def __init__(self, parent, data, default=False):
-        super(NOption,self).__init__(parent)
-        self.set_data(data,default)
-        self.default = default
-      
-    def set_data(self, data, default=False):
-        self.cdata = []
-        for i,j in enumerate(sorted(data)):
-            self.addItem(data[j])
-            self.cdata.append(j)
-            if default == j:
-                self.setCurrentIndex(i)   
-        if not default:
-            self.setCurrentIndex(0)
-
-    def get_value(self):
-        return self.cdata[self.currentIndex()]
-
-
-class NXE_enum(QComboBox):
-    def __init__(self, parent, data, default=False):
-        super(NXE_enum,self).__init__(parent)
-        self.set_data(data,default)
-        self.default = default
-      
-    def set_data(self, data, default=False):
-        self.cdata = []
-        for i, d in enumerate(data):
-            k, v = d
-            self.addItem(v)
-            self.cdata.append(k)
-            if default == k:
-                self.setCurrentIndex(i)   
-        if not default:
-            self.setCurrentIndex(0)
-
-    def set_value(self, value):
-        for i, val in enumerate(self.cdata):
-            if val == value:
-                self.setCurrentIndex(i)
-                break
-
-    def get_value(self):
-        return self.cdata[self.currentIndex()]
 
 
 
@@ -161,30 +205,30 @@ class MetaEditItemDelegate(QStyledItemDelegate):
         if default_value == "None": 
             default_value = ""
         
-        #########################################################################
 
         if class_ == DATETIME:
             if settings:
                 base_date = settings.get("base_date", False)
             else:
                 base_date = False
-
             editor = NXE_datetime(parent, base_date)
-
-            if not default_value: 
-                editor.default = int(time())
-            else: 
-                editor.default = int(default_value)
+            editor.set_value(default_value or time.time())
             editor.editingFinished.connect(self.commitAndCloseEditor)
 
-        #########################################################################
 
         elif class_ == SELECT:
-            editor = NOption(parent, settings, default_value)
+            editor = NXE_select(parent, settings)
+            editor.set_value(default_value)
+            editor.editingFinished.connect(self.commitAndCloseEditor)
+
+        elif class_ == TIMECODE:
+            editor = NXE_timecode(parent)
+            editor.set_value(default_value)
+            editor.editingFinished.connect(self.commitAndCloseEditor)
          
         elif class_ == TEXT:
-            editor = QLineEdit(parent)
-            editor.default = default_value
+            editor = NXE_text(parent)
+            editor.set_value(default_value)
             editor.editingFinished.connect(self.commitAndCloseEditor)
          
         elif class_ == BLOB:
@@ -214,29 +258,12 @@ class MetaEditItemDelegate(QStyledItemDelegate):
      #######################################################################
      
     def setEditorData(self, editor, index):
-        if isinstance(editor,NXE_datetime):
-            editor.set_timestamp(editor.default)
+        editor.set_value(editor.default)
+        # why is this here??
        
-        elif isinstance(editor, QLineEdit) or isinstance(editor, QTextEdit) or isinstance(editor, TextEditor):
-            editor.setText(editor.default)
-
      #######################################################################
      
     def setModelData(self, editor, model, index):
-        if isinstance(editor,NXE_datetime):
-            val = editor.get_timestamp()
-            if val != editor.default: 
-                model.setData(index, val)
-          
-        elif isinstance(editor, QLineEdit):
-            if editor.text() != editor.default: 
-                model.setData(index, editor.text())
-          
-        elif isinstance(editor, QTextEdit) or isinstance(editor, wndTextEdit):
-            if editor.toPlainText() != editor.default:
-                model.setData(index, editor.toPlainText()) 
-           
-        elif isinstance(editor, NOption):
-            if editor.GetValue() != editor.default: 
-                model.setData(index, editor.get_value()) 
-          
+        if editor.get_value() != editor.default: 
+            model.setData(index, editor.get_value())
+      

@@ -23,6 +23,19 @@ def create_form(parent, tags):
         elif meta_types[tag].class_ == BLOB:
             widget.inputs[tag] = NXE_blob(widget)
 
+        elif meta_types[tag].class_ in [CS_SELECT, SELECT, ENUM, CS_ENUM]:
+            if meta_types[tag].class_ in [CS_ENUM, CS_SELECT]:
+                settings = []
+                for value, label in config["cs"].get(meta_types[tag].settings, []):
+                    if meta_types[tag].class_ == CS_ENUM:
+                        value = int(value)
+                    settings.append([value, label])
+            else:
+                settings = meta_types[tag].settings
+
+            #widget.inputs[tag] = NXE_select(widget, settings)
+            widget.inputs[tag] = NXE_radio(widget, settings)
+
         else:
             widget.inputs[tag] = NXE_text(widget)
             widget.inputs[tag].setReadOnly(True)
@@ -188,7 +201,7 @@ def detail_toolbar(wnd):
     for id_folder in sorted(config["folders"].keys()):
         fdata.append([id_folder, config["folders"][id_folder][0]])
 
-    wnd.folder_select = NXE_enum(wnd, fdata)
+    wnd.folder_select = NXE_select(wnd, fdata)
     wnd.folder_select.currentIndexChanged.connect(wnd.on_folder_changed)
     wnd.folder_select.setEnabled(False)
     toolbar.addWidget(wnd.folder_select)

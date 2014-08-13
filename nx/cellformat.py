@@ -234,11 +234,12 @@ class NXCellFormat():
 
 
     def format_edit(self, key):
-        if key in format_helpers:
-            res = format_helpers[key].edit(self)
-            if res:
-                return res
-        if key in meta_types and meta_types[key].editable:
+        #if key in format_helpers:
+        #    res = format_helpers[key].edit(self)
+        #    if res:
+        #        return res
+        if key in meta_types:# and meta_types[key].editable:
+            print ("Edyt pyco")
             return key, meta_types[key].class_, meta_types[key].settings, self
         return key, "NOEDIT", False, self
 
