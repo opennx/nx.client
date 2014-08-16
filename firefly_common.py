@@ -120,3 +120,7 @@ class ToolBarStretcher(QWidget):
     def __init__(self, parent):
         super(ToolBarStretcher, self).__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
+
+
+
+

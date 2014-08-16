@@ -1,49 +1,10 @@
+import copy
+
 from firefly_common import *
 from firefly_widgets import *
 
 from nx.common.metadata import meta_types
 from nx.objects import Asset
-
-
-import copy
-
-class EditForm(QWidget):
-    pass
-
-def create_form(parent, tags):
-    widget = EditForm(parent)
-    widget.inputs = {}
-    layout = QFormLayout()
-    for tag, conf in tags:
-        tagname = meta_types.tag_alias(tag, config.get("language","en-US"))
-        
-        if meta_types[tag].class_ == TEXT:
-            widget.inputs[tag] = NXE_text(widget)
-
-        elif meta_types[tag].class_ == BLOB:
-            widget.inputs[tag] = NXE_blob(widget)
-
-        elif meta_types[tag].class_ in [CS_SELECT, SELECT, ENUM, CS_ENUM]:
-            if meta_types[tag].class_ in [CS_ENUM, CS_SELECT]:
-                settings = []
-                for value, label in config["cs"].get(meta_types[tag].settings, []):
-                    if meta_types[tag].class_ == CS_ENUM:
-                        value = int(value)
-                    settings.append([value, label])
-            else:
-                settings = meta_types[tag].settings
-
-            #widget.inputs[tag] = NXE_select(widget, settings)
-            widget.inputs[tag] = NXE_radio(widget, settings)
-
-        else:
-            widget.inputs[tag] = NXE_text(widget)
-            widget.inputs[tag].setReadOnly(True)
-
-        layout.addRow(tagname, widget.inputs[tag])
-
-    widget.setLayout(layout)
-    return widget
 
 
 class DetailTabMain(QWidget):
@@ -70,13 +31,12 @@ class DetailTabMain(QWidget):
             for i in reversed(range(self.layout.count())): 
                 self.layout.itemAt(i).widget().deleteLater()
 
-            self.form = create_form(self, self.tags)
+            self.form = MetaEditor(self, self.tags)
             self.layout.addWidget(self.form)
             self.id_folder = obj["id_folder"]
 
-
         for tag, conf in self.tags:
-            self.form.inputs[tag].set_value(obj[tag])
+            self.form[tag] = obj[tag]
 
 
 
@@ -274,8 +234,9 @@ class Detail(BaseWidget):
             idx = (self.detail_tabs.currentIndex()+1) % self.detail_tabs.count()
         self.detail_tabs.setCurrentIndex(idx)
 
-    def focus(self, objects):
+    def focus(self, objects, unchanged_only=False):
         if len(objects) == 1 and objects[0].object_type in ["asset"]:
+            #TODO - UPDATE UNCHANGED TAGS ONLY
             self.folder_select.setEnabled(True)
             self.object = Asset(from_data=copy.copy(objects[0].meta))
 
@@ -312,14 +273,13 @@ class Detail(BaseWidget):
     def on_apply(self):
         data = {"id_folder":self.folder_select.get_value()}
         for key in self.form.inputs:
-            data[key] = self.form.inputs[key].get_value()
+            data[key] = self.form[key]
 
         stat, res = query("set_meta", objects=[self.object.id], data=data)
 
     def on_revert(self):
         if self.object:
             self.focus([asset_cache[self.object.id]])
-
 
     def on_approve(self):
         res, data = query("set_meta", objects=[self.object.id], data={"qc/state" : 4} )
@@ -330,12 +290,9 @@ class Detail(BaseWidget):
     def on_reject(self):
         res, data = query("set_meta", objects=[self.object.id], data={"qc/state" : 3} )
 
-
-
-
     def seismic_handler(self, data):
         if data.method == "objects_changed" and data.data["object_type"] == "asset" and self.object: 
             if self.object.id in data.data["objects"]:
-                self.focus([asset_cache[self.object.id]])
+                self.focus([asset_cache[self.object.id]], unchanged_only=True)
 
 

@@ -12,10 +12,17 @@ from mod_rundown_model import RundownModel
 from dlg_sendto import SendTo
 
 
-DEFAULT_COLUMNS = ["rundown_symbol", "title", "duration", "run_mode", "rundown_scheduled", "rundown_broadcast", "rundown_status", "mark_in", "mark_out", "id_asset"]
+DEFAULT_COLUMNS = ["rundown_symbol", "title", "duration", "run_mode", "rundown_scheduled", "rundown_broadcast", "rundown_status", "mark_in", "mark_out", "id_asset", "id_object"]
 
-def ts_today():
-    return time.mktime(datetime.datetime.combine(datetime.date.today(), datetime.time.min).timetuple()) 
+def day_start(ts, start):
+    hh, mm = start
+    r =  ts - (hh*3600 + mm*60)
+    dt = datetime.datetime.fromtimestamp(r).replace(
+        hour = hh, 
+        minute = mm, 
+        second = 0
+        )
+    return time.mktime(dt.timetuple()) 
 
 
 class RundownDate(QLabel):
@@ -166,11 +173,8 @@ class Rundown(BaseWidget):
 
         self.id_channel   = 1 # TODO (get default from playout config, overide in setState).... also get start time from today + playout_config channel day start
         self.playout_config = config["playout_channels"][self.id_channel]
-        
 
-        dt = datetime.datetime.fromtimestamp(time.time() - (self.playout_config["day_start"][0]*3600 + self.playout_config["day_start"][1]*60)   ).replace(hour = self.playout_config["day_start"][0], minute = self.playout_config["day_start"][1], second = 0)
-        self.start_time = time.mktime(dt.timetuple()) 
-
+        self.start_time = day_start (time.time(), self.playout_config["day_start"])
 
         self.update_header()
 
@@ -344,7 +348,7 @@ class Rundown(BaseWidget):
 
     def on_now(self):
         if not (self.start_time+86400 > time.time() > self.start_time):
-            self.set_date(ts_today())
+            self.set_date(day_start (time.time(), self.playout_config["day_start"]))
 
         for i,r in enumerate(self.model.object_data):
             if self.current_item == r.id and r.object_type=="item":

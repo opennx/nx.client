@@ -2,8 +2,8 @@ import time
 from functools import partial
 
 from qt_common import *
-from nx.common.constants import *
-from nx.common.utils import *
+from nx.common import *
+from nx.common.metadata import meta_types
 from dlg_texteditor import TextEditor
 
 
@@ -65,9 +65,6 @@ class NXE_radio(QWidget):
             vbox.addWidget(self.buttons[-1])
 
         self.setLayout(vbox)
-        #layout = QVBoxLayout()
-        #layout.addWidget(groupBox)
-        #self.setLayout(layout)
 
     def switch(self, index):
         self.current_index = index
@@ -90,11 +87,6 @@ class NXE_radio(QWidget):
         if self.current_index == -1:
             return ""
         return self.cdata[self.current_index]
-
-
-
-
-
 
 
 class NXE_timecode(QLineEdit):
@@ -120,8 +112,6 @@ class NXE_timecode(QLineEdit):
         return secs
 
 
-
-
 class NXE_datetime(QLineEdit):
     def __init__(self, parent, base_date=False, show_seconds=False):
         super(NXE_datetime,self).__init__(parent)
@@ -139,8 +129,6 @@ class NXE_datetime(QLineEdit):
         
         self.setInputMask(mask)
         self.tfmt = tfmt
-        self.set_value(default)
-        self.default = default
       
     def set_value(self, timestamp):
         self.default = timestamp
@@ -160,7 +148,6 @@ class NXE_datetime(QLineEdit):
         return time.mktime(t)
         
 
-
 class NXE_text(QLineEdit):
     def set_value(self, value):
         self.default = value
@@ -169,6 +156,7 @@ class NXE_text(QLineEdit):
     def get_value(self):
         return self.text()
 
+
 class NXE_blob(QTextEdit):
     def set_value(self, value):
         self.default = value
@@ -176,10 +164,6 @@ class NXE_blob(QTextEdit):
 
     def get_value(self):
         return self.toPlainText()
-
-
-
-
 
 
 ########################################################################
@@ -205,7 +189,6 @@ class MetaEditItemDelegate(QStyledItemDelegate):
         if default_value == "None": 
             default_value = ""
         
-
         if class_ == DATETIME:
             if settings:
                 base_date = settings.get("base_date", False)
@@ -214,7 +197,6 @@ class MetaEditItemDelegate(QStyledItemDelegate):
             editor = NXE_datetime(parent, base_date)
             editor.set_value(default_value or time.time())
             editor.editingFinished.connect(self.commitAndCloseEditor)
-
 
         elif class_ == SELECT:
             editor = NXE_select(parent, settings)
@@ -247,23 +229,63 @@ class MetaEditItemDelegate(QStyledItemDelegate):
 
         return editor
 
-     #######################################################################
      
     def commitAndCloseEditor(self):
          editor = self.sender()
          self.commitData.emit(editor)
          self.closeEditor.emit(editor, QAbstractItemDelegate.NoHint)
          self.parent().editor_closed_at = time.time()
-
-     #######################################################################
-     
+    
     def setEditorData(self, editor, index):
         editor.set_value(editor.default)
         # why is this here??
-       
-     #######################################################################
-     
+            
     def setModelData(self, editor, model, index):
         if editor.get_value() != editor.default: 
             model.setData(index, editor.get_value())
       
+
+
+
+
+class MetaEditor(QWidget):
+    def __init__(self, parent, keys):
+        super(MetaEditor, self).__init__(parent)
+        self.inputs = {}
+        layout = QFormLayout()
+
+        for tag, conf in keys:
+            tagname = meta_types.tag_alias(tag, config.get("language","en-US"))
+            
+            if meta_types[tag].class_ == TEXT:
+                self.inputs[tag] = NXE_text(self)
+
+            elif meta_types[tag].class_ == BLOB:
+                self.inputs[tag] = NXE_blob(self)
+
+            elif meta_types[tag].class_ in [CS_SELECT, SELECT, ENUM, CS_ENUM]:
+                if meta_types[tag].class_ in [CS_ENUM, CS_SELECT]:
+                    settings = []
+                    for value, label in config["cs"].get(meta_types[tag].settings, []):
+                        if meta_types[tag].class_ == CS_ENUM:
+                            value = int(value)
+                        settings.append([value, label])
+                else:
+                    settings = meta_types[tag].settings
+
+                #self.inputs[tag] = NXE_select(self, settings)
+                self.inputs[tag] = NXE_radio(self, settings)
+
+            else:
+                self.inputs[tag] = NXE_text(self)
+                self.inputs[tag].setReadOnly(True)
+
+            layout.addRow(tagname, self.inputs[tag])
+        self.setLayout(layout)
+
+    def __getitem__(self, key):
+        return self.inputs[key].get_value()
+
+    def __setitem__(self, key, value):
+        self.inputs[key].set_value(value)
+

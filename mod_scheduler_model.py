@@ -376,10 +376,10 @@ class TXDayWidget(TXVerticalBar):
                 dlg.exec_()
             else:
                 query("set_events", 
-                        id_channel=self.id_channel,
                         events=[{
                                 "id_asset" : self.calendar.dragging.id,
-                                "start" : drop_tc
+                                "start" : drop_tc,
+                                "id_channel" : self.id_channel
                                 # TODO: If shift modifier is pressed add id_event of original event here
                                 }]
                     )
@@ -396,10 +396,7 @@ class TXDayWidget(TXVerticalBar):
                 dlg.exec_()
             else:
                 # Just dragging events around. Instant save
-                result, data = query("set_events", 
-                        id_channel=self.id_channel,
-                        events=[event.meta]
-                        )
+                result, data = query("set_events", events=[event.meta])
 
         self.calendar.drag_source = False
         self.calendar.dragging = False
@@ -416,11 +413,16 @@ class TXDayWidget(TXVerticalBar):
         #action_show_rundown.triggered.connect(self.on_show_rundown)
         #menu.addAction(action_show_rundown)
 
-        #menu.addSeparator()
 
         action_edit_event = QAction('Edit', self)
         action_edit_event.triggered.connect(self.on_edit_event)
         menu.addAction(action_edit_event)
+
+        action_solve_event = QAction('Solve', self)
+        action_solve_event.triggered.connect(self.on_solve_event)
+        menu.addAction(action_solve_event)
+
+        menu.addSeparator()
 
         action_delete_event = QAction('Delete event', self)        
         action_delete_event.triggered.connect(self.on_delete_event)
@@ -428,13 +430,34 @@ class TXDayWidget(TXVerticalBar):
         
         menu.exec_(event.globalPos())
 
+    def on_show_rundown(self):
+        pass
+
     def on_edit_event(self):
         dlg = EventDialog(self, event=self.cursor_event)
         if dlg.exec_() == QDialog.Accepted:
             self.calendar.refresh()
 
-    def on_show_rundown(self):
-        pass
+    def on_solve_event(self):
+        ret = QMessageBox.question(self,
+            "Solve event",
+            "Do you really want to (re)solve {}?\nThis operation cannot be undone.".format(self.cursor_event),
+            QMessageBox.Yes | QMessageBox.No
+            )
+        if ret == QMessageBox.Yes:
+            QApplication.processEvents()
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            stat, res = query("dramatica", 
+                handler=self.calendar.handle_drama, 
+                id_channel=self.id_channel, 
+                date=time.strftime("%Y-%m-%d", time.localtime(self.start_time)),
+                id_event =self.cursor_event.id,
+                solve=True
+                )
+            QApplication.restoreOverrideCursor()
+            self.calendar.refresh()
+
+
 
     def on_delete_event(self):
         ret = QMessageBox.question(self,
@@ -505,7 +528,7 @@ class HeaderWidget(QLabel):
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
             stat, res = query("dramatica", 
-                handler=self.handle_drama, 
+                handler=self.parent().handle_drama, 
                 id_channel=self.id_channel, 
                 date=time.strftime("%Y-%m-%d", time.localtime(self.date)),
                 clear=dlg.chk_clear.isChecked(),
@@ -516,9 +539,6 @@ class HeaderWidget(QLabel):
             self.parent().refresh()
 
 
-    def handle_drama(self, msg):
-        self.parent().status(msg.get("message",""))
-        QApplication.processEvents()
 
 
 
@@ -649,3 +669,7 @@ class TXCalendar(QWidget):
         for day_widget in self.days:
             day_widget.update()
         super(TXCalendar, self).update()
+
+    def handle_drama(self, msg):
+        self.parent().status(msg.get("message",""))
+        QApplication.processEvents()
