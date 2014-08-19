@@ -355,6 +355,13 @@ class TXDayWidget(TXVerticalBar):
             self.cursor_time = cursor_time
             self.update()
 
+        # disallow droping event over another event
+        if type(self.calendar.dragging) == Event: 
+            if self.round_ts(self.cursor_time - self.calendar.drag_offset) in [event["start"] for event in self.calendar.events]:
+                evt.ignore()   
+                return
+        evt.accept()
+
     def dragLeaveEvent(self, evt):
         self.dragging = False
         self.update()

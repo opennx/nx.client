@@ -232,17 +232,29 @@ class Detail(BaseWidget):
             idx = (self.detail_tabs.currentIndex()+1) % self.detail_tabs.count()
         self.detail_tabs.setCurrentIndex(idx)
 
-    def focus(self, objects, unchanged_only=False):
+    def focus(self, objects, silent=False):
         if len(objects) == 1 and objects[0].object_type in ["asset"]:
+
+            if self.object and not silent:
+                for tag in self.detail_tabs.tab_main.form.inputs:
+                    if self.detail_tabs.tab_main.form[tag].strip() != self.object[tag].strip().replace("\r",""):
+                        reply = QMessageBox.question(self, "Save changes?", "{} has been changed. Save changes?\n\n1>{}\n\n2>{}".format(
+                            self.object, 
+                            json.dumps(self.detail_tabs.tab_main.form[tag]), 
+                            json.dumps(self.object[tag])),
+                            QMessageBox.Yes|QMessageBox.No);
+                        if reply == QMessageBox.Yes:
+                            self.on_apply()
+                        break
 
             self.folder_select.setEnabled(True)
             if not self.object or self.object.id != objects[0].id:
                 self.object = Asset(from_data=objects[0].meta)
                 self.parent().setWindowTitle("Detail of {}".format(self.object))
             else:
-                for tag in objects[0].meta:
+                for tag in set(list(objects[0].meta.keys()) + list(self.detail_tabs.tab_main.form.inputs.keys())):
                     if self.detail_tabs.tab_main.form and tag in self.detail_tabs.tab_main.form.inputs:
-                        if self.detail_tabs.tab_main.form[tag] != self.detail_tabs.tab_main.form.inputs[tag].default:
+                        if self.detail_tabs.tab_main.form[tag] != self.object[tag]: #????? mozna #self.detail_tabs.tab_main.form.inputs[tag].default:
                             self.object[tag] = self.detail_tabs.tab_main.form[tag]
                             continue
                     self.object[tag] = objects[0][tag]
@@ -283,7 +295,7 @@ class Detail(BaseWidget):
 
     def on_revert(self):
         if self.object:
-            self.focus([asset_cache[self.object.id]])
+            self.focus([asset_cache[self.object.id]], silent=False)
 
     def on_approve(self):
         res, data = query("set_meta", objects=[self.object.id], data={"qc/state" : 4} )
@@ -297,6 +309,6 @@ class Detail(BaseWidget):
     def seismic_handler(self, data):
         if data.method == "objects_changed" and data.data["object_type"] == "asset" and self.object: 
             if self.object.id in data.data["objects"]:
-                self.focus([asset_cache[self.object.id]], unchanged_only=True)
+                self.focus([asset_cache[self.object.id]], silent=True)
 
 

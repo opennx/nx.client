@@ -126,12 +126,13 @@ def rundown_toolbar(wnd):
     return toolbar
 
 
-class RundownView(NXView):    
+class RundownView(NXView):
     def selectionChanged(self, selected, deselected):     
         rows = []
         self.selected_objects = []
 
         tot_dur = 0
+
 
         for idx in self.selectionModel().selectedIndexes():
             row = idx.row()
@@ -143,7 +144,7 @@ class RundownView(NXView):
             if obj.object_type in ["asset", "item"]:
                 tot_dur += obj.get_duration()
 
-        if self.selected_objects:
+        if self.selected_objects and self.focus_enabled:
             self.parent().parent().parent().focus(self.selected_objects)
             if len(self.selected_objects) > 1 and tot_dur:
                 self.parent().status("{} objects selected. Total duration {}".format(len(self.selected_objects), s2time(tot_dur) ))
@@ -290,7 +291,9 @@ class Rundown(BaseWidget):
                i1 = self.model.index(i, 0, QModelIndex())
                i2 = self.model.index(i, len(self.model.header_data)-1, QModelIndex())
                item_selection.select(i1,i2)
+        self.view.focus_enabled = False
         self.view.selectionModel().select(item_selection, QItemSelectionModel.ClearAndSelect)
+        self.view.focus_enabled = True
 
     def update_header(self):
         t = datetime.date.fromtimestamp(self.start_time)

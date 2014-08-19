@@ -26,6 +26,8 @@ class NXE_select(QComboBox):
         self.setCurrentIndex(-1)
 
     def set_value(self, value):
+        if value == self.get_value():
+            return
         self.default = value
         for i, val in enumerate(self.cdata):
             if val == value:
@@ -70,6 +72,8 @@ class NXE_radio(QWidget):
         self.current_index = index
 
     def set_value(self, value):
+        if value == self.get_value():
+            return
         self.default = value
         for i, val in enumerate(self.cdata):
             if val == value:
@@ -150,6 +154,8 @@ class NXE_datetime(QLineEdit):
 
 class NXE_text(QLineEdit):
     def set_value(self, value):
+        if value == self.get_value():
+            return
         self.default = value
         self.setText(str(value))
 
@@ -159,6 +165,8 @@ class NXE_text(QLineEdit):
 
 class NXE_blob(QTextEdit):
     def set_value(self, value):
+        if value == self.get_value():
+            return
         self.default = value
         self.setText(str(value))
 

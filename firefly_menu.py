@@ -60,6 +60,10 @@ def create_menu(wnd):
     menu_navigate.addAction(action_now)
 
 
+
+    menu_channel = menubar.addMenu('&Channel')
+
+    
 #    menu_navigate.addSeparator()
 #
 #    action_debug = QAction('Debug', wnd)        
