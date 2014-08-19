@@ -316,21 +316,70 @@ class Rundown(BaseWidget):
 
 
     def contextMenuEvent(self, event):
-        if not self.view.selected_objects: return
+        if not self.view.selected_objects:
+            return
+
+        obj_set = list(set([itm.object_type for itm in self.view.selected_objects]))
+        if len(obj_set) != 1:
+            return
+
         menu = QMenu(self)
+        if obj_set[0] == "item":
+            
+            action_send_to = QAction('&Send to...', self)        
+            action_send_to.setStatusTip('Create action for selected asset(s)')
+            action_send_to.triggered.connect(self.on_send_to)
+            menu.addAction(action_send_to)
         
-        menu.addSeparator()
-        action_send_to = QAction('&Send to...', self)        
-        action_send_to.setStatusTip('Create action for selected asset(s)')
-        action_send_to.triggered.connect(self.send_to)
-        menu.addAction(action_send_to)
-                
+        
+        elif obj_set[0] == "event" and len(self.view.selected_objects) == 1:    
+            action_edit = QAction('&Edit', self)        
+            action_edit.setStatusTip('Edit selected event')
+            action_edit.triggered.connect(self.on_edit_event)
+            menu.addAction(action_edit)
+        
+            menu.addSeparator()
+
+            action_solve = QAction('Solve', self)        
+            action_solve.setStatusTip('Solve selected event')
+            action_solve.triggered.connect(self.on_solve_event)
+            menu.addAction(action_solve)
+        else:
+            return
+
         menu.exec_(event.globalPos()) 
 
 
-    def send_to(self):
+
+    def on_send_to(self):
         dlg = SendTo(self, self.view.selected_objects)
         dlg.exec_()
+
+
+    def on_edit_event(self):
+        pass
+
+    def on_solve_event(self):
+        ret = QMessageBox.question(self,
+            "Solve event",
+            "Do you really want to (re)solve {}?\nThis operation cannot be undone.".format(self.view.selected_objects[0]),
+            QMessageBox.Yes | QMessageBox.No
+            )
+
+        if ret == QMessageBox.Yes:
+            QApplication.processEvents()
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            stat, res = query("dramatica", 
+                handler=self.handle_message, 
+                id_channel=self.id_channel, 
+                date=time.strftime("%Y-%m-%d", time.localtime(self.start_time)),
+                id_event =self.view.selected_objects[0].id,
+                solve=True
+                )
+            QApplication.restoreOverrideCursor()
+            self.refresh()
+
+
 
     ################################################################
     ## Toolbar actions
@@ -373,3 +422,7 @@ class Rundown(BaseWidget):
 
     ## Toolbar actions
     ################################################################
+
+    def handle_message(self, msg):
+        self.status(msg.get("message",""))
+        QApplication.processEvents()

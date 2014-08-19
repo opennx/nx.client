@@ -113,8 +113,6 @@ class DetailTabTechnical(QTextEdit):
 
 
 
-
-
 class DetailTabJobs(QWidget):
     def load(self, obj):
         pass
@@ -236,15 +234,23 @@ class Detail(BaseWidget):
 
     def focus(self, objects, unchanged_only=False):
         if len(objects) == 1 and objects[0].object_type in ["asset"]:
-            #TODO - UPDATE UNCHANGED TAGS ONLY
+
             self.folder_select.setEnabled(True)
-            self.object = Asset(from_data=copy.copy(objects[0].meta))
+            if not self.object or self.object.id != objects[0].id:
+                self.object = Asset(from_data=objects[0].meta)
+                self.parent().setWindowTitle("Detail of {}".format(self.object))
+            else:
+                for tag in objects[0].meta:
+                    if self.detail_tabs.tab_main.form and tag in self.detail_tabs.tab_main.form.inputs:
+                        if self.detail_tabs.tab_main.form[tag] != self.detail_tabs.tab_main.form.inputs[tag].default:
+                            self.object[tag] = self.detail_tabs.tab_main.form[tag]
+                            continue
+                    self.object[tag] = objects[0][tag]
 
             self.detail_tabs.load(self.object)
-            self.parent().setWindowTitle("Detail of {}".format(self.object))
             
             self.folder_select.set_value(self.object["id_folder"])
-
+            
             self.action_approve.setEnabled(True)
             self.action_qc_reset.setEnabled(True)
             self.action_reject.setEnabled(True)
@@ -263,18 +269,16 @@ class Detail(BaseWidget):
                 
 
     def new_asset(self):
-        QMessageBox.warning(self,
-                "Not available",
-                "This feature is not available in preview version",
-                QMessageBox.Cancel
-                )
+        new_asset = Asset()
+        new_asset["id_folder"] = 1
+        self.object = False
+        self.focus([new_asset])
 
 
     def on_apply(self):
         data = {"id_folder":self.folder_select.get_value()}
         for key in self.form.inputs:
             data[key] = self.form[key]
-
         stat, res = query("set_meta", objects=[self.object.id], data=data)
 
     def on_revert(self):

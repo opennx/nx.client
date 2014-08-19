@@ -111,6 +111,8 @@ class Firefly(QMainWindow):
             self.docks.append(dock)
             if self.workspace_locked:
                 dock.setAllowedAreas(Qt.NoDockWidgetArea)
+            else:
+                dock.setAllowedAreas(Qt.AllDockWidgetAreas)
             if show:
                 dock.setFloating(True)
                 dock.show()
