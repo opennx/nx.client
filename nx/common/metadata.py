@@ -142,8 +142,17 @@ class MetaTypes(dict):
         elif mtype.class_ == CS_SELECT:   return value
         elif mtype.class_ == ENUM:        return int(value)
         elif mtype.class_ == CS_ENUM:     return int(value)
-        
+        elif mtype.class_ == SELECT:      return value
+        elif mtype.class_ == CS_SELECT:   return value
+    
         return value
+
+    def unformat(self, key, value):
+        mtype = self[key]
+        if mtype.class_ == REGIONS:
+            return json.dumps(value)
+        return value
+ 
 
 meta_types = MetaTypes()
 
