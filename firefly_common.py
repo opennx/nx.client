@@ -76,7 +76,7 @@ class BaseDock(QDockWidget):
         self.main_widget = main_widget(self)
         self.setWidget(self.main_widget)
         self.main_widget.load_state(state)
-        if state.get("is_floating", False):
+        if state.get("is_floating", True):
             self.setFloating(True)
 
         if not "object_name" in state:

@@ -18,7 +18,6 @@ def success(retcode):
 
 def query(method, target="hive", handler=False, **kwargs):
     start_time = time.time()
-    print ("Begin query", method)
     if config.get("hive_zlib",False):
         kwargs["hive_zlib"] = True
 
@@ -61,13 +60,12 @@ def query(method, target="hive", handler=False, **kwargs):
     except HTTPError as e:
         print ("Query failed")
         return e.code, "HTTP Errror {}".format(e.code)
-        
-    except socket.timeout:
 
+    except socket.timeout:
         return 400, "Operation timeout"
 
     if response:
-        print ("Query completed in {:0.2f} seconds".format(time.time() - start_time))
+        print ("Query {} completed in {:0.2f} seconds".format(method, time.time() - start_time))
         return response, result
     else:
         return 418, "I'm a teapot"

@@ -1,3 +1,4 @@
+from firefly_common import config
 from functools import partial
 from qt_common import *
 
@@ -61,18 +62,16 @@ def create_menu(wnd):
 
 
 
-    menu_channel = menubar.addMenu('&Channel')
+    wnd.menu_channel = menubar.addMenu('&Channel')
+    ag = QActionGroup(wnd, exclusive=True)
+
+    for id_channel in sorted(config["playout_channels"]):
+        a = ag.addAction(QAction(config["playout_channels"][id_channel]["title"], wnd, checkable=True))
+        a.id_channel = id_channel
+        a.triggered.connect(partial(wnd.on_change_channel, id_channel))
+        wnd.menu_channel.addAction(a)
 
     
-#    menu_navigate.addSeparator()
-#
-#    action_debug = QAction('Debug', wnd)        
-#    action_debug.setStatusTip('Show debug dump')
-#    action_debug.triggered.connect(wnd.on_debug)
-#    menu_navigate.addAction(action_debug)
-
-
-
     menu_window = menubar.addMenu('&Window')
 
     action_wnd_browser = QAction('&Browser', wnd)        

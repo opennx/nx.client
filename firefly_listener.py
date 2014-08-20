@@ -49,6 +49,7 @@ class SeismicListener(QThread):
                 
             if time.time() - self.last_msg < 3:
                 continue
+                
             self.listen_http()
 
         print ("Listener halted")

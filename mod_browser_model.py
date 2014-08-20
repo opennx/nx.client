@@ -21,23 +21,18 @@ class BrowserModel(NXViewModel):
                     to_update.append(id_asset)
             if to_update:
                 self.parent().parent().parent().update_assets(to_update)
-                # res, data = query("get_assets", asset_ids=to_update)
-                # if success(res):
-                #     for id_asset in data:
-                #         try:
-                #             asset_cache[int(id_asset)] = Asset(from_data=data[id_asset])
-                #         except:
-                #             print(id_asset)
             self.object_data = [asset_cache[id_asset] for id_asset, mtime in asset_ids]
 
         self.endResetModel()
         self.parent().status("Got {} assets in {:.03f} seconds. ({} updated)".format(len(self.object_data), time.time()-start_time, len(to_update)))
 
+
     def refresh_assets(self, assets):
-        for i in range(len(self.object_data)):
-            if self.object_data[i].id in assets:
-                self.object_data[i] = asset_cache[self.object_data[i].id]
-                self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.header_data)-1))
+        for row, obj in enumerate(self.object_data):
+            if obj.id in assets:
+                self.object_data[row] = asset_cache[obj.id]
+                self.dataChanged.emit(self.index(row, 0), self.index(row, len(self.header_data)-1))
+
 
     def flags(self,index):
         flags = super(BrowserModel, self).flags(index)
@@ -63,6 +58,7 @@ class BrowserModel(NXViewModel):
         except:
             pass
         return mimeData
+
 
     def setData(self, index, data, role=False):
         tag = self.header_data[index.column()] 

@@ -2,12 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from nx.common import *
-
-from nx.common.nxobject import NXObject, AssetBase
 from nx.common.metadata import meta_types, fract2float
-from nx.common.utils import *
-
 from nx.connection import *
+
+from nx.common.base_objects import BaseAsset, BaseItem, BaseBin, BaseEvent
+from nx.common.utils import *
 
 from nx.cellformat import NXCellFormat
 from nx.colors import *
@@ -15,7 +14,7 @@ from nx.colors import *
 __all__ = ["Asset", "Item", "Bin", "Event", "Dummy"]
 
 
-class Asset(NXObject, AssetBase, NXCellFormat):
+class Asset(BaseAsset, NXCellFormat):
     def format_sort(self, key):
         if not key in self.meta: 
             return ""
@@ -53,21 +52,7 @@ class EmptyAsset():
         return ""
 
 
-class Item(NXObject, NXCellFormat):
-    object_type = "item"
-    asset = False
-    def __getitem__(self, key):
-        key = key.lower().strip()
-        if key == "id_object":
-            return self.id
-        if not key in self.meta:
-            if self.get_asset():
-                return self.get_asset()[key]
-            else:
-                return False
-        return self.meta[key]
-
-
+class Item(BaseItem, NXCellFormat):
     def get_asset(self):
         if not self.asset:
             if self.meta.get("id_asset", 0) > 0:
@@ -78,22 +63,8 @@ class Item(NXObject, NXCellFormat):
         return self.asset
 
 
-    def get_duration(self):
-        try:
-            dur = float(self["duration"])
-            mki = float(self["mark_in"])
-            mko = float(self["mark_out"])
-            if not dur: return 0
-            if mko > 0: dur -= dur - mko
-            if mki > 0: dur -= mki
-            return dur
-        except:
-            return 0
+class Bin(BaseBin, NXCellFormat):
+    pass
 
-
-
-class Bin(NXObject, NXCellFormat):
-    object_type = "bin"
-
-class Event(NXObject, NXCellFormat):
-    object_type = "event"
+class Event(BaseEvent, NXCellFormat):
+    pass

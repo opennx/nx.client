@@ -92,7 +92,7 @@ def rundown_toolbar(wnd):
 
     action_refresh = QAction(QIcon(pixlib["refresh"]), '&Refresh', wnd)        
     action_refresh.setStatusTip('Refresh rundown')
-    action_refresh.triggered.connect(partial(wnd.refresh, True))
+    action_refresh.triggered.connect(wnd.refresh)
     toolbar.addAction(action_refresh)
 
     action_day_next = QAction(QIcon(pixlib["next"]), '&Next day', wnd)        
@@ -157,11 +157,11 @@ class RundownView(NXView):
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
             stat, res = query("del_items", items=[obj.id for obj in self.selected_objects])
+            QApplication.restoreOverrideCursor()
             if success(stat):
                 self.parent().status("Delete item: {}".format(res))
             else:
-                self.parent().status("Item deletion failed")
-            QApplication.restoreOverrideCursor()
+                QMessageBox.critical(self, "Error", res)
             self.parent().refresh()
             return
         NXView.keyPressEvent(self, event)
@@ -172,7 +172,7 @@ class Rundown(BaseWidget):
         super(Rundown, self).__init__(parent)
         toolbar = rundown_toolbar(self)
 
-        self.id_channel   = 1 # TODO (get default from playout config, overide in setState).... also get start time from today + playout_config channel day start
+        self.id_channel   = self.parent().parent().id_channel
         self.playout_config = config["playout_channels"][self.id_channel]
 
         self.start_time = day_start (time.time(), self.playout_config["day_start"])
@@ -232,17 +232,15 @@ class Rundown(BaseWidget):
         if data.method == "playout_status": 
             if data.data["id_channel"] != self.id_channel:
                 return
-            r = 0
+            
             if data.data["current_item"] != self.current_item:
                 self.current_item = data.data["current_item"]
-                r = 1
+                self.model.refresh_items([self.current_item])
+
                 
             if data.data["cued_item"] != self.cued_item:
                 self.cued_item = data.data["cued_item"]
-                r = 2 # Az zas jednou budes resit, proc je tu dvojka, tak kvuli prepocitavani casu a ukazovani "aired" itemu
-            
-            if r:
-                self.refresh(full=r==2)
+                self.refresh()
 
             if self.mcr:
                 self.mcr.seismic_handler(data)
@@ -261,29 +259,29 @@ class Rundown(BaseWidget):
 
         elif data.method == "events_changed":
             my_name =self.parent().objectName()
-            print (data.data)
-            print (my_name)
+#            print (data.data)
+#            print (my_name)
             for event in data.data["events"]:#  
                 if data.data["sender"] != my_name and event["id_object"] in self.model.event_ids :
-                    self.refresh(full=True)
+                    self.refresh()
                     break
 
 
     ###########################################################################
 
 
-    def load(self, id_channel, start_time, full=True):
+    def load(self, id_channel, start_time):
         self.id_channel = id_channel
         self.start_time = start_time
         self.update_header()
-        self.model.load(id_channel, start_time, full=full)
+        self.model.load(id_channel, start_time)
 
-    def refresh(self, full=True):
+    def refresh(self):
         selection = []
         for idx in self.view.selectionModel().selectedIndexes():
             selection.append([self.model.object_data[idx.row()].object_type, self.model.object_data[idx.row()].id]) 
 
-        self.load(self.id_channel, self.start_time, full=full)
+        self.load(self.id_channel, self.start_time)
 
         item_selection = QItemSelection()
         for i, row in enumerate(self.model.object_data):
@@ -313,9 +311,14 @@ class Rundown(BaseWidget):
 
 
     def on_activate(self, mi):
-        if self.mcr and self.mcr.isVisible():
-            item = self.model.object_data[mi.row()]
-            query("cue", self.mcr.route, id_channel=self.id_channel, id_item=item.id)
+        obj = self.model.object_data[mi.row()]
+
+        if obj.object_type == "item" and self.mcr and self.mcr.isVisible():    
+            stat, res = query("cue", self.mcr.route, id_channel=self.id_channel, id_item=obj.id)
+            if not success(stat):
+                QMessageBox.critical(self, "Error", res)
+        elif obj.object_type == "event":
+            self.on_edit_event()
 
 
     def contextMenuEvent(self, event):
@@ -380,12 +383,19 @@ class Rundown(BaseWidget):
                 solve=True
                 )
             QApplication.restoreOverrideCursor()
+            if not success(stat):
+                QMessageBox.critical(self, "Error", res)
             self.refresh()
 
 
 
     ################################################################
     ## Toolbar actions
+
+    def set_channel(self):
+        if self.id_channel != id_channel:
+            self.id_channel = id_channel
+            self.refresh()
 
     def set_date(self, start_time):
         self.start_time = start_time

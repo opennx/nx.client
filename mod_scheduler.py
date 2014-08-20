@@ -52,7 +52,7 @@ class Scheduler(BaseWidget):
         toolbar = scheduler_toolbar(self)
         self.parent().setWindowTitle("Scheduler")
 
-        self.id_channel   = 1 # TODO (get default from playout config, overide in setState)
+        self.id_channel = self.parent().parent().id_channel
 
         self.calendar = TXCalendar(self)
 
@@ -65,6 +65,11 @@ class Scheduler(BaseWidget):
         self.setLayout(layout)
         self.calendar.load(self.id_channel, time.time())
 
+
+    def set_channel(self):
+        if self.id_channel != id_channel:
+            self.id_channel = id_channel
+            self.refresh()
 
     def save_state(self):
         state = {}

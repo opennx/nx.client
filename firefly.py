@@ -40,6 +40,7 @@ class Firefly(QMainWindow):
 
         settings = ffsettings() 
 
+        self.on_change_channel(1) # todo: Load default from settings
         self.workspace_locked = settings.value("main_window/locked", False)
 
         for dock_key in settings.allKeys():
@@ -50,7 +51,7 @@ class Firefly(QMainWindow):
             self.create_dock(dock_data["class"], state=dock_data, show=False)
 
         if settings.contains("main_window/pos"):
-            self.move(settings.value("main_window/pos"))
+            self.move(settings.value("main_window/pos")) 
 
         if settings.contains("main_window/size"):
             self.resize(settings.value("main_window/size"))
@@ -73,7 +74,7 @@ class Firefly(QMainWindow):
             dock.show()
 
         self.status("Ready")
-        #pprint (config)
+
             
 
     def resizeEvent(self, evt):
@@ -101,29 +102,31 @@ class Firefly(QMainWindow):
                             dock.main_widget.switch_tabs(0)
                     dock.raise_()
                     dock.setFocus()
-                    create = False
-                    break        
-        if create:
-            QApplication.processEvents()
-            QApplication.setOverrideCursor(Qt.WaitCursor)
+                    return dock
 
-            dock = BaseDock(self, widget, state)
-            self.docks.append(dock)
-            if self.workspace_locked:
-                dock.setAllowedAreas(Qt.NoDockWidgetArea)
-            else:
-                dock.setAllowedAreas(Qt.AllDockWidgetAreas)
-            if show:
-                dock.setFloating(True)
-                dock.show()
+        # Create new dock
+        QApplication.processEvents()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
 
-            qr = dock.frameGeometry()
-            cp = QDesktopWidget().availableGeometry().center()
-            qr.moveCenter(cp)
-            dock.move(qr.topLeft())
+        self.docks.append(BaseDock(self, widget, state))
+        if self.workspace_locked:
+            self.docks[-1].setAllowedAreas(Qt.NoDockWidgetArea)
+        else:
+            self.docks[-1].setAllowedAreas(Qt.AllDockWidgetAreas)
+        if show:
+            self.docks[-1].setFloating(True)
+            self.docks[-1].show()
 
-            QApplication.restoreOverrideCursor()
-        return dock
+        qr = self.docks[-1].frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.docks[-1].move(qr.topLeft())
+
+        # populate dock with asset data from cache
+        self.push_asset_data(self.docks[-1])
+
+        QApplication.restoreOverrideCursor()
+        return self.docks[-1]
 
 
 
@@ -134,7 +137,7 @@ class Firefly(QMainWindow):
             else:
                 dock.setTitleBarWidget(QWidget())
         self.workspace_locked = True
-        
+          
     def unlock_workspace(self):
         wdgt = QDockWidget().titleBarWidget()
         for dock in self.docks:
@@ -236,6 +239,16 @@ class Firefly(QMainWindow):
         for dock in self.docks:
             dock.main_widget.refresh()
 
+    def on_change_channel(self, id_channel):
+        self.id_channel = id_channel
+        for action in self.menu_channel.actions():
+            if action.id_channel == id_channel:
+                action.setChecked(True)
+        for d in self.docks:
+            if d.class_ in ["rundown", "scheduler"]:
+                d.main_widget.set_channel
+
+
 
     ## Menu actions
     ###############################################################################
@@ -259,13 +272,27 @@ class Firefly(QMainWindow):
             if data.method in self.subscribers[subscriber]:
                 subscriber(data)
 
+    ## SEISMIC
+    ###############################################################################
+    ## Asset caching
 
     def update_assets(self, asset_ids=[]):
-        res, adata = query("get_assets", handler=self.update_asset , asset_ids=asset_ids )
-
-    def update_asset(self, data):
+        # Call this if you want to update asset cache
+        res, adata = query("get_assets", handler=self.update_assets_handler , asset_ids=asset_ids )
+        for dock in self.docks:
+            self.push_asset_data(dock)
+ 
+    def update_assets_handler(self, data):
+        # Handler for asset data comming from get_assets query
         a = Asset(from_data=data)
         asset_cache[a.id] = a
+
+    def push_asset_data(self, dock):
+        # Push all cached data to newly created docks
+        if dock.class_ in ["rundown", "browser"]:
+            dock.main_widget.model.refresh_assets(asset_cache.keys())
+
+
 
 if __name__ == "__main__":
     app = Firestarter(Firefly)

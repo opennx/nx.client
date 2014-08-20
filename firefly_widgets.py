@@ -272,7 +272,7 @@ class MetaEditor(QWidget):
                 self.inputs[tag] = NXE_blob(self)
 
             elif meta_types[tag].class_ in [CS_SELECT, SELECT, ENUM, CS_ENUM]:
-                if conf.get("cs"):
+                if conf.get("cs", False):
                     settings = conf["cs"]
                 elif meta_types[tag].class_ in [CS_ENUM, CS_SELECT]:
                     settings = []

@@ -5,51 +5,109 @@ from nx.objects import *
 
 
 class RundownModel(NXViewModel):
-    def load(self, id_channel, start_time, full=True):
+    def load(self, id_channel, start_time):
         self.id_channel = id_channel
         self.start_time = start_time
+        dbg_start_time = time.time()
 
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        self.beginResetModel()
+        
+        self.event_ids = [] # helper for auto refresh
 
-        self.event_ids = [] # helper function for auto refresh
+        res, data = query("rundown", handler=self.handle_load, id_channel=id_channel, start_time=start_time)
+        if not success(res) and data: 
+            QApplication.restoreOverrideCursor()
+            return
 
-        if full:
+        data_len = 0
+        for edata in data["data"]:
+            data_len += 1
+            data_len += max(1, len(edata["items"]))
+
+        if data_len != len(self.object_data):
+            self.beginResetModel()
+            reset = True
             self.object_data = []
-            res, data = query("rundown",handler=self.handle_load, id_channel=id_channel, start_time=start_time)
-            if success(res) and data: 
-                row = 0
-                current_bin = False
-                for edata in data["data"]:
-                    evt = Event(from_data=edata["event_meta"])
-                    evt.bin = Bin(from_data=edata["bin_meta"])
-                    current_bin = evt.bin.id
-                    self.event_ids.append(evt.id)
+        else:
+            reset = False
 
-                    evt["rundown_bin"] = current_bin
-                    evt["rundown_row"] = row
-                    self.object_data.append(evt)
-                    row += 1
+        row = 0
+        current_bin = False
+        changed_rows = []
+        required_assets = []
+        for edata in data["data"]:
+            evt = Event(from_data=edata["event_meta"])
+            evt.bin = Bin(from_data=edata["bin_meta"])
+            current_bin = evt.bin.id
+            self.event_ids.append(evt.id)
 
-                    if not edata["items"]:
-                        dummy = Dummy("(no item)")
-                        dummy["rundown_bin"] = current_bin
-                        dummy["rundown_row"] = row
-                        self.object_data.append(dummy)                    
-                        row += 1
+            evt["rundown_bin"] = current_bin
+            evt["rundown_row"] = row
+            if reset:
+                self.object_data.append(evt)
+            elif self.object_data[row].meta != evt.meta:
+                self.object_data[row] = evt
+                changed_rows.append(row)
+                
+            row += 1
 
-                    for idata, adata in edata["items"]:
-                        item = Item(from_data=idata)
-                        item.asset = Asset(from_data=adata)
-                        item["rundown_bin"] = current_bin
-                        item["rundown_row"] = row
-                        self.object_data.append(item)
-                        row += 1
-                        
-        self.parent().status("Rundown loaded")
-        self.endResetModel()
+            
+            if not edata["items"]:
+                dummy = Dummy("(no item)")
+                dummy["rundown_bin"] = current_bin
+                dummy["rundown_row"] = row
+                if reset:
+                    self.object_data.append(dummy)                    
+                elif self.object_data[row] != dummy:
+                    self.object_data[row] = dummy
+                    changed_rows.append(row)
+                row += 1
+
+
+            for i_data in edata["items"]:
+                item = Item(from_data=i_data)
+                id_asset = item["id_asset"]
+                if not id_asset in asset_cache:
+                    asset_cache[id_asset] = Asset()
+                    required_assets.append(id_asset)
+
+                item.asset = asset_cache[item["id_asset"]]
+                item["rundown_bin"] = current_bin
+                item["rundown_row"] = row
+                if reset:
+                    self.object_data.append(item)
+                elif self.object_data[row] != item:
+                    self.object_data[row] = item
+                    changed_rows.append(row)
+                row += 1
+                    
+        if required_assets:
+            print ("Rundown is requesting {} assets data".format(len(required_assets)))
+            self.parent().parent().parent().update_assets(required_assets)
+
+        if reset:
+            self.endResetModel()
+        else:
+            for row in changed_rows:
+                self.dataChanged.emit(self.index(row, 0), self.index(row, len(self.header_data)-1))
+
         QApplication.restoreOverrideCursor()
+        self.parent().status("Rundown loaded in {:.03f}".format(time.time()-dbg_start_time))
+
+ 
+    def refresh_assets(self, assets):
+        for row in range(len(self.object_data)):
+            if self.object_data[row].object_type == "item" and self.object_data[row]["id_asset"] in assets:
+                self.object_data[row].asset = asset_cache[self.object_data[row]["id_asset"]]
+                self.dataChanged.emit(self.index(row, 0), self.index(row, len(self.header_data)-1))
+
+    def refresh_items(self, items):
+        for row, obj in enumerate(self.object_data):
+            if self.object_data[row].id in items and self.object_data[row].object_type == "item":
+                self.dataChanged.emit(self.index(row, 0), self.index(row, len(self.header_data)-1))
+                break
+
 
     def handle_load(self,msg):
         self.parent().status("Loading rundown. {:0.0%}".format(msg["progress"]))
@@ -177,9 +235,11 @@ class RundownModel(NXViewModel):
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
             stat, res = query("bin_order", id_bin=to_bin, order=pre_items, sender=self.parent().parent().objectName())
+            QApplication.restoreOverrideCursor()
             if success(stat):
                 self.parent().status("Bin order changed")
-            QApplication.restoreOverrideCursor()
+            else:
+                QMessageBox.critical(self, "Error", res)
             self.load(self.id_channel, self.start_time)
         return True
 

@@ -10,6 +10,7 @@ from nx.objects import Asset
 class DetailTabMain(QWidget):
     def __init__(self, parent):
         super(DetailTabMain, self).__init__(parent)
+        self.tags = []
         self.widgets = {}
         self.layout = QVBoxLayout()
         self.form = False
@@ -53,7 +54,8 @@ class DetailTabExtended(QTextEdit):
                 "core" :  [],
                 "other"  : [],
             }
-
+        if not obj["id_folder"]:
+            return
         for tag in sorted(meta_types):
             if meta_types[tag].namespace in ["a", "i", "e", "b", "o"]:
                 self.tag_groups["core"].append(tag)
@@ -99,6 +101,8 @@ class DetailTabTechnical(QTextEdit):
 
     def load(self, obj):
         data = ""
+        if not obj["id_folder"]:
+            return
         for tag_group in ["File", "Format", "QC"]:
             for tag in self.tag_groups[tag_group]:
                 if not tag in obj.meta:
@@ -235,10 +239,10 @@ class Detail(BaseWidget):
     def focus(self, objects, silent=False):
         if len(objects) == 1 and objects[0].object_type in ["asset"]:
 
-            if self.object and not silent:
+            if self.detail_tabs.tab_main.form and self.object and not silent:
                 for tag in self.detail_tabs.tab_main.form.inputs:
-                    if self.detail_tabs.tab_main.form[tag].strip() != self.object[tag].strip().replace("\r",""):
-                        reply = QMessageBox.question(self, "Save changes?", "{} has been changed. Save changes?\n\n1>{}\n\n2>{}".format(
+                    if str(self.detail_tabs.tab_main.form[tag]).strip() != str(self.object[tag]).strip().replace("\r",""):
+                        reply = QMessageBox.question(self, "Save changes?", "{} has been changed. Save changes?".format(
                             self.object, 
                             json.dumps(self.detail_tabs.tab_main.form[tag]), 
                             json.dumps(self.object[tag])),
@@ -282,16 +286,20 @@ class Detail(BaseWidget):
 
     def new_asset(self):
         new_asset = Asset()
-        new_asset["id_folder"] = 1
+        new_asset["id_folder"] = 0
         self.object = False
         self.focus([new_asset])
 
 
     def on_apply(self):
+        if not self.form:
+            return 
         data = {"id_folder":self.folder_select.get_value()}
         for key in self.form.inputs:
             data[key] = self.form[key]
         stat, res = query("set_meta", objects=[self.object.id], data=data)
+        if not success(stat):
+            QMessageBox.critical(self, "Error", res)
 
     def on_revert(self):
         if self.object:

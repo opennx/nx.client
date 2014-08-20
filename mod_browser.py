@@ -73,8 +73,6 @@ class Browser(BaseWidget):
         layout.addWidget(toolbar, 0)
         layout.addWidget(self.view, 1)
         self.setLayout(layout)
-        self.subscribe("objects_changed")
-
 
 
     def save_state(self):
@@ -85,6 +83,7 @@ class Browser(BaseWidget):
         state["search_query"]  = self.search_query
         return state
 
+
     def load_state(self, state):
         self.search_query = state.get("search_query", {})
         q = self.search_query.get("fulltext","")
@@ -93,7 +92,6 @@ class Browser(BaseWidget):
         self.state = state
         default_view = sorted(config["views"].keys())[0]
         self.set_view(self.search_query.get("view",default_view), initial=True)
-
 
         
     def load_view_menu(self):
@@ -188,13 +186,7 @@ class Browser(BaseWidget):
 
 
     def on_reset(self):
-        #ret = QMessageBox.question(self,
-        #    "Trash",
-        #    "Do you really want to trash {} selected asset(s)?\n\nThis will also remove all instances from future playlists.".format(len(self.view.selected_objects)),
-        #    QMessageBox.Yes | QMessageBox.No
-        #    )
-        #if ret == QMessageBox.Yes:
-            stat, res = query("set_meta", objects=[obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED, RESET]], data={"status" : RESET} )
+        stat, res = query("set_meta", objects=[obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED, RESET]], data={"status" : RESET} )
 
 
     def on_trash(self):
@@ -251,9 +243,3 @@ class Browser(BaseWidget):
         super(NXView, self.view).selectionChanged(selected, deselected)
 
 
-
-
-    def seismic_handler(self, data):
-        if data.method == "objects_changed" and data.data["object_type"] == "asset": 
-            self.model.refresh_assets(data.data["objects"])
-            self.update()
