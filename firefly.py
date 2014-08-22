@@ -30,7 +30,6 @@ class Firefly(QMainWindow):
         self.setWindowIcon(QIcon(":/images/firefly.ico"))
         self.parent = parent
 
-        self.subscribers = {}
         self.docks = []
         
         create_menu(self)
@@ -73,7 +72,13 @@ class Firefly(QMainWindow):
         for dock in self.docks:                
             dock.show()
 
+        self.seismic_timer = QTimer(self)
+        self.seismic_timer.timeout.connect(self.on_seismic_timer)
+#        self.seismic_timer.setSingleShot(True)
+        self.seismic_timer.start(40)
+
         self.status("Ready")
+
 
             
 
@@ -210,11 +215,6 @@ class Firefly(QMainWindow):
     def on_exit(self):
         self.close()
 
-    ## EDIT
-    def on_debug(self):
-        for subscriber in self.subscribers:
-            print (subscriber, " --> ", self.subscribers[subscriber]) 
-
     ## VIEW
     def on_wnd_browser(self):
         self.create_dock("browser")
@@ -246,7 +246,7 @@ class Firefly(QMainWindow):
                 action.setChecked(True)
         for d in self.docks:
             if d.class_ in ["rundown", "scheduler"]:
-                d.main_widget.set_channel
+                d.main_widget.set_channel(id_channel)
 
 
 
@@ -254,23 +254,32 @@ class Firefly(QMainWindow):
     ###############################################################################
     ## SEISMIC
 
-    def subscribe(self, handler, *methods):
-        self.subscribers[handler] = methods
+    def on_seismic_timer(self):
+        try:
+            msg = self.parent.listener.queue.pop(0)
+        except IndexError:
+            pass
+        else:
+            self.handle_messaging(msg)
+        #self.seismic_timer.start(40)
 
-    def unsubscribe(self, handler):
-        del self.subscribers[handler]
 
     def handle_messaging(self, data):
         if data.method == "objects_changed" and data.data["object_type"] == "asset": 
             aids = [aid for aid in data.data["objects"] if aid in asset_cache.keys()]
-            if not aids:
-                return
-            self.status ("{} has been changed by {}".format(asset_cache[aids[0]], data.data.get("user", "anonymous"))  )
-            self.update_assets(aids)
+            if aids:
+                self.status ("{} has been changed by {}".format(asset_cache[aids[0]], data.data.get("user", "anonymous"))  )
+                self.update_assets(aids)
 
-        for subscriber in self.subscribers:
-            if data.method in self.subscribers[subscriber]:
-                subscriber(data)
+        for dock in self.docks:
+            if dock.class_ == "rundown" and data.method in ["playout_status", "job_progress", "objects_changed"]:
+                pass
+            elif dock.class_ in ["detail", "scheduler"] and data.method == "objects_changed":
+                pass
+            else:
+                continue # cool construction, isn't it?
+
+            dock.main_widget.seismic_handler(data)
 
     ## SEISMIC
     ###############################################################################
@@ -288,7 +297,7 @@ class Firefly(QMainWindow):
         asset_cache[a.id] = a
 
     def push_asset_data(self, dock):
-        # Push all cached data to newly created docks
+        # Push asset data to dock which need it
         if dock.class_ in ["rundown", "browser"]:
             dock.main_widget.model.refresh_assets(asset_cache.keys())
 

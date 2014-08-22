@@ -218,7 +218,6 @@ class Detail(BaseWidget):
         layout.addWidget(self.toolbar)
         layout.addWidget(self.detail_tabs)
         self.setLayout(layout)
-        self.subscribe("objects_changed")
 
     @property 
     def form(self):
@@ -239,12 +238,12 @@ class Detail(BaseWidget):
     def focus(self, objects, silent=False):
         if len(objects) == 1 and objects[0].object_type in ["asset"]:
 
-            if self.detail_tabs.tab_main.form and self.object and not silent:
-                for tag in self.detail_tabs.tab_main.form.inputs:
-                    if str(self.detail_tabs.tab_main.form[tag]).strip() != str(self.object[tag]).strip().replace("\r",""):
+            if self.form and self.object and not silent:
+                for tag in self.form.inputs:
+                    if str(self.form[tag]).strip() != str(self.object[tag]).strip().replace("\r",""):
                         reply = QMessageBox.question(self, "Save changes?", "{} has been changed. Save changes?".format(
                             self.object, 
-                            json.dumps(self.detail_tabs.tab_main.form[tag]), 
+                            json.dumps(self.form[tag]), 
                             json.dumps(self.object[tag])),
                             QMessageBox.Yes|QMessageBox.No);
                         if reply == QMessageBox.Yes:
@@ -257,9 +256,9 @@ class Detail(BaseWidget):
                 self.parent().setWindowTitle("Detail of {}".format(self.object))
             else:
                 for tag in set(list(objects[0].meta.keys()) + list(self.detail_tabs.tab_main.form.inputs.keys())):
-                    if self.detail_tabs.tab_main.form and tag in self.detail_tabs.tab_main.form.inputs:
-                        if self.detail_tabs.tab_main.form[tag] != self.object[tag]: #????? mozna #self.detail_tabs.tab_main.form.inputs[tag].default:
-                            self.object[tag] = self.detail_tabs.tab_main.form[tag]
+                    if self.form and tag in self.form.inputs:
+                        if self.form[tag] != self.object[tag]:
+                            self.object[tag] = self.form[tag]
                             continue
                     self.object[tag] = objects[0][tag]
 
@@ -280,7 +279,7 @@ class Detail(BaseWidget):
     def update_data(self):
         self.object["id_folder"] = self.folder_select.get_value()
         for key, cfg in self.detail_tabs.tab_main.tags:
-            self.object[key] = self.detail_tabs.tab_main.form.inputs[key].get_value()
+            self.object[key] = self.form.inputs[key].get_value()
             
                 
 

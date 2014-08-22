@@ -96,7 +96,7 @@ class Firestarter(QApplication):
     def init_listener(self):
         self.splash_message("Initializing seismic listener")
         self.listener.listen(config["site_name"], config["seismic_addr"], int(config["seismic_port"]))
-        self.listener.add_handler(self.handle_messaging)
+       # self.listener.add_handler(self.handle_messaging)
 
 
 

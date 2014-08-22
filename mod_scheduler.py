@@ -96,3 +96,15 @@ class Scheduler(BaseWidget):
             if success(res):
                 self.calendar.focus_data = data["data"]
                 self.calendar.update()
+
+
+    def seismic_handler(self, data):
+       if data.method == "objects_changed" and data.data["object_type"] == "event":
+            my_name =self.parent().objectName()
+#            print (data.data)
+#            print (my_name)
+#            for id_event in data.data["objects"]:#  
+#                if data.data["sender"] != my_name and id_event in self.model.event_ids :
+#                    self.refresh()
+#                    break
+        # TODO!

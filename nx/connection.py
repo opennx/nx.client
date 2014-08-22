@@ -29,12 +29,13 @@ def query(method, target="hive", handler=False, **kwargs):
         )
 
     post_data = urlencode({ 
-        "method" : method,
+        "method"   : method,
         "auth_key" : AUTH_KEY, 
-        "params" : json.dumps(kwargs)
+        "params"   : json.dumps(kwargs)
         })
 
     response = False
+    result   = False
 
     try:
         with urlopen(url, post_data.encode("ascii"), timeout=config.get("hive_timeout", 3)) as feed:
@@ -54,18 +55,21 @@ def query(method, target="hive", handler=False, **kwargs):
                     break
 
     except URLError as e:
-        print ("Query failed")
-        return 503, e.reason
-
+        response = 503
+        result   = e.reason
     except HTTPError as e:
-        print ("Query failed")
-        return e.code, "HTTP Errror {}".format(e.code)
-
+        response = e.code
+        result   = "HTTP Errror {}".format(e.code)
     except socket.timeout:
-        return 400, "Operation timeout"
+        response = 400
+        result   = "Operation timeout"
+    except:
+        response = 400
+        result   = "Unknown error"
 
-    if response:
+    if success(response):
         print ("Query {} completed in {:0.2f} seconds".format(method, time.time() - start_time))
-        return response, result
     else:
-        return 418, "I'm a teapot"
+        print ("Query {} failed: {}".format(method, result))
+    return response, result
+    

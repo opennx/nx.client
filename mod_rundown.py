@@ -130,9 +130,7 @@ class RundownView(NXView):
     def selectionChanged(self, selected, deselected):     
         rows = []
         self.selected_objects = []
-
         tot_dur = 0
-
 
         for idx in self.selectionModel().selectedIndexes():
             row = idx.row()
@@ -207,7 +205,7 @@ class Rundown(BaseWidget):
         layout.addWidget(self.view, 1)
 
         self.setLayout(layout)
-        self.subscribe("playout_status", "job_progress", "events_changed")
+ 
 
 
     def save_state(self):
@@ -257,12 +255,12 @@ class Rundown(BaseWidget):
                     self.model.dataChanged.emit(self.model.index(i, 0), self.model.index(i, len(self.model.header_data)-1))
                     self.update()
 
-        elif data.method == "events_changed":
+        elif data.method == "objects_changed" and data.data["object_type"] == "event":
             my_name =self.parent().objectName()
 #            print (data.data)
 #            print (my_name)
-            for event in data.data["events"]:#  
-                if data.data["sender"] != my_name and event["id_object"] in self.model.event_ids :
+            for id_event in data.data["objects"]:#  
+                if data.data.get("sender", False) != my_name and id_event in self.model.event_ids :
                     self.refresh()
                     break
 

@@ -110,8 +110,6 @@ class BaseDock(QDockWidget):
     def status(self, message, message_type=INFO):
         self.parent().status(message, message_type)
 
-    def subscribe(self, handler,  *methods):
-        self.parent().subscribe(handler, *methods)
 
 
 
