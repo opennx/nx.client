@@ -1,3 +1,4 @@
+import sys
 import json
 import zlib
 
@@ -65,7 +66,7 @@ def query(method, target="hive", handler=False, **kwargs):
         result   = "Operation timeout"
     except:
         response = 400
-        result   = "Unknown error"
+        result   = "Unknown error: {}".format(str(sys.exc_info()))
 
     if success(response):
         print ("Query {} completed in {:0.2f} seconds".format(method, time.time() - start_time))

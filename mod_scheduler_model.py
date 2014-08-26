@@ -481,7 +481,7 @@ class TXDayWidget(TXVerticalBar):
                 self.status("Event deleted")
                 self.calendar.refresh()
             else:
-                QMessageBox.warning("Unable to delete event", res)
+                QMessageBox.warning(self, "Unable to delete event", res)
 
 
 
@@ -667,7 +667,7 @@ class TXCalendar(QWidget):
                 d = time.strftime("%a %x", time.localtime(self.start_time+(i*DAY))).upper()
                 header.set_rundown(self.id_channel, self.start_time+(i*DAY))
         else:
-            QMessageBox.warning("Error", data)
+            QMessageBox.warning(self, "Error", data)
 
         QApplication.restoreOverrideCursor()
 

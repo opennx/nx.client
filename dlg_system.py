@@ -165,13 +165,13 @@ class SystemDialog(QDialog):
 
         self.setLayout(layout)
         self.load_state()
-        self.parent().subscribe(self.seismic_handler, "hive_heartbeat")
+   #     self.parent().subscribe(self.seismic_handler, "hive_heartbeat")
         self.finished.connect(self.on_close)
 
 
     def on_close(self, evt):
         self.save_state()
-        self.parent().unsubscribe(self.seismic_handler)
+       # self.parent().unsubscribe(self.seismic_handler)
 
 
     def load(self):

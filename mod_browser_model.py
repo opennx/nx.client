@@ -7,6 +7,7 @@ class BrowserModel(NXViewModel):
     def browse(self, **kwargs):
         start_time = time.time()
         self.beginResetModel()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         try:
             self.header_data = config["views"][kwargs["view"]][2]
         except:
@@ -24,6 +25,7 @@ class BrowserModel(NXViewModel):
             self.object_data = [asset_cache[id_asset] for id_asset, mtime in asset_ids]
 
         self.endResetModel()
+        QApplication.restoreOverrideCursor()
         self.parent().status("Got {} assets in {:.03f} seconds. ({} updated)".format(len(self.object_data), time.time()-start_time, len(to_update)))
 
 
@@ -69,7 +71,7 @@ class BrowserModel(NXViewModel):
             self.object_data[index.row()] = Asset(from_data=data)
             self.dataChanged.emit(index, index)
         else:
-            QMessageBox.error(self, "Error", "Unable to save")
+            QMessageBox.critical(self, "Error", "Unable to save")
         return True
 
    
