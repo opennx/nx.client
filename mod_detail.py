@@ -14,8 +14,23 @@ class DetailTabMain(QWidget):
         self.widgets = {}
         self.layout = QVBoxLayout()
         self.form = False
-        self.setLayout(self.layout)
         self.id_folder = False
+
+
+        self.scroll_area = QScrollArea(self)
+        self.scroll_area.setFrameStyle(QFrame.NoFrame)
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setContentsMargins(0,0,0,0)
+        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        
+        mwidget = QWidget()
+        mwidget.setLayout(self.layout)
+        self.scroll_area.setWidget(mwidget)
+
+        scroll_layout = QVBoxLayout()
+        scroll_layout.addWidget(self.scroll_area)
+        self.setLayout(scroll_layout)
+
 
     def load(self, obj):
         if obj["id_folder"] != self.id_folder:
@@ -211,6 +226,8 @@ class Detail(BaseWidget):
         parent.setWindowTitle("Asset detail")
         self.object = False
 
+        self._is_loading = self._load_queue = False
+
         self.toolbar = detail_toolbar(self)
         self.detail_tabs = DetailTabs(self)
 
@@ -237,6 +254,14 @@ class Detail(BaseWidget):
 
     def focus(self, objects, silent=False):
         if len(objects) == 1 and objects[0].object_type in ["asset"]:
+
+
+            if self._is_loading:
+                self._load_queue = objects
+                return
+            else:
+                self._load_queue = False
+                self._is_loading = True  
 
             if self.form and self.object and not silent:
                 for tag in self.form.inputs:
@@ -269,6 +294,10 @@ class Detail(BaseWidget):
             self.action_approve.setEnabled(True)
             self.action_qc_reset.setEnabled(True)
             self.action_reject.setEnabled(True)
+
+            self._is_loading = False
+            if self._load_queue:
+                self.focus(self._load_queue)
 
 
 

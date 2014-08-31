@@ -115,14 +115,17 @@ def rundown_toolbar(wnd):
 
     toolbar.addWidget(ToolBarStretcher(wnd))
 
-    toolbar.addWidget(LeadInButton(wnd))
-    toolbar.addWidget(LeadOutButton(wnd))
-
-    toolbar.addWidget(ToolBarStretcher(wnd))
-
     wnd.date_display = RundownDate()
     toolbar.addWidget(wnd.date_display)
 
+    return toolbar
+
+
+
+def items_toolbar(wnd):
+    toolbar = QToolBar(wnd)
+    toolbar.addWidget(LeadInButton(wnd))
+    toolbar.addWidget(LeadOutButton(wnd))
     return toolbar
 
 
@@ -169,6 +172,7 @@ class Rundown(BaseWidget):
     def __init__(self, parent):
         super(Rundown, self).__init__(parent)
         toolbar = rundown_toolbar(self)
+        self.items_toolbar = items_toolbar(self)
 
         self.id_channel   = self.parent().parent().id_channel
         self.playout_config = config["playout_channels"][self.id_channel]
@@ -201,6 +205,7 @@ class Rundown(BaseWidget):
         layout.setContentsMargins(0,0,0,0)
         layout.setSpacing(2)
         layout.addWidget(toolbar, 0)
+        layout.addWidget(self.items_toolbar, 0)
         layout.addWidget(self.mcr)
         layout.addWidget(self.view, 1)
 
