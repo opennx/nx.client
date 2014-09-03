@@ -106,9 +106,6 @@ class ServiceView(QTableView):
         self.selected_services = []
         self.activated.connect(self.on_activate)
 
-
-  
-
     def selectionChanged(self, selected, deselected):
         self.selected_services = []
         for idx in self.selectionModel().selectedIndexes():
@@ -118,9 +115,6 @@ class ServiceView(QTableView):
                 continue
             self.selected_services.append(id_service)
         super(QTableView, self).selectionChanged(selected, deselected)
-
-
-
  
     def on_activate(self,mi):
         row = self.parent().sort_model.mapToSource(mi).row()
@@ -130,20 +124,18 @@ class ServiceView(QTableView):
 
         action = self.parent().model.header_data[col]
         if action == "ctrl":
-            cmd = {
-                0 : 2,
-                1 : 3,
-                2 : 2,
-                3 : 4,
-                4 : 4
+            cmd, msg = {
+                0 : (2, "Starting service {}".format(id_service)),
+                1 : (3, "Stopping service {}".format(id_service)),
+                2 : (2, "Starting service {}".format(id_service)),
+                3 : (4, "Attempting to kill service {}".format(id_service)),
+                4 : (4, "Attempting to kill service {}".format(id_service))
                 }[svc["state"]]
+            self.parent().status(msg)
             query("services", command=cmd, id_service=id_service)
         elif action == "autostart":
             query("services", command=-1, id_service=id_service)
         
-
-
-
 
 
 
@@ -159,19 +151,22 @@ class SystemDialog(QDialog):
         self.sort_model  = ServiceSortModel(self.model)
         self.view.setModel(self.sort_model)
 
+        self.statusbar = QStatusBar(self)
+
         layout = QVBoxLayout()
         layout.setContentsMargins(2,2,2,2)
-        layout.addWidget(self.view)
+        layout.addWidget(self.view, 1)
+        layout.addWidget(self.statusbar, 0)
 
         self.setLayout(layout)
         self.load_state()
-   #     self.parent().subscribe(self.seismic_handler, "hive_heartbeat")
+        self.parent().subscribe(self.seismic_handler, "hive_heartbeat", "log")
         self.finished.connect(self.on_close)
 
 
     def on_close(self, evt):
         self.save_state()
-       # self.parent().unsubscribe(self.seismic_handler)
+        self.parent().unsubscribe(self.seismic_handler)
 
 
     def load(self):
@@ -179,6 +174,10 @@ class SystemDialog(QDialog):
         self.model.beginResetModel()
         self.model.object_data = data
         self.model.endResetModel()
+
+    def status(self, message, message_type=INFO):
+        if message_type > DEBUG:
+            self.statusbar.showMessage(message)
 
 
     def load_state(self):
@@ -209,18 +208,22 @@ class SystemDialog(QDialog):
 
 
     def seismic_handler(self, data):
-        sstat = {}
-        for svc in data.data["service_status"]:
-            sstat[svc[0]] = svc[1:]
 
-        self.model.beginResetModel()
-        for svc in self.model.object_data:
-            if svc["id_service"] not in sstat:
-                continue
-            svc["state"], svc["last_seen"] = sstat[svc["id_service"]]
-            svc["last_seen"] = data.timestamp - svc["last_seen"]
+        if data.method == "log":
+            
+            self.status("{}: {}".format(data.data["user"], data.data["message"]))
 
-        self.model.endResetModel()
-
+        if data.method == "hive_heartbeat":
+            sstat = {}
+            for svc in data.data["service_status"]:
+                sstat[svc[0]] = svc[1:]
+            
+            for svc in self.model.object_data:
+                if svc["id_service"] not in sstat:
+                    continue
+                svc["state"], svc["last_seen"] = sstat[svc["id_service"]]
+                svc["last_seen"] = data.timestamp - svc["last_seen"]
+            self.model.dataChanged.emit(self.model.index(0, 0), self.model.index(len(self.model.object_data)-1, len(self.model.header_data)-1))
+            
 
 

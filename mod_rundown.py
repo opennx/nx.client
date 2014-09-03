@@ -273,11 +273,19 @@ class Rundown(BaseWidget):
     ###########################################################################
 
 
-    def load(self, id_channel, start_time):
+    def load(self, id_channel, start_time, event=False):
         self.id_channel = id_channel
         self.start_time = start_time
         self.update_header()
         self.model.load(id_channel, start_time)
+        if not event:
+            return
+
+        for i, r in enumerate(self.model.object_data):
+            if event.id == r.id and r.object_type=="event":
+                self.view.scrollTo(self.model.index(i, 0, QModelIndex()), QAbstractItemView.PositionAtTop  )
+                break
+
 
     def refresh(self):
         selection = []

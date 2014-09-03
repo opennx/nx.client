@@ -440,6 +440,10 @@ class TXDayWidget(TXVerticalBar):
     def on_show_rundown(self):
         pass
 
+    def mouseDoubleClickEvent(self, evt):
+        self.parent().parent().parent().parent().parent().parent().parent().focus_rundown(self.id_channel, self.start_time, self.cursor_event)
+
+
     def on_edit_event(self):
         dlg = EventDialog(self, event=self.cursor_event)
         if dlg.exec_() == QDialog.Accepted:
@@ -484,6 +488,12 @@ class TXDayWidget(TXVerticalBar):
                 QMessageBox.warning(self, "Unable to delete event", res)
 
 
+
+    def wheelEvent(self,event):
+        if event.modifiers():# & Qt.ControlModifier:
+            pass# TODO: zoom
+            #print (event.delta().y())
+        super(TXDayWidget, self).wheelEvent(event)
 
 
 

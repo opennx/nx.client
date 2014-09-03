@@ -3,6 +3,57 @@ from firefly_widgets import *
 from nx.common.metadata import fract2float
 from functools import partial
 
+
+T_MARK_IN  = 0
+T_MARK_OUT = 1
+T_POSITION = 2
+T_DURATION = 3
+
+# TODO: THIS CLASS
+class Timeline(QWidget):
+    def __init__(self,parent):
+        super(Timeline, self).__init__(parent)
+        self.setFixedHeight(15)
+        self.data = [0,0,0,0]
+        self.show()
+         
+    def mark_in(self, value=False):
+        return self._value(T_MARK_IN, value)
+    
+    def mark_out(self, value=False):
+        return self._value(T_MARK_OUT, value)
+    
+    def position(self, value=False):
+        return self._value(T_POSITION, value)
+    
+    def duration(self, value=False):
+        return self._value(T_DURATION, value)
+
+    def _value(self, key, value):
+        if value and value != self.data[key]:
+            self.data[key] = value
+            self.update()
+        return self.data[key]
+   
+    def paintEvent(self, event=False):
+        qp = QPainter()
+        qp.begin(self)
+        self.drawRegion(qp)
+        qp.end()
+   
+    def drawRegion(self, qp):
+        mark_in = self.mark_in() or 0
+        mark_out = self.mark_out() or self.duration()
+        # FIXMEFIXMEFIXME
+        w = self.width()
+        h = self.height()
+        x1 = float(w) * (mark_in)
+        x2 = float(w) * (mark_out-mark_in) 
+        qp.setBrush(QColor(0, 200, 200))
+        qp.drawRect(x1, 1, x2, h-1)
+
+
+
 def proxy_path(id_asset):
     host = config.get("media_host", False) or config["hive_host"]
     port = config.get("media_port", False) or config["hive_port"]

@@ -72,9 +72,9 @@ class Firefly(QMainWindow):
         for dock in self.docks:                
             dock.show()
 
+        self.subscribers = {}
         self.seismic_timer = QTimer(self)
         self.seismic_timer.timeout.connect(self.on_seismic_timer)
-#        self.seismic_timer.setSingleShot(True)
         self.seismic_timer.start(40)
 
         self.status("Ready")
@@ -183,9 +183,9 @@ class Firefly(QMainWindow):
             if d.class_ in ["preview", "detail", "scheduler"] and objects:
                 d.main_widget.focus(objects)
 
-    def focus_rundown(self, id_channel, date):
+    def focus_rundown(self, id_channel, date, event=False):
         dock = self.create_dock("rundown", state={}, show=True, one_instance=True)
-        dock.main_widget.load(id_channel, date)
+        dock.main_widget.load(id_channel, date, event)
 
     def on_search(self):
         for d in self.docks:
@@ -261,8 +261,6 @@ class Firefly(QMainWindow):
             pass
         else:
             self.handle_messaging(msg)
-        #self.seismic_timer.start(40)
-
 
     def handle_messaging(self, data):
         if data.method == "objects_changed" and data.data["object_type"] == "asset": 
@@ -280,6 +278,18 @@ class Firefly(QMainWindow):
                 continue # cool construction, isn't it?
 
             dock.main_widget.seismic_handler(data)
+
+        for subscriber in self.subscribers:
+            if data.method in self.subscribers[subscriber]:
+                subscriber(data)
+
+
+    def subscribe(self, handler, *methods):
+        # subscribe dialogs and other (non-dock) windows to seismic
+        self.subscribers[handler] = methods
+
+    def unsubscribe(self, handler):
+        del self.subscribers[handler]
 
     ## SEISMIC
     ###############################################################################
