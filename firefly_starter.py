@@ -4,6 +4,41 @@ from firefly_common import *
 from firefly_listener import SeismicListener
 from dlg_sites import SiteSelect
 
+class Login(QDialog):
+    def __init__(self):
+        QDialog.__init__(self)
+        self.setWindowTitle("Please log in")
+        self.setStyleSheet(base_css)
+        self.login = QLineEdit(self)
+        self.password = QLineEdit(self)
+        self.password.setEchoMode(QLineEdit.Password)
+        self.btn_login = QPushButton('Login', self)
+        self.btn_login.clicked.connect(self.handleLogin)
+        
+        layout = QFormLayout(self)
+        layout.addRow("Login", self.login)
+        layout.addRow("Password", self.password)
+        layout.addRow("", self.btn_login)
+
+        self.result = False
+
+    def handleLogin(self):
+        stat, res = query("auth", login=self.login.text(), password=self.password.text(), host=socket.gethostname())
+        if success(stat):
+            self.result = True
+            self.close()
+        else:
+            QMessageBox.critical(self, "Error", res)
+
+def check_login():
+    stat, res = query("auth")
+    if not success(stat):
+        dlg = Login()
+        dlg.exec_()
+        return dlg.result
+    return True
+
+
 class Firestarter(QApplication):
     def __init__(self, main_window):
         super(Firestarter, self).__init__(sys.argv)
@@ -24,6 +59,9 @@ class Firestarter(QApplication):
             i = dlg.exec_()
         
         config.update(local_settings[i])
+
+        if not check_login():
+            sys.exit(0)
 
         self.tasks = [
                       self.load_site_settings,
@@ -53,9 +91,10 @@ class Firestarter(QApplication):
 
     def load_site_settings(self):
         self.splash_message("Loading site settings")
-        ret_code, result = query("site_settings")
-        if ret_code < 300:
-            config.update(result)
+        stat, res = query("site_settings")
+        config["rights"] = {}
+        if success(stat):
+            config.update(res)
             
             if "JSON IS RETARDED AND CAN'T HANDLE INTEGER BASED KEYS IN DICTS":
                 nfolders = {}
@@ -79,9 +118,8 @@ class Firestarter(QApplication):
                 for id_channel in config["ingest_channels"]:
                     nch[int(id_channel)] = config["ingest_channels"][id_channel]
                 config["ingest_channels"] = nch
-
         else:
-            QMessageBox.critical(self.splash, "Critical error", "Unable to contact NX server.")
+            QMessageBox.critical(self.splash, "Error", res)
             critical_error("Unable to load site settings")
     
 
@@ -96,15 +134,11 @@ class Firestarter(QApplication):
     def init_listener(self):
         self.splash_message("Initializing seismic listener")
         self.listener.listen(config["site_name"], config["seismic_addr"], int(config["seismic_port"]))
-       # self.listener.add_handler(self.handle_messaging)
-
-
 
     def start(self):
         self.splash.hide()
         self.exec_()
         self.on_exit()
-
 
     def on_exit(self):
         self.listener.halt()

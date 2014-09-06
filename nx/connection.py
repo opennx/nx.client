@@ -8,11 +8,20 @@ from urllib.error import URLError, HTTPError
 
 from nx.common import *
 
+import hashlib
+import socket
+import getpass
+
+AUTH_KEY = hashlib.sha256("{}:{}".format(
+    socket.gethostname(), 
+    getpass.getuser()).encode("ascii")
+    ).hexdigest()
+
 __all__ = ["connection_type", "query", "success"]
 
 connection_type = "client"
 
-AUTH_KEY = "dev"
+
 
 def success(retcode):
     return retcode < 300

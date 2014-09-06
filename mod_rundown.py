@@ -155,6 +155,10 @@ class RundownView(NXView):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Delete:
+
+            if self.id_channel not in config["rights"].get("can/rundown_edit", []):
+                QMessageBox.warning(self, "Error", "You are not allowed to modify this rundown")
+
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
             stat, res = query("del_items", items=[obj.id for obj in self.selected_objects])
@@ -323,8 +327,8 @@ class Rundown(BaseWidget):
 
     def on_activate(self, mi):
         obj = self.model.object_data[mi.row()]
-
-        if obj.object_type == "item" and self.mcr and self.mcr.isVisible():    
+        can_mcr = self.id_channel in config["rights"].get("can/mcr", [])
+        if obj.object_type == "item" and self.mcr and self.mcr.isVisible() and can_mcr:    
             stat, res = query("cue", self.mcr.route, id_channel=self.id_channel, id_item=obj.id)
             if not success(stat):
                 QMessageBox.critical(self, "Error", res)
@@ -377,6 +381,9 @@ class Rundown(BaseWidget):
         pass
 
     def on_solve_event(self):
+        if self.id_channel not in config["rights"].get("can/rundown_edit", []):
+            QMessageBox.warning(self, QMessageBox.warning, "Error", "You are not allowed to modify this rundown")
+
         ret = QMessageBox.question(self,
             "Solve event",
             "Do you really want to (re)solve {}?\nThis operation cannot be undone.".format(self.view.selected_objects[0]),

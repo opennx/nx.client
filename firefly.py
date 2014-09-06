@@ -78,6 +78,7 @@ class Firefly(QMainWindow):
         self.seismic_timer.start(40)
 
         self.status("Ready")
+        pprint(config["rights"])
 
 
             

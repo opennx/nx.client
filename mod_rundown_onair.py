@@ -59,6 +59,12 @@ class OnAir(QWidget):
         self.btn_freeze  = OnAirButton(u"Freeze", self, self.on_freeze)
         self.btn_retake  = OnAirButton(u"Retake", self, self.on_retake)
         self.btn_abort   = OnAirButton(u"Abort",  self, self.on_abort)
+
+        can_mcr = self.parent().id_channel in config["rights"].get("can/mcr", [])
+        self.btn_take.setEnabled(can_mcr)
+        self.btn_freeze.setEnabled(can_mcr)
+        self.btn_retake.setEnabled(can_mcr)
+        self.btn_abort.setEnabled(can_mcr)
         
         self.btn_take.setShortcut("F9")
         self.btn_freeze.setShortcut("F10")

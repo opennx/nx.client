@@ -490,9 +490,16 @@ class TXDayWidget(TXVerticalBar):
 
 
     def wheelEvent(self,event):
-        if event.modifiers():# & Qt.ControlModifier:
-            pass# TODO: zoom
-            #print (event.delta().y())
+        #print (dir(event))#print (event.delta()/120)
+        if event.modifiers() & Qt.ControlModifier:
+            zoom_step = 100
+            if (event.angleDelta().y() > 0):
+                print ("zoom in")
+                self.calendar.zoom.setValue(min(6000, self.calendar.zoom.value()+zoom_step))
+            else:
+                print ("zoom out")
+                self.calendar.zoom.setValue(max(0, self.calendar.zoom.value()-zoom_step))
+        
         super(TXDayWidget, self).wheelEvent(event)
 
 

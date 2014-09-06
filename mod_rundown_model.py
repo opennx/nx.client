@@ -150,6 +150,9 @@ class RundownModel(NXViewModel):
         if action == Qt.IgnoreAction:
             return True
 
+        if self.id_channel not in config["rights"].get("can/rundown_edit", []):
+            QMessageBox.warning(self.parent(), "Error", "You are not allowed to modify this rundown")
+
         if row < 1:
             return False
         
