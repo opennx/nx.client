@@ -113,6 +113,12 @@ def rundown_toolbar(wnd):
     action_toggle_mcr.triggered.connect(wnd.on_toggle_mcr)
     toolbar.addAction(action_toggle_mcr)
 
+    action_toggle_tools = QAction(QIcon(pixlib["tools"]), '&Rundown tools', wnd)        
+    action_toggle_tools.setStatusTip('Toggle rundown tools')
+    action_toggle_tools.triggered.connect(wnd.on_toggle_tools)
+    toolbar.addAction(action_toggle_tools)
+
+
     toolbar.addWidget(ToolBarStretcher(wnd))
 
     wnd.date_display = RundownDate()
@@ -156,7 +162,7 @@ class RundownView(NXView):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Delete:
 
-            if self.id_channel not in config["rights"].get("can/rundown_edit", []):
+            if self.parent().id_channel not in config["rights"].get("can/rundown_edit", []):
                 QMessageBox.warning(self, "Error", "You are not allowed to modify this rundown")
 
             QApplication.processEvents()
@@ -177,6 +183,7 @@ class Rundown(BaseWidget):
         super(Rundown, self).__init__(parent)
         toolbar = rundown_toolbar(self)
         self.items_toolbar = items_toolbar(self)
+        self.items_toolbar.hide()
 
         self.id_channel   = self.parent().parent().id_channel
         self.playout_config = config["playout_channels"][self.id_channel]
@@ -445,6 +452,14 @@ class Rundown(BaseWidget):
                 self.mcr.hide()
             else:
                 self.mcr.show()
+
+
+    def on_toggle_tools(self):
+        if self.items_toolbar.isVisible():
+            self.items_toolbar.hide()
+        else:
+            self.items_toolbar.show()
+
 
     def on_toggle_run_mode(self):
         obj = self.view.selected_objects[0]
