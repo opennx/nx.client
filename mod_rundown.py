@@ -228,6 +228,8 @@ class Rundown(BaseWidget):
         state = {}
         state["c"] = self.model.header_data
         state["cw"] = self.view.horizontalHeader().saveState()
+        state["mcr"] = self.mcr.isVisible()
+        state["items_toolbar"] = self.items_toolbar.isVisible()
         return state
 
     def load_state(self, state):
@@ -241,6 +243,18 @@ class Rundown(BaseWidget):
         else:
             for id_column in range(self.model.columnCount(False)):
                 self.view.resizeColumnToContents(id_column)
+
+        if state.get("mcr", False):
+            self.mcr.show()
+        else:
+            self.mcr.hide()
+
+        if state.get("items_toolbar", False):
+            self.items_toolbar.show()
+        else:
+            self.items_toolbar.hide()
+
+
 
     def seismic_handler(self, data):
         if data.method == "playout_status": 
