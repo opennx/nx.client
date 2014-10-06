@@ -11,6 +11,7 @@ class SiteSelect(QDialog):
         self.setModal(True)
         self.setStyleSheet(base_css)
         self.setWindowTitle("Multiple sites are cofigured")
+        self.setWindowIcon(QIcon(":/images/firefly.ico"))
 
         layout = QVBoxLayout()
         for i, site in enumerate(sites):
