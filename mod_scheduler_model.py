@@ -469,7 +469,6 @@ class TXDayWidget(TXVerticalBar):
             self.calendar.refresh()
 
 
-
     def on_delete_event(self):
         ret = QMessageBox.question(self,
             "Delete event",
@@ -486,7 +485,6 @@ class TXDayWidget(TXVerticalBar):
                 self.calendar.refresh()
             else:
                 QMessageBox.warning(self, "Unable to delete event", res)
-
 
 
     def wheelEvent(self,event):
