@@ -155,19 +155,12 @@ class Browser(BaseWidget):
     def contextMenuEvent(self, event):
         if not self.view.selected_objects: return
         menu = QMenu(self)
+
+        action_focus = QAction('Focus', self)        
+        action_focus.setStatusTip('Focus selection')
+        action_focus.triggered.connect(self.on_focus)
+        menu.addAction(action_focus)
         
-        action_send_to = QAction('&Send to...', self)        
-        action_send_to.setStatusTip('Create action for selected asset(s)')
-        action_send_to.triggered.connect(self.on_send_to)
-        menu.addAction(action_send_to)
-    
-        menu.addSeparator()
-
-        action_reset = QAction('Reset', self)        
-        action_reset.setStatusTip('Reload asset metadata')
-        action_reset.triggered.connect(self.on_reset)
-        menu.addAction(action_reset)
-
         action_move_to_trash = QAction('Move to trash', self)        
         action_move_to_trash.setStatusTip('Move selected asset(s) to trash')
         action_move_to_trash.triggered.connect(self.on_trash)
@@ -177,8 +170,30 @@ class Browser(BaseWidget):
         action_move_to_archive.setStatusTip('Move selected asset(s) to archive')
         action_move_to_archive.triggered.connect(self.on_archive)
         menu.addAction(action_move_to_archive)
+
+        action_reset = QAction('Reset', self)        
+        action_reset.setStatusTip('Reload asset metadata')
+        action_reset.triggered.connect(self.on_reset)
+        menu.addAction(action_reset)
+        
+        menu.addSeparator()
+        
+        action_send_to = QAction('&Send to...', self)        
+        action_send_to.setStatusTip('Create action for selected asset(s)')
+        action_send_to.triggered.connect(self.on_send_to)
+        menu.addAction(action_send_to)
+    
+        menu.addSeparator()
+    
+        action_columns = QAction('Choose columns', self)        
+        action_columns.setStatusTip('Choose header columns')
+        action_columns.triggered.connect(self.on_choose_columns)
+        menu.addAction(action_columns)
     
         menu.exec_(event.globalPos()) 
+
+    def on_focus(self):
+        pass #TODO
 
     def on_send_to(self):
         dlg = SendTo(self, self.view.selected_objects)
@@ -212,7 +227,8 @@ class Browser(BaseWidget):
                 )
 
 
-    
+    def on_choose_columns(self):
+        pass #TODO
 
 
 
