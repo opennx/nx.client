@@ -113,13 +113,6 @@ def rundown_toolbar(wnd):
     action_toggle_tools.triggered.connect(wnd.on_toggle_tools)
     toolbar.addAction(action_toggle_tools)
 
-    toolbar.addSeparator()
-
-    action_toggle_run_mode = QAction(QIcon(pixlib["run_mode"]), '&Toggle run mode', wnd)        
-    action_toggle_run_mode.setStatusTip('Toggle item run mode')
-    action_toggle_run_mode.triggered.connect(wnd.view.on_toggle_run_mode)
-    toolbar.addAction(action_toggle_run_mode)
-
     toolbar.addWidget(ToolBarStretcher(wnd))
 
     wnd.date_display = RundownDate()
@@ -190,34 +183,79 @@ class RundownView(NXView):
             action_focus.triggered.connect(self.on_focus)
             menu.addAction(action_focus)
 
+            menu.addSeparator()
+
+
+        if len(obj_set) == 1:
+            if obj_set[0] == "item":
+
+                mode_menu = menu.addMenu("Run mode")
+
+                action_mode_auto = QAction('&Auto', self)        
+                action_mode_auto.setStatusTip('Set run mode to auto')
+                action_mode_auto.triggered.connect(partial(self.on_set_mode, 0))
+                mode_menu.addAction(action_mode_auto)
+
+                action_mode_manual = QAction('&Manual', self)        
+                action_mode_manual.setStatusTip('Set run mode to manual')
+                action_mode_manual.triggered.connect(partial(self.on_set_mode, 1))
+                mode_menu.addAction(action_mode_manual)
+                
+            elif obj_set[0] == "event" and len(self.selected_objects) == 1:
+
+                mode_menu = menu.addMenu("Run mode")
+
+                action_mode_auto = QAction('&Auto', self)        
+                action_mode_auto.setStatusTip('Set run mode to auto')
+                action_mode_auto.triggered.connect(partial(self.on_set_mode, 0))
+                mode_menu.addAction(action_mode_auto)
+
+                action_mode_manual = QAction('&Manual', self)        
+                action_mode_manual.setStatusTip('Set run mode to manual')
+                action_mode_manual.triggered.connect(partial(self.on_set_mode, 1))
+                mode_menu.addAction(action_mode_manual)
+
+                action_mode_soft = QAction('&Soft', self)        
+                action_mode_soft.setStatusTip('Set run mode to soft')
+                action_mode_soft.triggered.connect(partial(self.on_set_mode, 2))
+                mode_menu.addAction(action_mode_soft)
+
+                action_mode_hard = QAction('&Hard', self)        
+                action_mode_hard.setStatusTip('Set run mode to hard')
+                action_mode_hard.triggered.connect(partial(self.on_set_mode, 3))
+                mode_menu.addAction(action_mode_hard)
+
+
+        if "item" in obj_set:
+            action_send_to = QAction('&Send to...', self)        
+            action_send_to.setStatusTip('Create action for selected asset(s)')
+            action_send_to.triggered.connect(self.on_send_to)
+            menu.addAction(action_send_to)
+            
+
+        if "event" in obj_set:
+            action_solve = QAction('Solve', self)        
+            action_solve.setStatusTip('Solve selected event')
+            action_solve.triggered.connect(self.on_solve_event)
+            menu.addAction(action_solve)
+
+
+        
+
+        if len(obj_set) > 0:
+            menu.addSeparator()
+        
             action_delete = QAction('&Delete', self)        
             action_delete.setStatusTip('Delete selected object')
             action_delete.triggered.connect(self.on_delete)
             menu.addAction(action_delete)
             
-            menu.addSeparator()
-            
-        if len(obj_set) == 1:
-            if obj_set[0] == "item":
+#                action_edit = QAction('&Edit', self)        
+#                action_edit.setStatusTip('Edit selected event')
+#                action_edit.triggered.connect(self.on_edit_event)
+#                menu.addAction(action_edit)
 
-                action_send_to = QAction('&Send to...', self)        
-                action_send_to.setStatusTip('Create action for selected asset(s)')
-                action_send_to.triggered.connect(self.on_send_to)
-                menu.addAction(action_send_to)
-
-            elif obj_set[0] == "event" and len(self.selected_objects) == 1:
-
-                action_edit = QAction('&Edit', self)        
-                action_edit.setStatusTip('Edit selected event')
-                action_edit.triggered.connect(self.on_edit_event)
-                menu.addAction(action_edit)
-
-                action_solve = QAction('Solve', self)        
-                action_solve.setStatusTip('Solve selected event')
-                action_solve.triggered.connect(self.on_solve_event)
-                menu.addAction(action_solve)
-
-            menu.addSeparator()
+        menu.addSeparator()
 
         action_columns = QAction('Choose columns', self)        
         action_columns.setStatusTip('Choose header columns')
@@ -227,17 +265,13 @@ class RundownView(NXView):
         menu.exec_(event.globalPos()) 
 
 
-
-
-    def on_focus(self):
-        pass
-
-    def on_delete(self):
+    def on_set_mode(self, mode):
         if self.parent().id_channel not in config["rights"].get("can/rundown_edit", []):
             QMessageBox.warning(self, "Error", "You are not allowed to modify this rundown")
+            return 
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        stat, res = query("del_items", items=[obj.id for obj in self.selected_objects])
+        stat, res = query("set_meta", object_type=self.selected_objects[0].object_type, objects=[obj.id for obj in self.selected_objects], data={"run_mode":mode})
         QApplication.restoreOverrideCursor()
         if success(stat):
             self.parent().status("Delete item: {}".format(res))
@@ -246,9 +280,61 @@ class RundownView(NXView):
         self.parent().refresh()
         return
 
+    def on_focus(self):
+        pass
+
+    def on_delete(self):
+
+        items = list(set([obj.id for obj in self.selected_objects if obj.object_type == "item"]))
+        events  = list(set([obj.id for obj in self.selected_objects if obj.object_type == "event"]))
+
+        if events or len(items) > 10:
+            ret = QMessageBox.question(self,
+                "Delete",
+                "Do you REALLY want to delete {} items and {} events?\nThis operation CANNOT be undone".format(len(items), len(events)),
+                QMessageBox.Yes | QMessageBox.No
+                )
+
+            if ret != QMessageBox.Yes:
+                return
+
+
+        if items:
+            if self.parent().id_channel not in config["rights"].get("can/rundown_edit", []):
+                QMessageBox.warning(self, "Error", "You are not allowed to modify this rundown items")
+            else:
+                QApplication.processEvents()
+                QApplication.setOverrideCursor(Qt.WaitCursor)
+                stat, res = query("del_items", items=items)
+                QApplication.restoreOverrideCursor()
+                if success(stat):
+                    self.parent().status("Delete item: {}".format(res))
+                else:
+                    QMessageBox.critical(self, "Error", res)
+        
+        if events:
+            if self.parent().id_channel not in config["rights"].get("can/rundown_edit", []):
+                QMessageBox.warning(self, "Error", "You are not allowed to modify this rundown blocks")
+            else:
+                QApplication.processEvents()
+                QApplication.setOverrideCursor(Qt.WaitCursor)
+                print ("DEL", events)
+                stat, res = query("set_events", delete=events)
+                QApplication.restoreOverrideCursor()
+                if success(stat):
+                    self.parent().status("Delete event: {}".format(res))
+                else:
+                    QMessageBox.critical(self, "Error", res)
+
+        self.parent().refresh()
+
 
     def on_send_to(self):
-        dlg = SendTo(self, self.selected_objects)
+        objs = set([obj for obj in self.selected_objects if obj.object_type == "item"])
+        if not objs:
+            QMessageBox.warning(self, "Warning", "No rundown item selected")
+            return
+        dlg = SendTo(self, objs)
         dlg.exec_()
 
 
@@ -258,8 +344,9 @@ class RundownView(NXView):
 
 
     def on_solve_event(self):
-        if self.id_channel not in config["rights"].get("can/rundown_edit", []):
+        if self.parent().id_channel not in config["rights"].get("can/rundown_edit", []):
             QMessageBox.warning(self, QMessageBox.warning, "Error", "You are not allowed to modify this rundown")
+            return
 
         ret = QMessageBox.question(self,
             "Solve event",
@@ -272,15 +359,15 @@ class RundownView(NXView):
             QApplication.setOverrideCursor(Qt.WaitCursor)
             stat, res = query("dramatica", 
                 handler=self.parent().handle_message, 
-                id_channel=self.id_channel, 
-                date=time.strftime("%Y-%m-%d", time.localtime(self.start_time)),
+                id_channel=self.parent().id_channel, 
+                date=time.strftime("%Y-%m-%d", time.localtime(self.parent().start_time)),
                 id_event =self.selected_objects[0].id,
                 solve=True
                 )
             QApplication.restoreOverrideCursor()
             if not success(stat):
                 QMessageBox.critical(self, "Error", res)
-            self.refresh()
+            self.parent().refresh()
 
 
     def on_choose_columns(self):
