@@ -416,10 +416,9 @@ class TXDayWidget(TXVerticalBar):
 
         self.calendar.selected_event = self.cursor_event
 
-        #action_show_rundown = QAction('Show in rundown', self)        
-        #action_show_rundown.triggered.connect(self.on_show_rundown)
-        #menu.addAction(action_show_rundown)
-
+        action_show_rundown = QAction('Show in rundown', self)        
+        action_show_rundown.triggered.connect(self.on_show_rundown)
+        menu.addAction(action_show_rundown)
 
         action_edit_event = QAction('Edit', self)
         action_edit_event.triggered.connect(self.on_edit_event)
@@ -438,10 +437,10 @@ class TXDayWidget(TXVerticalBar):
         menu.exec_(event.globalPos())
 
     def on_show_rundown(self):
-        pass
+        self.parent().parent().parent().parent().parent().parent().parent().focus_rundown(self.id_channel, self.start_time, self.cursor_event)
 
     def mouseDoubleClickEvent(self, evt):
-        self.parent().parent().parent().parent().parent().parent().parent().focus_rundown(self.id_channel, self.start_time, self.cursor_event)
+        self.on_show_rundown()
 
 
     def on_edit_event(self):
