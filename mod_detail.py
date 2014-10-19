@@ -34,7 +34,10 @@ class DetailTabMain(QWidget):
 
     def load(self, obj):
         if obj["id_folder"] != self.id_folder:
-            self.tags = config["folders"][obj["id_folder"]][2]
+            if obj["id_folder"] == 0:
+                self.tags = []
+            else:
+                self.tags = config["folders"][obj["id_folder"]][2]
 
             if self.form:
                 # SRSLY. I've no idea what I'm doing here
@@ -314,7 +317,10 @@ class Detail(BaseWidget):
 
     def new_asset(self):
         new_asset = Asset()
-        new_asset["id_folder"] = 0
+        if self.object and self.object["id_folder"]:
+            new_asset["id_folder"] = self.object["id_folder"]
+        else:
+            new_asset["id_folder"] = 0
         self.object = False
         self.focus([new_asset])
 
