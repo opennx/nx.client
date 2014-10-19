@@ -80,6 +80,9 @@ def query(method, target="hive", handler=False, **kwargs):
     if success(response):
         print ("Query {} completed in {:0.2f} seconds".format(method, time.time() - start_time))
     else:
-        print ("Query {} failed: {}".format(method, result))
+        try:
+            print ("Query {} failed: {}".format(method, result))
+        except:
+            print ("Query {} failed".format(method))
     return response, result
     
