@@ -39,6 +39,18 @@ def scheduler_toolbar(wnd):
     action_week_next.triggered.connect(wnd.on_week_next)
     toolbar.addAction(action_week_next)
 
+    toolbar.addSeparator()
+
+    #runs = QActionGroup(wnd)
+    #runs.setCheckable(True)
+
+    wnd.action_show_runs = QAction(QIcon(pixlib["repeat"]), '&Show runs', wnd)        
+    wnd.action_show_runs.setStatusTip('Show runs')
+    wnd.action_show_runs.setCheckable(True)
+    #action_show_runs.triggered.connect(wnd.on_show_runs)
+    toolbar.addAction(wnd.action_show_runs)
+
+
     toolbar.addWidget(ToolBarStretcher(wnd))
 
     toolbar.addWidget(EmptyEventButton(wnd))
@@ -88,7 +100,7 @@ class Scheduler(BaseWidget):
         self.calendar.load(self.calendar.id_channel, self.calendar.start_time+(3600*24*7))
     
     def focus(self, objects):
-        if True: # if focus enabled
+        if self.action_show_runs.isChecked():
             asset_ids = [obj.id for obj in objects if obj.object_type == "asset"]
             if not asset_ids:
                 return 
