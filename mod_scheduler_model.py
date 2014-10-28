@@ -659,6 +659,7 @@ class TXCalendar(QWidget):
         self.events = []
 
         res, data = query("get_events", 
+            handler=self.handle_load,
             id_channel=self.id_channel,
             start_time=self.start_time,
             end_time=self.end_time,
@@ -666,9 +667,9 @@ class TXCalendar(QWidget):
             )
 
         if success(res):
-            for event_data in data["events"]:
-                e = Event(from_data=event_data)
-                self.events.append(e)
+            #for event_data in data["events"]:
+            #    e = Event(from_data=event_data)
+            #    self.events.append(e)
 
             self.clock_bar.day_start = self.day_start
             self.clock_bar.update()
@@ -690,6 +691,10 @@ class TXCalendar(QWidget):
         for day_widget in self.days:
             day_widget.update()
         super(TXCalendar, self).update()
+
+
+    def handle_load(self, msg):
+        self.events.append(Event(from_data=msg))
 
     def handle_drama(self, msg):
         self.parent().status(msg.get("message",""))
