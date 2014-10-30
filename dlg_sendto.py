@@ -12,7 +12,7 @@ class SendToButton(QPushButton):
 class SendTo(QDialog):
     def __init__(self,  parent, objects=[]):
         super(SendTo, self).__init__(parent)
-        self.objects = objects
+        self.objects = list(objects)
         self.setModal(True)
         self.setStyleSheet(base_css)
 
