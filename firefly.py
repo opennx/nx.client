@@ -20,6 +20,7 @@ from mod_preview import Preview
 from mod_detail import Detail
 from mod_rundown import Rundown
 from mod_scheduler import Scheduler
+from mod_teleprompter import Teleprompter
 
 from nx.objects import Asset
 
@@ -94,7 +95,8 @@ class Firefly(QMainWindow):
                 "scheduler" : Scheduler,
                 "rundown"   : Rundown,
                 "preview"   : Preview,
-                "detail"    : Detail
+                "detail"    : Detail,
+                "teleprompter" : Teleprompter
                 }[widget_class]
 
         create = True
