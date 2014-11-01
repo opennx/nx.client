@@ -10,16 +10,11 @@ def prompter_toolbar(wnd):
 
     toolbar.addSeparator()
 
-    wnd.action_show_runs = QAction(QIcon(pixlib["repeat"]), '&Mirror', wnd)        
-    wnd.action_show_runs.setStatusTip('Mirror image')
-    wnd.action_show_runs.setCheckable(True)
+    wnd.action_mirror = QAction(QIcon(pixlib["repeat"]), '&Mirror', wnd)        
+    wnd.action_mirror.setStatusTip('Mirror image')
+    wnd.action_mirror.setCheckable(True)
     #action_show_runs.triggered.connect(wnd.on_show_runs)
-    toolbar.addAction(wnd.action_show_runs)
-
-
-    toolbar.addWidget(ToolBarStretcher(wnd))
-
-    toolbar.addWidget(EmptyEventButton(wnd))
+    toolbar.addAction(wnd.action_mirror)
 
     return toolbar
 
