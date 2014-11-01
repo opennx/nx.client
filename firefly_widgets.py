@@ -286,6 +286,9 @@ class MetaEditor(QWidget):
                 #self.inputs[tag] = NXE_select(self, settings)
                 self.inputs[tag] = NXE_radio(self, settings)
 
+            elif meta_types[tag].class_ in [TIMECODE]:
+                self.inputs[tag] = NXE_timecode(self)
+
             else:
                 self.inputs[tag] = NXE_text(self)
                 self.inputs[tag].setReadOnly(True)
