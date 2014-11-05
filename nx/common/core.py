@@ -6,6 +6,7 @@ import sys
 import socket
 import json
 import time
+import hashlib
 
 from xml.etree import ElementTree as ET
 from nx.common.constants import *
@@ -50,6 +51,11 @@ def fract2float(fract):
         return float(nd[0]) / float(nd[1])
     except:
         return 1
+
+def get_hash(string):
+    return hashlib.sha256(string).hexdigest()
+
+
 ########################################################################
 ## Config
 
@@ -142,7 +148,12 @@ logging   = Logging()
 ## Filesystem
 
 class Storage():
-    pass
+    id_storage = False
+    title = "NO STORAGE"
+    protocol = False
+    path = False
+    login = False
+    password = False
 
 class Storages(dict):
     def __init__(self):

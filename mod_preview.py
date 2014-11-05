@@ -2,7 +2,7 @@ from firefly_common import *
 from firefly_widgets import *
 from nx.common.metadata import fract2float
 from functools import partial
-
+from urllib.request import urlopen
 
 T_MARK_IN  = 0
 T_MARK_OUT = 1
@@ -60,6 +60,12 @@ def proxy_path(id_asset):
     url = "http://{}:{}/proxy/{:04d}/{:d}.mp4".format(host, port, int(id_asset/1000), id_asset)
     return QUrl(url)
 
+def thumb_path(id_asset):
+    host = config.get("media_host", False) or config["hive_host"]
+    port = config.get("media_port", False) or config["hive_port"]
+    url = "http://{}:{}/thumb/{:04d}/{:d}/{:d}m0.jpg".format(host, port, int(id_asset/1000), id_asset, id_asset)
+    return url
+
 
 def action_toolbar(wnd):
     toolbar = QToolBar(wnd)
@@ -81,8 +87,6 @@ def action_toolbar(wnd):
 #    action_manage_regions.setShortcut('V')
     #action_create_region.triggered.connect(wnd.on_goto_in)
 #    toolbar.addAction(action_manage_regions)
-
-
 
     toolbar.addWidget(ToolBarStretcher(wnd))
     return toolbar
@@ -204,12 +208,21 @@ class VideoWidget(QVideoWidget):
         qp.drawPixmap(x, y, self.pix)
 
     def load_thumb(self, id_asset, content_type):
+        #path = thumb_path(id_asset)
+        #try:
+        #    data = urlopen(path, timeout=.05).read()
+        #except:
         self.pix = pixlib[{
             VIDEO: "thumb_video",
             AUDIO: "thumb_audio",
             IMAGE: "thumb_image",
             TEXT : "thumb_text"
-            }[content_type]]
+            }[int(content_type)]]
+        #else:
+        #    pix = QPixmap()
+        #    pix.loadFromData(data)
+        #    self.pix = pix
+
         self.update()
 
 class Preview(BaseWidget):

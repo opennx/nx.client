@@ -72,7 +72,7 @@ class RundownModel(NXViewModel):
                     asset_cache[id_asset] = Asset()
                     required_assets.append(id_asset)
 
-                item.asset = asset_cache[item["id_asset"]]
+                item._asset = asset_cache[item["id_asset"]]
                 item["rundown_bin"] = current_bin
                 item["rundown_row"] = row
                 if reset:
@@ -99,7 +99,7 @@ class RundownModel(NXViewModel):
     def refresh_assets(self, assets):
         for row in range(len(self.object_data)):
             if self.object_data[row].object_type == "item" and self.object_data[row]["id_asset"] in assets:
-                self.object_data[row].asset = asset_cache[self.object_data[row]["id_asset"]]
+                self.object_data[row]._asset = asset_cache[self.object_data[row]["id_asset"]]
                 self.dataChanged.emit(self.index(row, 0), self.index(row, len(self.header_data)-1))
 
     def refresh_items(self, items):
@@ -136,11 +136,11 @@ class RundownModel(NXViewModel):
         encodedIData = json.dumps([i.meta for i in data])
         mimeData.setData("application/nx.item", encodedIData)
 
-        encodedAData = json.dumps([i.get_asset().meta for i in data])
+        encodedAData = json.dumps([i.asset.meta for i in data])
         mimeData.setData("application/nx.asset", encodedAData)
 
         try:
-            urls =[QUrl.fromLocalFile(item.get_asset().get_file_path()) for item in data]
+            urls =[QUrl.fromLocalFile(item.asset.file_path) for item in data]
             mimeData.setUrls(urls)
         except:
             pass

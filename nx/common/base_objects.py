@@ -5,8 +5,6 @@ from nx.common import *
 from nx.connection import *
 from nx.common.metadata import MetaType, meta_types
 
-__all__ = ["NXObject"]
-
 class BaseObject(object):
     object_type = "asset"
 
@@ -22,6 +20,7 @@ class BaseObject(object):
         self._cache = kwargs.get("cache", False)
         
         if "from_data" in kwargs:
+            assert hasattr(kwargs["from_data"], "keys")
             self.meta = kwargs["from_data"]
             self.id = self.meta.get("id_object", False)
             self._loaded = True
@@ -32,7 +31,8 @@ class BaseObject(object):
             else:
                 self._new()
 
-
+    def keys(self):
+        return self.meta.keys()
 
     def id_object_type(self):
         return OBJECT_TYPES[self.object_type]
@@ -116,12 +116,10 @@ class BaseAsset(BaseObject):
             self["mark_out"] = new_val
         return self["mark_out"]
         
-    def get_file_path(self):
-        # DEPRECATED
+    def get_file_path(self): # DEPRECATED
         return self.file_path
 
-    def get_duration(self):
-        # DEPRECATED
+    def get_duration(self): # DEPRECATED
         return self.duration
 
     @property
@@ -133,7 +131,6 @@ class BaseAsset(BaseObject):
 
     @property
     def duration(self):
-        # DEPRECATED
         dur = float(self.meta.get("duration",0))
         mki = float(self.meta.get("mark_in" ,0))
         mko = float(self.meta.get("mark_out",0))
@@ -146,7 +143,7 @@ class BaseAsset(BaseObject):
 
 class BaseItem(BaseObject):
     object_type = "item"
-    asset = None
+    _asset = False
 
     def _new(self):
         self["id_bin"]    = False
@@ -158,8 +155,8 @@ class BaseItem(BaseObject):
         if key == "id_object":
             return self.id
         if not key in self.meta :
-            if self.get_asset():
-                return self.get_asset()[key]
+            if self.asset:
+                return self.asset[key]
             else:
                 return False
         return self.meta[key]
@@ -174,13 +171,30 @@ class BaseItem(BaseObject):
             self["mark_out"] = new_val
         return self["mark_out"]
 
-    def get_asset(self):
+    def get_asset(self): # DEPRECATED
+        return self.asset
+
+    def get_duration(self): # DEPRECATED
+        return self.duration
+
+    @property
+    def asset(self):
         pass
 
-    def get_duration(self):
+    @property
+    def bin(self):
+        pass
+
+    @property
+    def event(self):
+        pass
+
+    @property
+    def duration(self):
+        """Final duration of the item"""
         if not self["id_asset"]: 
             return self.mark_out() - self.mark_in()
-        dur = self.get_asset()["duration"]
+        dur = self.asset["duration"]
         if not dur:
             return 0
         mark_in  = self.mark_in()
@@ -202,8 +216,8 @@ class BaseBin(BaseObject):
 
 class BaseEvent(BaseObject):
     object_type = "event"
-    bin        = False
-    asset      = False
+    _bin        = False
+    _asset      = False
 
     def _new(self):
         self["start"]      = 0

@@ -53,14 +53,9 @@ class EmptyAsset():
 
 
 class Item(BaseItem, NXCellFormat):
-    def get_asset(self):
-        if not self.asset:
-            if self.meta.get("id_asset", 0) > 0:
-                self.asset = Asset(self["id_asset"])
-            else:
-                self.asset = EmptyAsset()
-
-        return self.asset
+    @property 
+    def asset(self):
+        return self._asset
 
 
 class Bin(BaseBin, NXCellFormat):

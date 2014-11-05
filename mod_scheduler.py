@@ -41,9 +41,6 @@ def scheduler_toolbar(wnd):
 
     toolbar.addSeparator()
 
-    #runs = QActionGroup(wnd)
-    #runs.setCheckable(True)
-
     wnd.action_show_runs = QAction(QIcon(pixlib["repeat"]), '&Show runs', wnd)        
     wnd.action_show_runs.setStatusTip('Show runs')
     wnd.action_show_runs.setCheckable(True)

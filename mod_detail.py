@@ -39,6 +39,10 @@ class DetailTabMain(QWidget):
             else:
                 self.tags = config["folders"][obj["id_folder"]][2]
 
+            if obj["status"] == OFFLINE:
+                self.tags.append(("duration", False))
+
+
             if self.form:
                 # SRSLY. I've no idea what I'm doing here
                 self.layout.removeWidget(self.form)

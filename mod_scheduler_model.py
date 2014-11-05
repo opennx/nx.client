@@ -667,10 +667,6 @@ class TXCalendar(QWidget):
             )
 
         if success(res):
-            #for event_data in data["events"]:
-            #    e = Event(from_data=event_data)
-            #    self.events.append(e)
-
             self.clock_bar.day_start = self.day_start
             self.clock_bar.update()
 
