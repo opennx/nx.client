@@ -154,9 +154,9 @@ class NXE_datetime(QLineEdit):
 
 class NXE_text(QLineEdit):
     def set_value(self, value):
+        self.default = value
         if value == self.get_value():
             return
-        self.default = value
         self.setText(str(value))
 
     def get_value(self):
