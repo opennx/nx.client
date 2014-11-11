@@ -280,12 +280,14 @@ class TXDayWidget(TXVerticalBar):
                     start=time.strftime("%H:%M",time.localtime(event["start"]))
                     ))
                 break
+            self.cursor_event = False
         else:
             self.cursor_event = False
+            return
 
         if e.buttons() != Qt.LeftButton:
             return
-        
+    
         self.calendar.drag_offset = ts - event["start"]
         print(self.calendar.drag_offset, event["duration"])
         if self.calendar.drag_offset > event["duration"]:
