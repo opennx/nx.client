@@ -283,8 +283,10 @@ class MetaEditor(QWidget):
                 else:
                     settings = meta_types[tag].settings
 
-                #self.inputs[tag] = NXE_select(self, settings)
-                self.inputs[tag] = NXE_radio(self, settings)
+                if len(settings) > 10:
+                    self.inputs[tag] = NXE_select(self, settings)
+                else:
+                    self.inputs[tag] = NXE_radio(self, settings)
 
             elif meta_types[tag].class_ in [TIMECODE]:
                 self.inputs[tag] = NXE_timecode(self)
