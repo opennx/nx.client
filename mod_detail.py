@@ -15,6 +15,7 @@ class DetailTabMain(QWidget):
         self.layout = QVBoxLayout()
         self.form = False
         self.id_folder = False
+        self.status = -1
 
 
         self.scroll_area = QScrollArea(self)
@@ -33,13 +34,13 @@ class DetailTabMain(QWidget):
 
 
     def load(self, obj):
-        if obj["id_folder"] != self.id_folder:
+        if obj["id_folder"] != self.id_folder or obj["status"] != self.status:
             if obj["id_folder"] == 0:
                 self.tags = []
             else:
                 self.tags = config["folders"][obj["id_folder"]][2]
 
-            if obj["status"] == OFFLINE:
+            if obj["status"] == OFFLINE and not ("duration", False) in self.tags:
                 self.tags.append(("duration", False))
 
 
@@ -57,6 +58,7 @@ class DetailTabMain(QWidget):
             self.form = MetaEditor(self, self.tags)
             self.layout.addWidget(self.form)
             self.id_folder = obj["id_folder"]
+            self.status = obj["status"]
 
         for tag, conf in self.tags:
             self.form[tag] = obj[tag]
@@ -338,6 +340,12 @@ class Detail(BaseWidget):
         stat, res = query("set_meta", objects=[self.object.id], data=data)
         if not success(stat):
             QMessageBox.critical(self, "Error", res)
+        else:
+            if not self.object.id:
+                obj = Asset(from_data=res)
+                asset_cache[obj.id] = obj
+                self.focus([obj], silent=True)
+
 
     def on_revert(self):
         if self.object:
@@ -354,7 +362,7 @@ class Detail(BaseWidget):
 
     def seismic_handler(self, data):
         if data.method == "objects_changed" and data.data["object_type"] == "asset" and self.object: 
-            if self.object.id in data.data["objects"]:
+            if self.object.id in data.data["objects"] and self.object.id:
                 self.focus([asset_cache[self.object.id]], silent=True)
 
 
