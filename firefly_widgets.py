@@ -288,7 +288,11 @@ class MetaEditor(QWidget):
                 else:
                     self.inputs[tag] = NXE_radio(self, settings)
 
-            elif meta_types[tag].class_ in [TIMECODE]:
+
+            elif meta_types[tag].class_ == BOOLEAN:
+                self.inputs[tag] = NXE_radio(self, [[1,"Yes"],[0,"No"]])
+
+            elif meta_types[tag].class_ == TIMECODE:
                 self.inputs[tag] = NXE_timecode(self)
 
             else:
