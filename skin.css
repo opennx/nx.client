@@ -112,6 +112,11 @@ QLineEdit, QTextEdit, QComboBox, QPushButton {
     min-height: 24px;
     }
 
+
+QLineEdit:!enabled, QTextEdit:!enabled, QComboBox:!enabled, QPushButton:!enabled {
+    color : #646464;
+}
+
 QPushButton:checked{
     background : QLinearGradient(x1: 0, y1: 0,x2: 0, y2: 1,  stop: 0 #009fbc, stop: 1 #00a5c3);
     color: #000000;
