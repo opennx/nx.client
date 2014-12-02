@@ -230,6 +230,18 @@ class NXCellFormat():
             else:
                 return s2time(value)
 
+        elif mtype.class_ in [CS_ENUM, CS_SELECT]:
+            if not value:
+                return ""
+            cs = {key : val for key, val in config["cs"].get(mtype.settings, [])}
+            label = cs.get(value, False)
+            #value, label =  {key : val for key, val in cs } .get(value, ("No CS value",False))
+            return label or value
+
+        elif mtype.class_ == [ENUM, SELECT]:
+            return value # FIXME
+            #return mtype.settings.get()[1] or mtype.settings[0]
+
         return value 
 
 
@@ -239,7 +251,6 @@ class NXCellFormat():
         #    if res:
         #        return res
         if key in meta_types:# and meta_types[key].editable:
-            print ("Edyt pyco")
             return key, meta_types[key].class_, meta_types[key].settings, self
         return key, "NOEDIT", False, self
 
