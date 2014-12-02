@@ -40,10 +40,6 @@ class DetailTabMain(QWidget):
             else:
                 self.tags = config["folders"][obj["id_folder"]][2]
 
-            if obj["status"] == OFFLINE and not ("duration", False) in self.tags:
-                self.tags.append(("duration", False))
-
-
             if self.form:
                 # SRSLY. I've no idea what I'm doing here
                 self.layout.removeWidget(self.form)
@@ -194,6 +190,11 @@ def detail_toolbar(wnd):
 
     toolbar.addSeparator()
 
+    wnd.duration =  NXE_timecode(wnd)
+    toolbar.addWidget(wnd.duration)
+
+    toolbar.addSeparator()
+
     wnd.action_approve = QAction(QIcon(pixlib["qc_approved"]),'Approve', wnd)        
     wnd.action_approve.setShortcut('Y')
     wnd.action_approve.triggered.connect(wnd.on_approve)
@@ -264,7 +265,6 @@ class Detail(BaseWidget):
     def focus(self, objects, silent=False):
         if len(objects) == 1 and objects[0].object_type in ["asset"]:
 
-
             if self._is_loading:
                 self._load_queue = objects
                 return
@@ -297,8 +297,19 @@ class Detail(BaseWidget):
                     self.object[tag] = objects[0][tag]
 
             self.detail_tabs.load(self.object)
-            
             self.folder_select.set_value(self.object["id_folder"])
+
+            if self.object.object_type in ["asset", "item"]:
+                if self.object["content_type"] in [VIDEO, AUDIO]:
+                    self.duration.set_value(self.object.duration)
+                    self.duration.show()
+                    if self.object["status"] == OFFLINE:
+                        self.duration.setEnabled(True)
+                    else:
+                        self.duration.setEnabled(False)
+                else:
+                    self.duration.hide()
+
             
             self.action_approve.setEnabled(True)
             self.action_qc_reset.setEnabled(True)
@@ -337,6 +348,8 @@ class Detail(BaseWidget):
         data = {"id_folder":self.folder_select.get_value()}
         for key in self.form.inputs:
             data[key] = self.form[key]
+        if self.duration.isEnabled():
+            data["duration"] = self.duration.get_value()
         stat, res = query("set_meta", objects=[self.object.id], data=data)
         if not success(stat):
             QMessageBox.critical(self, "Error", res)
