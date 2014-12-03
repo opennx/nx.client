@@ -26,6 +26,7 @@ from mod_scheduler import Scheduler
 from mod_teleprompter import Teleprompter
 
 from nx.objects import Asset
+from nx.connection import AUTH_KEY
 
 class Firefly(QMainWindow):
     def __init__(self, parent):
@@ -254,6 +255,10 @@ class Firefly(QMainWindow):
             if d.class_ in ["rundown", "scheduler"]:
                 d.main_widget.set_channel(id_channel)
 
+    def on_send_message(self):
+        msg, ok = QInputDialog.getText(self, "Send message", "Text", QLineEdit.Normal)
+        if ok and msg:
+            query("message", message=msg)
 
 
     ## Menu actions
@@ -274,6 +279,13 @@ class Firefly(QMainWindow):
             if aids:
                 self.status ("{} has been changed by {}".format(asset_cache[aids[0]], data.data.get("user", "anonymous"))  )
                 self.update_assets(aids)
+
+        elif data.method == "firefly_shutdown":
+            sys.exit(0)
+
+        if data.method == "message" and data.data["sender"] != AUTH_KEY:
+            QMessageBox.information(self, "Message", data.data["message"])
+            return 
 
         for dock in self.docks:
             if dock.class_ == "rundown" and data.method in ["playout_status", "job_progress", "objects_changed"]:

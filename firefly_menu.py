@@ -31,6 +31,11 @@ def create_menu(wnd):
     action_dlg_system.triggered.connect(wnd.on_dlg_system)
     menu_file.addAction(action_dlg_system)
 
+    action_send_message = QAction('Send &message', wnd)        
+    action_send_message.setStatusTip('Send message to other users')
+    action_send_message.triggered.connect(wnd.on_send_message)
+    menu_file.addAction(action_send_message)
+
     menu_file.addSeparator()
 
     action_logout = QAction('L&ogout', wnd)        
