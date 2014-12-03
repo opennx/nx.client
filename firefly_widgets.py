@@ -105,15 +105,8 @@ class NXE_timecode(QLineEdit):
         self.setCursorPosition(0)
 
     def get_value(self):
-        try:
-            hh,mm,ss = self.text().split(":")
-            hh = int(hh)
-            mm = int(mm)
-            ss = float(ss)
-            secs = (hh*3600) + (mm*60) + ss
-        except:
-            secs = self.default
-        return secs
+        hh, mm, ss, ff = [int(i) for i in self.text().split(":")]
+        return (hh*3600) + (mm*60) + ss + (ff/25.0) #FIXME: FPS
 
 
 class NXE_datetime(QLineEdit):
