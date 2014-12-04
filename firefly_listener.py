@@ -81,6 +81,7 @@ class SeismicListener(QThread):
                 
             self.last_msg = time.time()
 
+
             if message.method == "objects_changed":
                 for i, m in enumerate(self.queue):
                     if m.method == "objects_changed" and m.data["object_type"] == message.data["object_type"]:
@@ -90,14 +91,17 @@ class SeismicListener(QThread):
                     self.queue.append(message)
 
             elif message.method == "playout_status":
-               # for i, m in enumerate(self.queue):
-               #     if m.method == "playout_status":
-               #         self.queue[i] = message
-               #         break
-               # else:
+                for i, m in enumerate(self.queue):
+                    if m.method == "playout_status":
+                        self.queue[i] = message
+                        break
+                else:
                     self.queue.append(message)
 
             #elif message.method == "job_progress":
+            elif message.method == "firefly_shutdown":
+                sys.exit(0)
+
             else:
                 self.queue.append(message)
                 

@@ -280,9 +280,6 @@ class Firefly(QMainWindow):
                 self.status ("{} has been changed by {}".format(asset_cache[aids[0]], data.data.get("user", "anonymous"))  )
                 self.update_assets(aids)
 
-        elif data.method == "firefly_shutdown":
-            sys.exit(0)
-
         if data.method == "message" and data.data["sender"] != AUTH_KEY:
             QMessageBox.information(self, "Message", data.data["message"])
             return 
