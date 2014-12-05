@@ -7,6 +7,7 @@ from firefly_common import *
 from firefly_view import *
 
 from mod_rundown_onair import OnAir
+from mod_rundown_cg import CG
 from mod_rundown_model import RundownModel
 
 from dlg_sendto import SendTo
@@ -68,6 +69,26 @@ class LeadOutButton(QToolButton):
         if drag.exec_(Qt.CopyAction):
             pass # nejak to rozumne ukoncit
 
+class PlaceholderButton(QToolButton):
+    def __init__(self, parent):
+        super(PlaceholderButton, self).__init__() 
+        self.pressed.connect(self.startDrag)
+        self.setIcon(QIcon(pixlib["placeholder"]))
+        self.setToolTip("Drag this to rundown to create placeholder.")
+
+    def startDrag(self):
+        drag = QDrag(self);
+        mimeData = QMimeData()
+        mimeData.setData(
+           "application/nx.item",
+           '[{"item_role":"placeholder", "title":"Placeholder"}]'
+           )
+        drag.setMimeData(mimeData)
+        if drag.exec_(Qt.CopyAction):
+            pass # nejak to rozumne ukoncit
+
+
+
 
 
 def rundown_toolbar(wnd):
@@ -108,6 +129,13 @@ def rundown_toolbar(wnd):
     action_toggle_mcr.triggered.connect(wnd.on_toggle_mcr)
     toolbar.addAction(action_toggle_mcr)
 
+    action_toggle_cg = QAction(QIcon(pixlib["cg"]), '&CG controls', wnd)        
+    action_toggle_cg.setShortcut('F4')
+    action_toggle_cg.setStatusTip('Toggle CG controls')
+    action_toggle_cg.triggered.connect(wnd.on_toggle_cg)
+    toolbar.addAction(action_toggle_cg)
+
+
     action_toggle_tools = QAction(QIcon(pixlib["tools"]), '&Rundown tools', wnd)        
     action_toggle_tools.setStatusTip('Toggle rundown tools')
     action_toggle_tools.triggered.connect(wnd.on_toggle_tools)
@@ -126,6 +154,7 @@ def items_toolbar(wnd):
     toolbar = QToolBar(wnd)
     toolbar.addWidget(LeadInButton(wnd))
     toolbar.addWidget(LeadOutButton(wnd))
+    toolbar.addWidget(PlaceholderButton(wnd))
     return toolbar
 
 
@@ -250,10 +279,10 @@ class RundownView(NXView):
             action_delete.triggered.connect(self.on_delete)
             menu.addAction(action_delete)
             
-#                action_edit = QAction('&Edit', self)        
-#                action_edit.setStatusTip('Edit selected event')
-#                action_edit.triggered.connect(self.on_edit_event)
-#                menu.addAction(action_edit)
+        #                action_edit = QAction('&Edit', self)        
+        #                action_edit.setStatusTip('Edit selected event')
+        #                action_edit.triggered.connect(self.on_edit_event)
+        #                menu.addAction(action_edit)
 
         menu.addSeparator()
 
@@ -374,10 +403,7 @@ class RundownView(NXView):
         pass
         #TODO
 
-    def on_toggle_run_mode(self):
-        obj = self.selected_objects[0]
-        print (obj)
-        #TODO
+  
 
 
     def on_activate(self, mi):
@@ -399,15 +425,15 @@ class Rundown(BaseWidget):
         self.current_item = False
         self.cued_item = False
 
-        if "user is allowed to use MCR": #TODO
-            self.mcr = OnAir(self)
-        else:
-            self.mcr = False
+        
 
         self.view  = RundownView(self)
         self.model = RundownModel(self)
 
         self.view.setModel(self.model)
+
+        self.mcr = OnAir(self)
+        self.cg = CG(self)
 
         toolbar = rundown_toolbar(self)
         self.items_toolbar = items_toolbar(self)
@@ -418,6 +444,7 @@ class Rundown(BaseWidget):
         layout.addWidget(toolbar, 0)
         layout.addWidget(self.items_toolbar, 0)
         layout.addWidget(self.mcr)
+        layout.addWidget(self.cg)
         layout.addWidget(self.view, 1)
 
         self.setLayout(layout)
@@ -431,6 +458,7 @@ class Rundown(BaseWidget):
         state["c"] = self.model.header_data
         state["cw"] = self.view.horizontalHeader().saveState()
         state["mcr"] = self.mcr.isVisible()
+        state["cg"] = self.cg.isVisible()
         state["items_toolbar"] = self.items_toolbar.isVisible()
         return state
 
@@ -450,6 +478,12 @@ class Rundown(BaseWidget):
             self.mcr.show()
         else:
             self.mcr.hide()
+
+        if state.get("cg", False):
+            self.cg.show()
+        else:
+            self.cg.hide()
+
 
         if state.get("items_toolbar", False):
             self.items_toolbar.show()
@@ -578,6 +612,15 @@ class Rundown(BaseWidget):
                 self.mcr.hide()
             else:
                 self.mcr.show()
+
+
+    def on_toggle_cg(self):
+        if self.cg:
+            if self.cg.isVisible():
+                self.cg.hide()
+            else:
+                self.cg.show()
+
 
     def on_toggle_tools(self):
         if self.items_toolbar.isVisible():
