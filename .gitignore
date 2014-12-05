@@ -36,3 +36,7 @@ nosetests.xml
 .pydevproject
 
 local_settings.json
+.state.*
+.firefly.qrc
+_other/
+_res/
