@@ -99,8 +99,6 @@ class SeismicListener(QThread):
                     self.queue.append(message)
 
             #elif message.method == "job_progress":
-            elif message.method == "firefly_shutdown":
-                sys.exit(0)
 
             else:
                 self.queue.append(message)

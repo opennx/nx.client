@@ -284,6 +284,11 @@ class Firefly(QMainWindow):
             QMessageBox.information(self, "Message", data.data["message"])
             return 
 
+        elif data.method == "firefly_shutdown":
+                print ("Remote shutdown")
+                sys.exit(0)
+
+
         for dock in self.docks:
             if dock.class_ == "rundown" and data.method in ["playout_status", "job_progress", "objects_changed"]:
                 pass
