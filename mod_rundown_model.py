@@ -4,6 +4,39 @@ from firefly_view import *
 from nx.objects import *
 
 
+class PlaceholderDialog(QDialog):
+    def __init__(self,  parent):
+        super(PlaceholderDialog, self).__init__(parent)
+        self.setModal(True)
+        self.setStyleSheet(base_css)
+        self.setWindowTitle("Create placeholder")
+
+        self.ok = False
+        self.title = NXE_text(self)
+        self.title.set_value("Placeholder")
+
+        self.duration = NXE_timecode(self)
+        self.duration.set_value(3600)
+
+        self.btn_submit = QPushButton("Save")
+        self.btn_submit.clicked.connect(self.on_submit)
+
+        layout = QFormLayout()
+        layout.addRow("Title", self.title)
+        layout.addRow("Duration", self.duration)
+        layout.addRow("", self.btn_submit)
+
+        self.setLayout(layout)
+        self.setMinimumWidth(400)
+
+
+
+    def on_submit(self):
+        self.ok = True
+        self.close()
+
+
+
 class RundownModel(NXViewModel):
     def load(self, id_channel, start_time):
         self.id_channel = id_channel
@@ -166,6 +199,14 @@ class RundownModel(NXViewModel):
                 return False
             else:
                 for obj in items:
+                    if not obj.get("id_object", False) and obj.get("item_role", False) == "placeholder":
+                        dlg = PlaceholderDialog(self.parent())
+                        dlg.exec_()
+                        if not dlg.ok:
+                            return
+                        obj["title"] = dlg.title.get_value()
+                        obj["duration"] = dlg.duration.get_value() 
+
                     drop_objects.append(Item(from_data=obj))
             
         elif data.hasFormat("application/nx.asset"):
