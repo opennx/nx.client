@@ -380,7 +380,7 @@ class TXDayWidget(TXVerticalBar):
                 dlg = EventDialog(self,
                         asset=self.calendar.dragging,
                         id_channel=self.id_channel,
-                        timestamp=drop_tc
+                        start=drop_tc
                     )
                 dlg.exec_()
             else:
@@ -400,7 +400,7 @@ class TXDayWidget(TXVerticalBar):
                 # Create empty event. Event edit dialog is enforced.
                 dlg = EventDialog(self,
                         id_channel=self.id_channel,
-                        timestamp=drop_tc
+                        start=drop_tc
                     )
                 dlg.exec_()
             else:

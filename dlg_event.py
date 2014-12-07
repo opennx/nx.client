@@ -4,17 +4,19 @@ import datetime
 from firefly_common import *
 from firefly_widgets import *
 
+from nx.objects import Event
 
-class RunsModel(QAbstractListModel):
-    def __init__(self, parent=None):
-        super(RunsModel, self).__init__(parent)
-        self.object_data = ["13456"]
 
-    def rowCount(self ,parent):
-        return len(self.object_data)
+#class RunsModel(QAbstractListModel):
+#    def __init__(self, parent=None):
+#        super(RunsModel, self).__init__(parent)
+#        self.object_data = ["13456"]
+#
+#    def rowCount(self ,parent):
+#        return len(self.object_data)
 
-class RunsView(QListView):
-    pass
+#class RunsView(QListView):
+#    pass
 
 
 
@@ -24,15 +26,15 @@ def event_toolbar(wnd):
     toolbar.setMovable(False)
     toolbar.setFloatable(False)
 
-    action_add_run = QAction(QIcon(pixlib["add"]), 'Add run', wnd)
-    action_add_run.setShortcut('+')
-    action_add_run.triggered.connect(wnd.on_add_run)
-    toolbar.addAction(action_add_run)
+    #action_add_run = QAction(QIcon(pixlib["add"]), 'Add run', wnd)
+    #action_add_run.setShortcut('+')
+    #action_add_run.triggered.connect(wnd.on_add_run)
+    #toolbar.addAction(action_add_run)
 
-    action_remove_event = QAction(QIcon(pixlib["remove"]), 'Remove selected run', wnd)
-    action_remove_event.setShortcut('-')
-    action_remove_event.triggered.connect(wnd.on_remove_run)
-    toolbar.addAction(action_remove_event)
+    #action_remove_event = QAction(QIcon(pixlib["remove"]), 'Remove selected run', wnd)
+    #action_remove_event.setShortcut('-')
+    #action_remove_event.triggered.connect(wnd.on_remove_run)
+    #toolbar.addAction(action_remove_event)
 
     toolbar.addWidget(ToolBarStretcher(toolbar))
 
@@ -50,70 +52,72 @@ def event_toolbar(wnd):
 
 
 
+class EventForm(QWidget):
+    def __init__(self, parent, event):
+        super(EventForm, self).__init__(parent)
+
+        layout = QFormLayout()
+        self.data = {}
+
+        for key, title, widget in [
+            ("start", "Start", NXE_datetime), 
+            ("title", "Title", NXE_text), 
+            ("title/subtitle", "Subtitle", NXE_text), 
+            ("description", "Description", NXE_blob)
+            ]: # TODO: load title and widget from metatypes somehow
+
+            self.data[key] = widget(self)
+            if event[key]:
+                self.data[key].set_value(event[key])
+
+            layout.addRow(title, self.data[key])
+
+        self.setLayout(layout)
+
+    def keys(self):
+        return self.data.keys()
+
+    def __getitem__(self, key):
+        if not key in self.keys():
+            return False
+
+        return self.data[key].get_value()
+
+
+
 class EventDialog(QDialog):
     def __init__(self,  parent, **kwargs):
         super(EventDialog, self).__init__(parent)
-        self.setStyleSheet(base_css)
-        self.setWindowTitle("New event")
+        self.setWindowTitle("Scheduler")
         self.kwargs = kwargs
-
-        self.event_meta = [
-            ["title", True],
-            ["title/subtitle", False],
-            ["description", False]
-            ]
+        self.setStyleSheet(base_css)
 
         self.toolbar = event_toolbar(self)
-        self.meta_editor = MetaEditor(self, self.event_meta)
 
-        self.id_channel = self.kwargs.get("id_channel", False)
-        self.id_event = False
-        self.base_ts = False
+        self.event = kwargs.get("event", Event())
 
-        if "event" in self.kwargs:
-            event = self.kwargs["event"]
-            self.setWindowTitle(event.__repr__())
+        for key in ["start", "id_channel"]:
+            if kwargs.get(key, False):
+                event[key] = kwargs[key]
 
-            for tag, conf in self.event_meta:
-                if event[tag]:
-                    self.meta_editor[tag] = event[tag]
-
-            self.base_ts  = event["start"]
-            self.id_asset = event.meta.get("id_asset", False)
-            self.id_event = event.id
             
-        elif "asset" in self.kwargs:
+        if "asset" in self.kwargs:
             asset = self.kwargs["asset"]
-            self.id_asset = asset.id
+            self.form.title.set_value(asset["title"])
+            self.form.description.set_value(asset["description"])
 
-            for tag, conf in self.event_meta:
-                if asset[tag]:
-                    self.meta_editor[tag] = asset[tag]
-
-            self.setWindowTitle("New event ({})".format(asset["title"]))
-
-        if "timestamp" in self.kwargs:
-            self.base_ts = self.kwargs["timestamp"]
-
-        self.runs_model = RunsModel(self)
-        self.runs_view = RunsView(self)
-        self.runs_view.setModel(self.runs_model)
-
+        self.form = EventForm(self, self.event)
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
         layout.setSpacing(5)
 
         layout.addWidget(self.toolbar, 1)
-        layout.addWidget(self.meta_editor, 2)
-        layout.addWidget(self.runs_view, 2)
+        layout.addWidget(self.form, 2)
 
         self.setLayout(layout)
         self.load_state()
         self.setModal(True)
-
-
-
 
 
 
@@ -130,7 +134,6 @@ class EventDialog(QDialog):
 
     def on_cancel(self):
         self.close()
-        self.setResult(QDialog.Rejected)
 
     def closeEvent(self, event):
          self.save_state()
@@ -138,37 +141,15 @@ class EventDialog(QDialog):
 
 
 
-
-
-
     def on_accept(self):
-        events = []
-        for run in self.runs_model.object_data:
+        for key in self.form.keys():
+            value = self.form[key]
+            if value:
+                self.event[key] = self.form[key]
 
-            data = {}
-            if "event" in self.kwargs:
-                data["id_object"] = self.kwargs["event"].id
-            elif "asset" in self.kwargs:
-                data["id_asset"] = self.kwargs["asset"].id
+        stat, res = query("set_events", 
+                id_channel=self.event["id_channel"],
+                events=[self.event.meta]
+                    )
 
-            for tag, conf in self.event_meta:
-                if self.meta_editor[tag]:
-                    data[tag] = self.meta_editor[tag]
-
-            data["start"] = self.form.timestamp.get_value()
-            data["id_channel"] = self.id_channel
-            events.append(data)
-
-
-        stat, res = query("set_events", events=events)
-        self.setResult(QDialog.Accepted)
         self.close()
-
-
-
-    def on_add_run(self):
-        pass
-
-
-    def on_remove_run(self):
-        pass
