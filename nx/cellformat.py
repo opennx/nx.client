@@ -135,6 +135,22 @@ class TagRundownScheduled(TagFormat):
 class TagRundownBroadcast(TagRundownScheduled):
     tag = "rundown_broadcast"
 
+
+class TagRundownDifference(TagFormat):
+    tag = "rundown_difference"
+    def display(self, obj):
+        if obj["rundown_broadcast"] and obj["rundown_scheduled"]:
+            diff = obj["rundown_broadcast"] - obj["rundown_scheduled"]
+            if -30 <= diff < 120:
+                return None
+            return s2time(abs(diff), show_fracs=False)
+
+    def foreground(self, obj):
+        if obj["rundown_broadcast"] and obj["rundown_scheduled"]:
+            diff = obj["rundown_broadcast"] - obj["rundown_scheduled"]
+            return ["#ff0000", "#00ff00"][diff >= 0]
+
+
 class TagRunMode(TagFormat):
     tag = "run_mode"
     def display(self, obj):
@@ -180,6 +196,7 @@ format_helpers_list = [
     TagRundownStatus,
     TagRundownScheduled,
     TagRundownBroadcast,
+    TagRundownDifference,
     TagRunMode,
     TagState
     ]
