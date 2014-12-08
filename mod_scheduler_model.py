@@ -621,7 +621,7 @@ class TXCalendar(QWidget):
         layout.addWidget(self.scroll_area,1)
         layout.addWidget(self.zoom,0)
         self.setLayout(layout)
-        self.setMinimumHeight(600)
+        self.setMinimumHeight(450)
 
 
     def on_zoom(self):
