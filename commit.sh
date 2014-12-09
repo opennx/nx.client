@@ -6,6 +6,7 @@ chmod 644 README.md
 chmod 644 *.py
 chmod 644 *.css
 chmod 755 firefly.py
+chmod 755 commit.sh
 
 chmod 755 images
 chmod 644 images/*.*
