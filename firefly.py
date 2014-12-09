@@ -281,7 +281,7 @@ class Firefly(QMainWindow):
                 self.update_assets(aids)
 
         if data.method == "message" and data.data["sender"] != AUTH_KEY:
-            QMessageBox.information(self, "Message", data.data["message"])
+            QMessageBox.information(self, "Message", "Message from {}\n\n{}".format(data.data["from_user"],  data.data["message"]))
             return 
 
         elif data.method == "firefly_shutdown":
