@@ -13,7 +13,7 @@ from mod_rundown_model import RundownModel
 from dlg_sendto import SendTo
 
 
-DEFAULT_COLUMNS = ["rundown_symbol", "title", "duration", "run_mode", "rundown_scheduled", "rundown_broadcast", "rundown_status", "mark_in", "mark_out", "id_asset", "id_object"]
+DEFAULT_COLUMNS = ["rundown_symbol", "title", "duration", "run_mode", "rundown_scheduled", "rundown_broadcast", "rundown_difference", "rundown_status", "mark_in", "mark_out", "id_asset", "id_object"]
 
 def day_start(ts, start):
     hh, mm = start
@@ -577,7 +577,7 @@ class Rundown(BaseWidget):
     ################################################################
     ## Toolbar actions
 
-    def set_channel(self):
+    def set_channel(self, id_channel):
         if self.id_channel != id_channel:
             self.id_channel = id_channel
             self.refresh()
