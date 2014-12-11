@@ -125,9 +125,9 @@ class BaseAsset(BaseObject):
     @property
     def file_path(self):
         try:
-            return os.path.join(storages[self["id_storage"]].get_path(), self["path"])
+            return os.path.join(storages[self["id_storage"]].local_path, self["path"])
         except:
-            return ""
+            return False
 
     @property
     def duration(self):

@@ -2,7 +2,10 @@ import sys
 
 from firefly_common import *
 from firefly_listener import SeismicListener
+from firefly_filesystem import load_filesystem
 from dlg_sites import SiteSelect
+
+
 
 class Login(QDialog):
     def __init__(self):
@@ -73,6 +76,8 @@ class Firestarter(QApplication):
         for task in self.tasks:
             task()
 
+        load_filesystem()
+        
         self.splash_message("Loading user workspace...")
         self.main_window = main_window(self)
 
