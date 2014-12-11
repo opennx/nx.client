@@ -110,39 +110,44 @@ class NXE_timecode(QLineEdit):
 
 
 class NXE_datetime(QLineEdit):
-    def __init__(self, parent, base_date=False, show_seconds=False):
+    def __init__(self, parent, **kwargs):
         super(NXE_datetime,self).__init__(parent)
-        self.show_seconds = show_seconds
-        self.base_date    = base_date
+        mode = kwargs.get("mode", "datetime")
 
-        mask = "99:99"
-        tfmt = "%H:%M"
-        if not self.base_date:
-            mask = "9999-99-99 " + mask
-            tfmt = "%Y-%m-%d " + tfmt
-        if self.show_seconds:
-            mask = mask + ":99"
-            tfmt = tfmt + ":%s"
+#        if not self.base_date:
+#            mask = "9999-99-99 " + mask
+#            tfmt = "%Y-%m-%d " + tfmt
+
+        if mode == "date":
+            self.mask   = "9999-99-99"
+            self.format = "%Y-%m-%d"
+
+        elif mode == "datetime":
+            self.mask   = "9999-99-99 99:99"
+            self.format = "%Y-%m-%d %H:%M"
+
+            if kwargs.get("show_seconds", False):
+                self.mask += ":99"
+                self.format += ":%S"
+
+        self.setInputMask(self.mask)
         
-        self.setInputMask(mask)
-        self.tfmt = tfmt
-      
     def set_value(self, timestamp):
+        self.setInputMask("")
         self.default = timestamp
         if timestamp:
             tt = time.localtime(timestamp)
+            self.setText(time.strftime(self.format, tt))
         else:
-            tt = time.localtime(time.time())
-        self.setText(time.strftime(self.tfmt, tt))
+            self.setText(self.format.replace("9","-"))
+        self.setInputMask(self.mask)
 
     def get_value(self):
-        ttext = self.text()
-        if self.base_date:
-            ttext = "{} {}".format(time.strftime("%Y-%m-%d",time.localtime(self.base_date)), ttext)
-        if not self.show_seconds:
-            ttext = "{}:00".format(ttext)
-        t = time.strptime(ttext, "%Y-%m-%d %H:%M:%S")
-        return time.mktime(t)
+        if not self.text().replace("-", ""):
+            return float(0)
+        
+        t = time.strptime(self.text(), self.format)
+        return float(time.mktime(t))
         
 
 class NXE_text(QLineEdit):
@@ -191,11 +196,7 @@ class MetaEditItemDelegate(QStyledItemDelegate):
             default_value = ""
         
         if class_ == DATETIME:
-            if settings:
-                base_date = settings.get("base_date", False)
-            else:
-                base_date = False
-            editor = NXE_datetime(parent, base_date)
+            editor = NXE_datetime(parent, **settings)
             editor.set_value(default_value or time.time())
             editor.editingFinished.connect(self.commitAndCloseEditor)
 
@@ -287,6 +288,10 @@ class MetaEditor(QWidget):
 
             elif meta_types[tag].class_ == TIMECODE:
                 self.inputs[tag] = NXE_timecode(self)
+
+
+            elif meta_types[tag].class_ == DATETIME:
+                self.inputs[tag] = NXE_datetime(self, **meta_types[tag].settings)
 
             else:
                 self.inputs[tag] = NXE_text(self)
