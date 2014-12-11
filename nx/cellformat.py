@@ -103,7 +103,10 @@ class TagRundownStatus(TagFormat):
         if obj.object_type != "item" :
             return ""
 
-        if obj["rundown_transfer_progress"] and float(obj["rundown_transfer_progress"]) > -1:
+        if obj["rundown_transfer_progress"] and float(obj["rundown_transfer_progress"]) == -1:
+            return "PENDING"
+
+        elif obj["rundown_transfer_progress"] and float(obj["rundown_transfer_progress"]) > -1:
             return "{:0.2f}%".format(float(obj["rundown_transfer_progress"]))
 
         return {
@@ -115,7 +118,7 @@ class TagRundownStatus(TagFormat):
         }.get(int(obj[self.tag]), "UNKNOWN")
 
     def foreground(self, obj):
-        if obj["rundown_transfer_progress"] and int(obj["rundown_transfer_progress"]) > -1:
+        if obj["rundown_transfer_progress"] and int(obj["rundown_transfer_progress"]) >= -1:
             return NXColors[ASSET_FG_CREATING]
 
         if obj.object_type == "item":
