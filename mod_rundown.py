@@ -509,15 +509,16 @@ class Rundown(BaseWidget):
 
 
         elif data.method == "job_progress":
-            for i, obj in enumerate(self.model.object_data):
-                if obj["id_asset"] == data.data["id_object"]:
-                    if data.data["progress"] == COMPLETED:
-                        obj["rundown_status"] = 2
-                        obj["rundown_transfer_progress"] = COMPLETED
-                    else:
-                        obj["rundown_transfer_progress"] = data.data["progress"]
-                    self.model.dataChanged.emit(self.model.index(i, 0), self.model.index(i, len(self.model.header_data)-1))
-                    self.update()
+            if data.data["id_action"] == config["playout_channels"][self.id_channel].get("send_action", False):
+                for i, obj in enumerate(self.model.object_data):
+                    if obj["id_asset"] == data.data["id_object"]:
+                        if data.data["progress"] == COMPLETED:
+                            obj["rundown_status"] = 2
+                            obj["rundown_transfer_progress"] = COMPLETED
+                        else:
+                            obj["rundown_transfer_progress"] = data.data["progress"]
+                        self.model.dataChanged.emit(self.model.index(i, 0), self.model.index(i, len(self.model.header_data)-1))
+                        self.update()
 
         elif data.method == "objects_changed" and data.data["object_type"] == "event":
             my_name = self.parent().objectName()
@@ -636,8 +637,9 @@ class Rundown(BaseWidget):
             stat, res = query("cue", self.mcr.route, id_channel=self.id_channel, id_item=obj.id)
             if not success(stat):
                 QMessageBox.critical(self, "Error", res)
+            self.view.clearSelection() 
         elif obj.object_type == "event":
-            self.on_edit_event()
+            self.view.on_edit_event()
 
 
     ## Toolbar actions
