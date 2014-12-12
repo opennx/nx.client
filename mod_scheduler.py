@@ -75,10 +75,10 @@ class Scheduler(BaseWidget):
         self.calendar.load(self.id_channel, time.time())
 
 
-    def set_channel(self):
+    def set_channel(self, id_channel):
         if self.id_channel != id_channel:
             self.id_channel = id_channel
-            self.refresh()
+            self.calendar.load(self.id_channel, self.calendar.start_time)
 
     def save_state(self):
         state = {}
