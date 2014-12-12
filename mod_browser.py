@@ -153,7 +153,8 @@ class Browser(BaseWidget):
         pass
 
     def contextMenuEvent(self, event):
-        if not self.view.selected_objects: return
+        if not self.view.selected_objects:
+            return
         menu = QMenu(self)
 
         action_focus = QAction('Focus', self)        
@@ -161,15 +162,23 @@ class Browser(BaseWidget):
         action_focus.triggered.connect(self.on_focus)
         menu.addAction(action_focus)
         
-        action_move_to_trash = QAction('Move to trash', self)        
-        action_move_to_trash.setStatusTip('Move selected asset(s) to trash')
-        action_move_to_trash.triggered.connect(self.on_trash)
-        menu.addAction(action_move_to_trash)
+        statuses = [obj["status"] for obj in self.view.selected_objects ]
 
-        action_move_to_archive = QAction('Move to archive', self)        
-        action_move_to_archive.setStatusTip('Move selected asset(s) to archive')
-        action_move_to_archive.triggered.connect(self.on_archive)
-        menu.addAction(action_move_to_archive)
+        if len(statuses) == 1 and statuses[0] == TRASHED:
+            action_untrash = QAction('Untrash', self)        
+            action_untrash.setStatusTip('Take selected asset(s) to trash')
+            action_untrash.triggered.connect(self.on_untrash)
+            menu.addAction(action_untrash)
+        else:
+            action_move_to_trash = QAction('Move to trash', self)        
+            action_move_to_trash.setStatusTip('Move selected asset(s) to trash')
+            action_move_to_trash.triggered.connect(self.on_trash)
+            menu.addAction(action_move_to_trash)
+
+        # action_move_to_archive = QAction('Move to archive', self)        
+        # action_move_to_archive.setStatusTip('Move selected asset(s) to archive')
+        # action_move_to_archive.triggered.connect(self.on_archive)
+        # menu.addAction(action_move_to_archive)
 
         action_reset = QAction('Reset', self)        
         action_reset.setStatusTip('Reload asset metadata')
@@ -207,22 +216,29 @@ class Browser(BaseWidget):
     def on_trash(self):
         ret = QMessageBox.question(self,
             "Trash",
-            "Do you really want to trash {} selected asset(s)?\n\nThis will also remove all instances from future playlists.".format(len(self.view.selected_objects)),
+            "Do you really want to trash {} selected asset(s)?".format(len(self.view.selected_objects)),
             QMessageBox.Yes | QMessageBox.No
             )
         if ret == QMessageBox.Yes:
             stat, res = query("trash", objects=[obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED]])
 
+
+    def on_untrash(self):
+        objs = [obj.id for obj in self.view.selected_objects if obj["status"] in [TRASHED]]
+        if objs:
+            stat, res = query("untrash", objects=objs)
+
+
     def on_archive(self):
         ret = QMessageBox.question(self,
             "Archive",
-            "Do you really want to move {} selected asset(s) to archive?\n\nThis will also remove all instances from future playlists.".format(len(self.view.selected_objects)),
+            "Do you really want to move {} selected asset(s) to archive?".format(len(self.view.selected_objects)),
             QMessageBox.Yes | QMessageBox.No
             )
         if ret == QMessageBox.Yes:
             QMessageBox.warning(self,
                 "Not available",
-                "This feature is not available in preview version",
+                "This feature is not available in this version",
                 QMessageBox.Cancel
                 )
 
