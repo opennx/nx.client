@@ -272,17 +272,35 @@ class Detail(BaseWidget):
                 self._load_queue = False
                 self._is_loading = True  
 
+            ###############################################
+            ## Save changes?
+
+            changed = False
             if self.form and self.object and not silent:
-                for tag in self.form.inputs:
-                    if str(self.form[tag]).strip() != str(self.object[tag]).strip().replace("\r",""):
-                        reply = QMessageBox.question(self, "Save changes?", "{} has been changed. Save changes?".format(
-                            self.object, 
-                            json.dumps(self.form[tag]), 
-                            json.dumps(self.object[tag])),
-                            QMessageBox.Yes|QMessageBox.No);
-                        if reply == QMessageBox.Yes:
-                            self.on_apply()
-                        break
+                if self.object["id_folder"] != self.folder_select.get_value():
+                    changed = True
+               # elif int(self.object["duration"]) != int(self.duration.get_value()):
+               #     changed = True
+                else:
+                    for tag in self.form.inputs:
+                        if str(self.form[tag]).strip() != str(self.object[tag]).strip().replace("\r",""):    
+                            changed = True
+                            break
+
+            if changed:
+                reply = QMessageBox.question(
+                        self, 
+                        "Save changes?", 
+                        "{} has been changed.\n\nSave changes?".format(self.object),
+                        QMessageBox.Yes | QMessageBox.No
+                        )
+
+                if reply == QMessageBox.Yes:
+                    self.on_apply()
+
+            ## Save changes?
+            ###############################################
+
 
             self.folder_select.setEnabled(True)
             if not self.object or self.object.id != objects[0].id:
@@ -339,6 +357,7 @@ class Detail(BaseWidget):
         else:
             new_asset["id_folder"] = 0
         self.object = False
+        self.duration.set_value(0)
         self.focus([new_asset])
 
 
