@@ -13,7 +13,7 @@ import socket
 import getpass
 
 AUTH_KEY = hashlib.sha256("{}:{}".format(
-    socket.gethostname(), 
+    socket.gethostname(),
     getpass.getuser()).encode("ascii")
     ).hexdigest()
 
@@ -33,14 +33,14 @@ def query(method, target="hive", handler=False, **kwargs):
 
     url = "{protocol}://{host}:{port}/{target}".format(
             protocol = ["http", "https"][config.get("hive_ssl", False)],
-            host     = config["hive_host"], 
-            port     = config["hive_port"], 
+            host     = config["hive_host"],
+            port     = config["hive_port"],
             target   = target
         )
 
-    post_data = urlencode({ 
+    post_data = urlencode({
         "method"   : method,
-        "auth_key" : AUTH_KEY, 
+        "auth_key" : AUTH_KEY,
         "params"   : json.dumps(kwargs)
         })
 
@@ -66,7 +66,7 @@ def query(method, target="hive", handler=False, **kwargs):
 
     except URLError as e:
         response = 503
-        result   = e.reason
+        result   = str(e.reason)
     except HTTPError as e:
         response = e.code
         result   = "HTTP Errror {}".format(e.code)
@@ -85,4 +85,3 @@ def query(method, target="hive", handler=False, **kwargs):
         except:
             print ("Query {} failed".format(method))
     return response, result
-    
