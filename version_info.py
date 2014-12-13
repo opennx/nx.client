@@ -1,1 +1,1 @@
-VERSION_INFO = "Firefly 4.08"
+VERSION_INFO = "Firefly 4.12"
