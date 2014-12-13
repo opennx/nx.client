@@ -98,9 +98,8 @@ class EventDialog(QDialog):
 
         for key in ["start", "id_channel"]:
             if kwargs.get(key, False):
-                event[key] = kwargs[key]
+                self.event[key] = kwargs[key]
 
-            
         if "asset" in self.kwargs:
             asset = self.kwargs["asset"]
             self.form.title.set_value(asset["title"])
