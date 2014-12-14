@@ -8,7 +8,6 @@ except:
     pass
 
 import sys
-from pprint import pprint
 
 from version_info import VERSION_INFO
 
@@ -36,13 +35,13 @@ class Firefly(QMainWindow):
         self.parent = parent
 
         self.docks = []
-        
+
         create_menu(self)
         self.setTabPosition(Qt.AllDockWidgetAreas, QTabWidget.North)
         self.setDockNestingEnabled(True)
         self.setStyleSheet(base_css)
 
-        settings = ffsettings() 
+        settings = ffsettings()
 
         self.on_change_channel(1) # todo: Load default from settings
         self.workspace_locked = settings.value("main_window/locked", False)
@@ -55,7 +54,7 @@ class Firefly(QMainWindow):
             self.create_dock(dock_data["class"], state=dock_data, show=False)
 
         if settings.contains("main_window/pos"):
-            self.move(settings.value("main_window/pos")) 
+            self.move(settings.value("main_window/pos"))
 
         if settings.contains("main_window/size"):
             self.resize(settings.value("main_window/size"))
@@ -74,7 +73,7 @@ class Firefly(QMainWindow):
         else:
             self.show()
 
-        for dock in self.docks:                
+        for dock in self.docks:
             dock.show()
 
         self.subscribers = {}
@@ -83,15 +82,12 @@ class Firefly(QMainWindow):
         self.seismic_timer.start(40)
 
         self.status("Ready")
-        pprint(config["rights"])
 
-
-            
 
     def resizeEvent(self, evt):
         if not self.isMaximized():
             self.size_helper = evt.size()
-    
+
 
     def create_dock(self, widget_class, state={}, show=True, one_instance=False):
         widget = {
@@ -106,7 +102,7 @@ class Firefly(QMainWindow):
         create = True
         if one_instance:
             for dock in self.docks:
-                if dock.class_ == widget_class:                
+                if dock.class_ == widget_class:
                     if dock.class_ == "detail":
                         if dock.hasFocus():
                             dock.main_widget.switch_tabs()
@@ -149,7 +145,7 @@ class Firefly(QMainWindow):
             else:
                 dock.setTitleBarWidget(QWidget())
         self.workspace_locked = True
-          
+
     def unlock_workspace(self):
         wdgt = QDockWidget().titleBarWidget()
         for dock in self.docks:
@@ -164,8 +160,8 @@ class Firefly(QMainWindow):
 
 
     def closeEvent(self, event):
-        settings = ffsettings() 
- 
+        settings = ffsettings()
+
         settings.remove("main_window")
         settings.setValue("main_window/state", self.saveState())
 
@@ -274,7 +270,7 @@ class Firefly(QMainWindow):
             self.handle_messaging(msg)
 
     def handle_messaging(self, data):
-        if data.method == "objects_changed" and data.data["object_type"] == "asset": 
+        if data.method == "objects_changed" and data.data["object_type"] == "asset":
             aids = [aid for aid in data.data["objects"] if aid in asset_cache.keys()]
             if aids:
                 self.status ("{} has been changed by {}".format(asset_cache[aids[0]], data.data.get("user", "anonymous"))  )
@@ -282,11 +278,11 @@ class Firefly(QMainWindow):
 
         if data.method == "message" and data.data["sender"] != AUTH_KEY:
             QMessageBox.information(self, "Message", "Message from {}\n\n{}".format(data.data["from_user"],  data.data["message"]))
-            return 
+            return
 
         elif data.method == "firefly_shutdown":
-                print ("Remote shutdown")
-                sys.exit(0)
+            logging.info("Remote shutdown")
+            sys.exit(0)
 
 
         for dock in self.docks:
@@ -320,7 +316,7 @@ class Firefly(QMainWindow):
         res, adata = query("get_assets", handler=self.update_assets_handler , asset_ids=asset_ids )
         for dock in self.docks:
             self.push_asset_data(dock)
- 
+
     def update_assets_handler(self, data):
         # Handler for asset data comming from get_assets query
         a = Asset(from_data=data)
@@ -335,4 +331,4 @@ class Firefly(QMainWindow):
 
 if __name__ == "__main__":
     app = Firestarter(Firefly)
-    app.start() 
+    app.start()

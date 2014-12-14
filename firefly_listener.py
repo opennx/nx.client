@@ -23,7 +23,6 @@ class SeismicListener(QThread):
         self.last_msg = time.time()
         self.queue = []
 
-        
     def listen(self, site_name, addr, port):
         self.site_name = site_name
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -32,8 +31,8 @@ class SeismicListener(QThread):
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 255)
         status = self.sock.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP,socket.inet_aton(addr) + socket.inet_aton("0.0.0.0"));
         self.sock.settimeout(1)
-        self.start() 
-    
+        self.start()
+
     def run(self):
         self.halted = False
         while not self._halt:
@@ -43,26 +42,20 @@ class SeismicListener(QThread):
                 pass
             else:
                 self.parse_message(data)
-                
             if time.time() - self.last_msg < 3:
                 continue
-                
             self.listen_http()
-
-        print ("Listener halted")
+        print("Listener halted")
         self.halted = True
-
 
     def listen_http(self):
         print ("Switching to HTTP listener")
-        
         url = "{protocol}://{host}:{port}/msg_subscribe?id={site_name}".format(
                 protocol  = ["http", "https"][config.get("hive_ssl", False)],
                 host      = config["hive_host"], 
                 port      = config["hive_port"], 
                 site_name = config["site_name"]
                 )
-
         try:
             with urlopen(url, timeout=3) as feed:
                 while not self._halt:
@@ -78,7 +71,6 @@ class SeismicListener(QThread):
                 return
             if addr:
                 message.address = addr
-                
             self.last_msg = time.time()
 
 
@@ -98,18 +90,14 @@ class SeismicListener(QThread):
                 else:
                     self.queue.append(message)
 
-            #elif message.method == "job_progress":
-
             else:
                 self.queue.append(message)
-                
         except:
-            print ("Malformed seismic message detected:")
-            print (data)
+            logging.warning("Malformed seismic message detected: {}".format(data))
 
 
     def halt(self):
         self._halt = True
-      
+
     def add_handler(self, handler):
         self.signal.sig.connect(handler)
