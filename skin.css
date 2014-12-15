@@ -27,6 +27,10 @@ QMenu::item:selected {
     background : QLinearGradient(x1: 0, y1: 0,x2: 0, y2: 1,  stop: 0 #009fbc, stop: 1 #00a5c3);
 }
 
+QMenu::item:!enabled {
+    color:#646464;
+}
+
 
 /**********************************************************************
                 TABLES
