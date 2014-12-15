@@ -7,10 +7,16 @@ from nx.connection import *
 
 from qt_common import *
 from firefly_rc import *
+from default_state import DEFAULT_STATE
 
 
 def ffsettings():
-    return QSettings(".state.{}.{}.nxsettings".format(socket.gethostname(), config["site_name"]), QSettings.IniFormat)
+    sfile = ".state.{}.{}.nxsettings".format(socket.gethostname(), config["site_name"])
+    if not os.path.exists(sfile):
+        f = open(sfile, "w")
+        f.write(DEFAULT_STATE)
+        f.close()
+    return QSettings(sfile, QSettings.IniFormat)
 
 def get_pix(name):
     if not name:
@@ -32,6 +38,18 @@ class Pixlib(dict):
 
 pixlib = Pixlib()
 asset_cache = {}
+
+
+
+def has_right(key, val=True):
+    """Don't worry. It's also validated server-side"""
+    if config["rights"].get("is_admin", False):
+        return True
+    key = "can/{}".format(key)
+    if not key in config["rights"]:
+        return False
+    return config["rights"] is True or (
+        type(config["rights"][key]) == list and val in config["rights"][key])
 
 
 
@@ -94,7 +112,7 @@ class BaseDock(QDockWidget):
         self.save()
         self.deleteLater()
 
-    @property 
+    @property
     def class_(self):
         return self.main_widget.__class__.__name__.lower()
 
