@@ -1,3 +1,5 @@
+from functools import partial
+
 from firefly_common import *
 from firefly_view import *
 
@@ -29,11 +31,40 @@ class PlaceholderDialog(QDialog):
         self.setLayout(layout)
         self.setMinimumWidth(400)
 
-
-
     def on_submit(self):
         self.ok = True
         self.close()
+
+
+class SubclipSelectDialog(QDialog):
+    def __init__(self,  parent, asset):
+        super(SubclipSelectDialog, self).__init__(parent)
+        self.setModal(True)
+        self.setStyleSheet(base_css)
+        self.setWindowTitle("Select {} subclip to use".format(asset))
+        self.ok = False
+
+        layout = QVBoxLayout()
+
+        btn = QPushButton("Entire clip")
+        btn.clicked.connect(partial(self.on_submit, [asset["mark_in"],asset["mark_out"]]))
+        layout.addWidget(btn)
+
+        subclips = asset.meta.get("subclips", {})
+        for subclip in subclips:
+            marks = subclips[subclip]
+            btn = QPushButton(subclip)
+            btn.clicked.connect(partial(self.on_submit, marks))
+            layout.addWidget(btn)
+
+        self.setLayout(layout)
+
+
+    def on_submit(self, marks):
+        self.marks = marks
+        self.ok = True
+        self.close()
+
 
 
 
@@ -45,11 +76,11 @@ class RundownModel(NXViewModel):
 
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        
+
         self.event_ids = [] # helper for auto refresh
 
         res, data = query("rundown", handler=self.handle_load, id_channel=id_channel, start_time=start_time)
-        if not success(res) and data: 
+        if not (success(res) and data): 
             QApplication.restoreOverrideCursor()
             return
 
@@ -82,16 +113,14 @@ class RundownModel(NXViewModel):
             elif self.object_data[row].meta != evt.meta:
                 self.object_data[row] = evt
                 changed_rows.append(row)
-                
             row += 1
 
-            
             if not edata["items"]:
                 dummy = Dummy("(no item)")
                 dummy["rundown_bin"] = current_bin
                 dummy["rundown_row"] = row
                 if reset:
-                    self.object_data.append(dummy)                    
+                    self.object_data.append(dummy)
                 elif self.object_data[row] != dummy:
                     self.object_data[row] = dummy
                     changed_rows.append(row)
@@ -114,9 +143,8 @@ class RundownModel(NXViewModel):
                     self.object_data[row] = item
                     changed_rows.append(row)
                 row += 1
-                    
+
         if required_assets:
-            print ("Rundown is requesting {} assets data".format(len(required_assets)))
             self.parent().parent().parent().update_assets(required_assets)
 
         if reset:
@@ -128,7 +156,7 @@ class RundownModel(NXViewModel):
         QApplication.restoreOverrideCursor()
         self.parent().status("Rundown loaded in {:.03f}".format(time.time()-dbg_start_time))
 
- 
+
     def refresh_assets(self, assets):
         for row in range(len(self.object_data)):
             if self.object_data[row].object_type == "item" and self.object_data[row]["id_asset"] in assets:
@@ -161,7 +189,7 @@ class RundownModel(NXViewModel):
 
     def mimeTypes(self):
         return ["application/nx.asset", "application/nx.item"]
-        
+
     def mimeData(self, indexes):
         mimeData = QMimeData()
 
@@ -188,9 +216,9 @@ class RundownModel(NXViewModel):
 
         if row < 1:
             return False
-        
+
         drop_objects = []
-        
+
         if data.hasFormat("application/nx.item"):
             iformat = ITEM
             d = data.data("application/nx.item").data()
@@ -208,7 +236,7 @@ class RundownModel(NXViewModel):
                         obj["duration"] = dlg.duration.get_value() 
 
                     drop_objects.append(Item(from_data=obj))
-            
+
         elif data.hasFormat("application/nx.asset"):
             iformat = ASSET
             d = data.data("application/nx.asset").data()
@@ -217,25 +245,25 @@ class RundownModel(NXViewModel):
                 drop_objects.append(Asset(from_data=obj))
         else:
             return False
-        
+
 
 
         pre_items = []
         dbg = []
         i = row-1   
         to_bin = self.object_data[i]["rundown_bin"]
-        
+
         while i >= 1:
             if self.object_data[i].object_type != "item" or self.object_data[i]["rundown_bin"] != to_bin: break
             p_item = self.object_data[i].id
-            
+
             if not p_item in [item.id for item in drop_objects]: 
                 pre_items.append({"object_type" : ITEM, "id_object" : p_item, "params" : {}})
                 dbg.append(self.object_data[i].id)
             i-=1
         pre_items.reverse()
-     
-        
+
+
         for obj in drop_objects: 
             if data.hasFormat("application/nx.item"):  
                 pre_items.append({"object_type" : ITEM, "id_object" : obj.id, "params" : obj.meta})
@@ -244,25 +272,18 @@ class RundownModel(NXViewModel):
             elif data.hasFormat("application/nx.asset"): 
                 mark_in = mark_out = False
 
-               # subclips = json.loads(item[1].get("Subclips","[]"))
-               # if subclips:
-               #     print "Requesting subclip for item %s" %item[0][0]
-               #     mark_in, mark_out = SelectSubclip(subclips)
-               # elif item[0][0] == -1:
-               #  
-               #     print "Requesting live item duration"
-               #     mark_in = 0
-               #     mark_out = GetTc("Enter live item duration")
-               #     if not mark_out: return False
-               #
-               # else:
-                mark_in  = obj["mark_in"]
-                mark_out = obj["mark_out"]
-                
-                params = {} 
+                if obj["subclips"]:
+                    dlg = SubclipSelectDialog(self, obj)
+                    dlg.exec_()
+                    if dlg.ok:
+                        obj["mark_in"], obj["mark_out"] = dlg.marks
+                else:
+                    mark_in  = obj["mark_in"]
+                    mark_out = obj["mark_out"]
+
+                params = {}
                 if mark_in:  params["mark_in"]  = mark_in
                 if mark_out: params["mark_out"] = mark_out
-                
                 pre_items.append({"object_type" : ASSET, "id_object" : obj.id, "params" : params}) 
 
         i = row
@@ -274,7 +295,7 @@ class RundownModel(NXViewModel):
                 pre_items.append({"object_type" : ITEM, "id_object" : p_item, "params" : {}})
                 dbg.append(self.object_data[i].id)
             i+=1
-        
+
         if pre_items:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)

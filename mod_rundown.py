@@ -163,7 +163,7 @@ class RundownView(NXView):
         super(RundownView, self).__init__(parent)
         self.delegate = MetaEditItemDelegate(self)
         self.setItemDelegate(self.delegate)
-    
+
         self.activated.connect(self.on_activate)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)       
 
@@ -229,7 +229,7 @@ class RundownView(NXView):
                 action_mode_manual.setStatusTip('Set run mode to manual')
                 action_mode_manual.triggered.connect(partial(self.on_set_mode, 1))
                 mode_menu.addAction(action_mode_manual)
-                
+
             elif obj_set[0] == "event" and len(self.selected_objects) == 1:
 
                 mode_menu = menu.addMenu("Run mode")
@@ -582,6 +582,8 @@ class Rundown(BaseWidget):
         if self.id_channel != id_channel:
             self.id_channel = id_channel
             self.refresh()
+            if self.cg:
+                self.cg.load_plugins(id_plugin)
 
     def set_date(self, start_time):
         self.start_time = start_time
