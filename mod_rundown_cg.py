@@ -36,7 +36,7 @@ class CGPlugin(QWidget):
             if slot_type == "text":
                 self.widgets.append(NXE_text(self))
                 signal = self.widgets[-1].textChanged
-            
+
             elif slot_type == "select":
                 self.widgets.append(NXE_select(self, slot["data"]))
                 signal = self.widgets[-1].currentIndexChanged
@@ -83,7 +83,7 @@ class CG(QTabWidget):
         self.plugins = []
         self.id_channel = False
         self.load_plugins(self.parent().id_channel)
-        
+
     def load_plugins(self, id_channel):
         for idx in reversed(range(self.count())):
             widget = self.widget(idx)
@@ -93,7 +93,7 @@ class CG(QTabWidget):
         self.id_channel = id_channel
         stat, plugins = query("cg_list", self.parent().mcr.route, id_channel=id_channel)
         if not success(stat):
-            print ("Unable to load CG plugins")
+            logging.warning ("Unable to load CG plugins")
             return
 
         for plugin in plugins:
