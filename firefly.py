@@ -46,6 +46,7 @@ class Firefly(QMainWindow):
         self.on_change_channel(1) # todo: Load default from settings
         self.workspace_locked = settings.value("main_window/locked", False)
 
+
         for dock_key in settings.allKeys():
             if not dock_key.startswith("docks/"):
                 continue
@@ -82,6 +83,7 @@ class Firefly(QMainWindow):
         self.seismic_timer.start(40)
 
         self.status("Ready")
+        print(config["rights"])
 
 
     def resizeEvent(self, evt):
@@ -90,14 +92,18 @@ class Firefly(QMainWindow):
 
 
     def create_dock(self, widget_class, state={}, show=True, one_instance=False):
-        widget = {
-                "browser"   : Browser,
-                "scheduler" : Scheduler,
-                "rundown"   : Rundown,
-                "preview"   : Preview,
-                "detail"    : Detail,
-                "teleprompter" : Teleprompter
+        widget, right = {
+                "browser"      : [Browser, False],
+                "scheduler"    : [Scheduler, "scheduler/view"],
+                "rundown"      : [Rundown, "rundown/view"],
+                "preview"      : [Preview, False],
+                "detail"       : [Detail, False],
+                "teleprompter" : [Teleprompter, "rundown/view"]
                 }[widget_class]
+
+        if right and not has_right(right):
+            print ("Not authorised to show {}".format(widget_class))
+            return
 
         create = True
         if one_instance:
@@ -281,7 +287,7 @@ class Firefly(QMainWindow):
             return
 
         elif data.method == "firefly_shutdown":
-            logging.info("Remote shutdown")
+            print("Remote shutdown")
             sys.exit(0)
 
 
