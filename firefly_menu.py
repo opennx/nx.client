@@ -24,6 +24,15 @@ def create_menu(wnd):
         action_new_asset.setEnabled(False)
     menu_file.addAction(action_new_asset)
 
+    action_clone_asset = QAction('&Clone asset', wnd)
+    action_clone_asset.setShortcut('Ctrl+Shift+N')
+    action_clone_asset.setStatusTip('Create new asset from current blabla')
+    action_clone_asset.triggered.connect(wnd.on_clone_asset)
+    if not has_right("asset_create"):
+        action_clone_asset.setEnabled(False)
+    menu_file.addAction(action_clone_asset)
+
+
     menu_file.addSeparator()
 
     action_dlg_system = QAction('&System manager', wnd)

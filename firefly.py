@@ -30,7 +30,7 @@ from nx.connection import AUTH_KEY
 class Firefly(QMainWindow):
     def __init__(self, parent):
         super(Firefly, self).__init__()
-        self.setWindowTitle("{} - {}".format(config["site_name"], VERSION_INFO))
+        self.setWindowTitle("{}@{} - {}".format(config["rights"]["login"], config["site_name"], VERSION_INFO))
         self.setWindowIcon(QIcon(":/images/firefly.ico"))
         self.parent = parent
 
@@ -83,7 +83,7 @@ class Firefly(QMainWindow):
         self.seismic_timer.start(40)
 
         self.status("Ready")
-        print(config["rights"])
+        #print(config["rights"])
 
 
     def resizeEvent(self, evt):
@@ -94,11 +94,11 @@ class Firefly(QMainWindow):
     def create_dock(self, widget_class, state={}, show=True, one_instance=False):
         widget, right = {
                 "browser"      : [Browser, False],
-                "scheduler"    : [Scheduler, "scheduler/view"],
-                "rundown"      : [Rundown, "rundown/view"],
+                "scheduler"    : [Scheduler, "scheduler_view"],
+                "rundown"      : [Rundown, "rundown_view"],
                 "preview"      : [Preview, False],
                 "detail"       : [Detail, False],
-                "teleprompter" : [Teleprompter, "rundown/view"]
+                "teleprompter" : [Teleprompter, "rundown_view"]
                 }[widget_class]
 
         if right and not has_right(right):
@@ -214,12 +214,17 @@ class Firefly(QMainWindow):
         dock = self.create_dock("detail", state={}, show=True, one_instance=True)
         dock.main_widget.new_asset()
 
+    def on_clone_asset(self):
+        dock = self.create_dock("detail", state={}, show=True, one_instance=True)
+        dock.main_widget.clone_asset()
+
     def on_dlg_system(self):
         self.sys_dlg = SystemDialog(self)
         self.sys_dlg.exec_()
 
     def on_logout(self):
-        pass
+        stat, res = query("logout")
+        self.close()
 
     def on_exit(self):
         self.close()
