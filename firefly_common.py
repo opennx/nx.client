@@ -11,7 +11,7 @@ from default_state import DEFAULT_STATE
 
 
 def ffsettings():
-    sfile = ".state.{}.{}.nxsettings".format(socket.gethostname(), config["site_name"])
+    sfile = "state.{}.{}.nxsettings".format(socket.gethostname(), config["site_name"])
     if not os.path.exists(sfile):
         f = open(sfile, "w")
         f.write(DEFAULT_STATE)
@@ -48,7 +48,7 @@ def has_right(key, val=True):
     key = "can/{}".format(key)
     if not key in config["rights"]:
         return False
-    return config["rights"] is True or (
+    return config["rights"][key] == True or (
         type(config["rights"][key]) == list and val in config["rights"][key])
 
 
