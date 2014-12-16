@@ -127,7 +127,7 @@ class BaseAsset(BaseObject):
         try:
             return os.path.join(storages[self["id_storage"]].local_path, self["path"])
         except:
-            return False
+            return "" # Yes. empty string. keep it this way!!! (because of os.path.exists and so on)
 
     @property
     def duration(self):
