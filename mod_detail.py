@@ -360,6 +360,19 @@ class Detail(BaseWidget):
         self.duration.set_value(0)
         self.focus([new_asset])
 
+    def clone_asset(self):
+        new_asset = Asset()
+        if self.object and self.object["id_folder"]:
+            new_asset["id_folder"] = self.object["id_folder"]
+            for key in self.form.inputs:
+                new_asset[key] = self.form[key]
+                if self.duration.isEnabled():
+                   new_asset["duration"] = self.duration.get_value()
+        else:
+            new_asset["id_folder"] = 0
+        self.object = False
+        self.focus([new_asset])
+
 
     def on_apply(self):
         if not self.form:
@@ -377,6 +390,7 @@ class Detail(BaseWidget):
                 obj = Asset(from_data=res)
                 asset_cache[obj.id] = obj
                 self.focus([obj], silent=True)
+        self.parent().setWindowTitle("Detail of {}".format(self.object))
 
 
     def on_revert(self):
