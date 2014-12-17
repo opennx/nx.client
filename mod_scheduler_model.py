@@ -370,7 +370,11 @@ class TXDayWidget(TXVerticalBar):
 
     def dropEvent(self, evt):
         drop_tc = max(self.start_time, self.round_ts(self.cursor_time - self.calendar.drag_offset))
-        if type(self.calendar.dragging) == Asset:
+        
+        if not has_right("scheduler_edit", self.id_channel):
+            QMessageBox.warning(self, "Error", "You are not allowed to modify schedule of this channel.")
+
+        elif type(self.calendar.dragging) == Asset:
 
             if evt.keyboardModifiers() & Qt.AltModifier:
                 self.status("Creating event from {} at time {}".format(
@@ -471,6 +475,10 @@ class TXDayWidget(TXVerticalBar):
 
 
     def on_delete_event(self):
+        if not has_right("scheduler_edit", self.id_channel):
+            QMessageBox.warning(self, "Error", "You are not allowed to modify schedule of this channel.")
+            return
+
         ret = QMessageBox.question(self,
             "Delete event",
             "Do you really want to delete {}?\nThis operation cannot be undone.".format(self.cursor_event),
