@@ -5,7 +5,7 @@ from firefly_listener import SeismicListener
 from firefly_filesystem import load_filesystem
 from dlg_sites import SiteSelect
 
-
+from version_info import PROTOCOL
 
 class Login(QDialog):
     def __init__(self):
@@ -17,7 +17,7 @@ class Login(QDialog):
         self.password.setEchoMode(QLineEdit.Password)
         self.btn_login = QPushButton('Login', self)
         self.btn_login.clicked.connect(self.handleLogin)
-        
+
         layout = QFormLayout(self)
         layout.addRow("Login", self.login)
         layout.addRow("Password", self.password)
@@ -26,19 +26,25 @@ class Login(QDialog):
         self.result = False
 
     def handleLogin(self):
-        stat, res = query("auth", login=self.login.text(), password=self.password.text(), host=socket.gethostname())
+        stat, res = query("auth", login=self.login.text(), password=self.password.text(), host=socket.gethostname(), protocol=PROTOCOL)
         if success(stat):
             self.result = True
             self.close()
         else:
             QMessageBox.critical(self, "Error", res)
 
+
 def check_login():
-    stat, res = query("auth")
-    if not success(stat):
+    stat, res = query("auth", protocol=PROTOCOL)
+    if success(stat):
+        return True
+    elif stat == 403:
         dlg = Login()
         dlg.exec_()
         return dlg.result
+    else:
+        QMessageBox.critical(None, "Error", res)
+        return False
     return True
 
 
@@ -55,12 +61,12 @@ class Firestarter(QApplication):
             local_settings = json.loads(open("local_settings.json").read())
         except:
             critical_error("Unable to open site_settings file.")
-        
+
         i = 0
         if len(local_settings) > 1:
             dlg = SiteSelect(None, local_settings)
             i = dlg.exec_()
-        
+
         config.update(local_settings[i])
 
         if not check_login():
@@ -76,8 +82,6 @@ class Firestarter(QApplication):
         for task in self.tasks:
             task()
 
-        load_filesystem()
-        
         self.splash_message("Loading user workspace...")
         self.main_window = main_window(self)
 
@@ -100,7 +104,7 @@ class Firestarter(QApplication):
         config["rights"] = {}
         if success(stat):
             config.update(res)
-            
+
             if "JSON IS RETARDED AND CAN'T HANDLE INTEGER BASED KEYS IN DICTS":
                 nfolders = {}
                 for id_folder in config["folders"]:
@@ -126,15 +130,17 @@ class Firestarter(QApplication):
         else:
             QMessageBox.critical(self.splash, "Error", res)
             critical_error("Unable to load site settings")
-    
+
 
     def load_meta_types(self):
         self.splash_message("Loading metadata types")
         if not meta_types.load():
-            critical_error("Unable to load meta types")            
+            critical_error("Unable to load meta types")
 
     def load_storages(self):
-        pass
+        self.splash_message("Loading storages")
+        f = lambda m: self.splash_message("Loading storages (testing mount point {})".format(m))
+        load_filesystem(handler=f)
 
     def init_listener(self):
         self.splash_message("Initializing seismic listener")
