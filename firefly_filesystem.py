@@ -4,9 +4,11 @@ import subprocess
 
 from firefly_common import *
 
-def load_filesystem():
+def load_filesystem(handler=False):
     if PLATFORM == "windows":
         for letter in "abcdefghijklmnopqrstuvwxyz":
+            if handler:
+                handler(letter)
             base_path = "{}:\\".format(letter)
             if not os.path.exists(base_path):
                 continue
