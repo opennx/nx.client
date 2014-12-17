@@ -18,6 +18,8 @@ class NXViewModel(QAbstractTableModel):
         self.font_normal  = QFont()
         self.font_virtual = QFont()
         self.font_virtual.setItalic(True)
+        self.font_bold = QFont()
+        self.font_bold.setBold(True)
         
 
     def rowCount(self, parent):    
@@ -50,8 +52,8 @@ class NXViewModel(QAbstractTableModel):
         elif role == Qt.EditRole:        return obj.format_edit(tag)
         elif role == Qt.UserRole:        return obj.format_sort(tag)
         elif role == Qt.DecorationRole:  return pixlib[obj.format_decoration(tag)]
-        elif role == Qt.ToolTipRole:     return "\n".join("{} : {}".format(format_header(tag), obj.format_display(tag)) for tag in obj.meta.keys() )
-       # elif role == Qt.FontRole:        return self.font_normal #if obj.id  else self.font_virtual
+       # elif role == Qt.ToolTipRole:     return "\n".join("{} : {}".format(format_header(tag), obj.format_display(tag)) for tag in obj.meta.keys() )
+        elif role == Qt.FontRole:        return self.font_bold if obj.object_type == "event" else self.font_normal #if obj.id  else self.font_virtual
         
         return None
 
@@ -85,6 +87,9 @@ class NXSortModel(QSortFilterProxyModel):
     @property 
     def object_data(self):
         return self.sourceModel().object_data
+
+    def mimeData(self, indexes):
+        return self.sourceModel().mimeData([self.mapToSource(idx) for idx in indexes ])
 
 
 
