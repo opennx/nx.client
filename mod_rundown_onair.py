@@ -8,7 +8,7 @@ class OnAirButton(QPushButton):
     def __init__(self, title, parent=None, on_click=False):
         super(OnAirButton, self).__init__(parent)
         self.setText(title)
-        
+
         if title == "Freeze":
             bg_col = "qlineargradient(x1: 0, y1: 0,    x2: 0, y2: 1,  stop: 0 #c01616, stop: 1 #941010);"
             self.setToolTip("Pause/unpause current clip")
@@ -18,20 +18,20 @@ class OnAirButton(QPushButton):
         else:
             bg_col = "qlineargradient(x1: 0, y1: 0,    x2: 0, y2: 1,  stop: 0 #787878, stop: 1 #565656);"
         self.setStyleSheet("OnAirButton{font-size:16px; font-weight: bold; font-family: Arial; color: #eeeeee; border:  1px raised #323232;  width:80px; height:30px; background: %s }  OnAirButton:pressed {border-style: inset;} "%bg_col)
-        
+
         if on_click:
             self.clicked.connect(on_click)
 
 class OnAirLabel(QLabel):
     def __init__(self,head, default, parent=None, tcolor="#eeeeee"):
         super(OnAirLabel,self).__init__(parent)
-        self.head = head 
+        self.head = head
         self.setStyleSheet("background-color: #161616; padding:5px; margin:3px; font:16px; font-weight: bold; color : {};".format(tcolor))
         self.setMinimumWidth(160)
-    
+
     def set_text(self,text):
        self.setText("%s: %s"%(self.head,text))
- 
+
 
 
 
@@ -60,19 +60,19 @@ class OnAir(QWidget):
         self.btn_retake  = OnAirButton(u"Retake", self, self.on_retake)
         self.btn_abort   = OnAirButton(u"Abort",  self, self.on_abort)
 
-        can_mcr = self.parent().id_channel in config["rights"].get("can/mcr", [])
+        can_mcr = has_right("mcr", self.parent().id_channel)
         self.btn_take.setEnabled(can_mcr)
         self.btn_freeze.setEnabled(can_mcr)
         self.btn_retake.setEnabled(can_mcr)
         self.btn_abort.setEnabled(can_mcr)
-        
+
         self.btn_take.setShortcut("F9")
         self.btn_freeze.setShortcut("F10")
         self.btn_retake.setShortcut("F11")
         self.btn_abort.setShortcut("F12")
 
         btns_layout = QHBoxLayout()
-        
+
         btns_layout.addStretch(1)
         btns_layout.addWidget(self.btn_take ,0)
         btns_layout.addWidget(self.btn_freeze ,0)
@@ -82,21 +82,21 @@ class OnAir(QWidget):
 
         self.display_clock   = OnAirLabel("CLK", "--:--:--:--")
         self.display_pos     = OnAirLabel("POS", "--:--:--:--")
-      
+
         self.display_current = OnAirLabel("CUR","(no clip)", tcolor="#cc0000")
         self.display_cued    = OnAirLabel("NXT","(no clip)", tcolor="#00cc00")
-       
+
         self.display_rem     = OnAirLabel("REM","(unknown)")
         self.display_dur     = OnAirLabel("DUR", "--:--:--:--")
-        
-        info_layout = QGridLayout()    
+
+        info_layout = QGridLayout()
         info_layout.setContentsMargins(0,0,0,0)
         info_layout.setSpacing(2)
 
-        info_layout.addWidget(self.display_clock,   0, 0)    
-        info_layout.addWidget(self.display_pos,     1, 0)  
+        info_layout.addWidget(self.display_clock,   0, 0)
+        info_layout.addWidget(self.display_pos,     1, 0)
 
-        info_layout.addWidget(self.display_current, 0, 1)          
+        info_layout.addWidget(self.display_current, 0, 1)
         info_layout.addWidget(self.display_cued,    1, 1)
 
         info_layout.addWidget(self.display_rem,     0, 2)
@@ -155,7 +155,7 @@ class OnAir(QWidget):
         if self.current != status["current_title"]:
             self.current = status["current_title"]
             self.display_current.set_text(self.current)
-        
+
         if self.cued != status["cued_title"]:
             self.cued = status["cued_title"]
             self.display_cued.set_text(self.cued)
@@ -173,7 +173,7 @@ class OnAir(QWidget):
 
             clock = time.strftime("%H:%M:%S:{:02d}", time.localtime(rtime)).format(int(25*(rtime-math.floor(rtime))))
             self.display_clock.set_text(clock)
-        
+
             self.progress_bar.setValue(int(rpos*self.fps))
             self.display_pos.set_text(f2tc(min(self.dur, rpos), self.fps))
             self.display_rem.set_text(f2tc(max(0,self.dur - rpos), self.fps))
