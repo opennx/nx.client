@@ -38,7 +38,7 @@ class SearchWidget(QLineEdit):
 
 class Browser(BaseWidget):
     def __init__(self, parent):
-        super(Browser, self).__init__(parent)    
+        super(Browser, self).__init__(parent)
         self.search_query = {}
 
         self.search_box = SearchWidget(self)
@@ -49,12 +49,12 @@ class Browser(BaseWidget):
         self.view.activated.connect(self.on_activate)
         self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
-        self.model       = BrowserModel(self) 
+        self.model       = BrowserModel(self)
         self.sort_model  = NXSortModel(self.model)
         self.view.setModel(self.sort_model)
         self.view.selectionChanged = self.selectionChanged
 
-        action_clear = QAction(QIcon(pixlib["search_clear"]), '&Clear search query', parent)        
+        action_clear = QAction(QIcon(pixlib["search_clear"]), '&Clear search query', parent)
         action_clear.triggered.connect(self.on_clear)
 
         self.action_search = QMenu("Views")
@@ -93,14 +93,15 @@ class Browser(BaseWidget):
         default_view = sorted(config["views"].keys())[0]
         self.set_view(self.search_query.get("view",default_view), initial=True)
 
-        
+
     def load_view_menu(self):
         for id_view in sorted(config["views"].keys(), key=lambda k: config["views"][k][0]):
             pos, title, columns = config["views"][id_view]
             if title == "-":
                 self.action_search.addSeparator()
                 continue
-            action = QAction(title, self)
+            action = QAction(title, self, checkable=True)
+            action.id_view = id_view
             action.triggered.connect(partial(self.set_view, id_view))
             self.action_search.addAction(action)
 
@@ -117,7 +118,7 @@ class Browser(BaseWidget):
         if not initial:
             self.parent().save()
         self.browse(view=id_view)
-        
+
         self.model.header_data = self.state.get("{}c".format("id_view"), config["views"][id_view][2])
         cw = self.state.get("{}cw".format(id_view), False)
         if cw:
@@ -127,6 +128,14 @@ class Browser(BaseWidget):
                 if meta_types[self.model.header_data[id_column]].class_ != BLOB:
                     self.view.resizeColumnToContents(id_column)
         self.parent().setWindowTitle("{}".format(config["views"][id_view][1]))
+
+        for action in self.action_search.actions():
+            if not hasattr(action, "id_view"):
+                continue
+            if action.id_view == id_view:
+                action.setChecked(True)
+            else:
+                action.setChecked(False)
 
 
     def reset_view(self):
@@ -144,7 +153,7 @@ class Browser(BaseWidget):
         self.search_query["fulltext"] = self.search_box.text()
         self.search_query.update(kwargs)
         self.model.browse(**self.search_query)
- 
+
     def on_activate(self,mi):
         self.view.do_edit(mi)
         self.view.update()
@@ -157,49 +166,49 @@ class Browser(BaseWidget):
             return
         menu = QMenu(self)
 
-        action_focus = QAction('Focus', self)        
+        action_focus = QAction('Focus', self)
         action_focus.setStatusTip('Focus selection')
         action_focus.triggered.connect(self.on_focus)
         menu.addAction(action_focus)
-        
+
         statuses = [obj["status"] for obj in self.view.selected_objects ]
 
         if len(statuses) == 1 and statuses[0] == TRASHED:
-            action_untrash = QAction('Untrash', self)        
+            action_untrash = QAction('Untrash', self)
             action_untrash.setStatusTip('Take selected asset(s) to trash')
             action_untrash.triggered.connect(self.on_untrash)
             menu.addAction(action_untrash)
         else:
-            action_move_to_trash = QAction('Move to trash', self)        
+            action_move_to_trash = QAction('Move to trash', self)
             action_move_to_trash.setStatusTip('Move selected asset(s) to trash')
             action_move_to_trash.triggered.connect(self.on_trash)
             menu.addAction(action_move_to_trash)
 
-        # action_move_to_archive = QAction('Move to archive', self)        
+        # action_move_to_archive = QAction('Move to archive', self)
         # action_move_to_archive.setStatusTip('Move selected asset(s) to archive')
         # action_move_to_archive.triggered.connect(self.on_archive)
         # menu.addAction(action_move_to_archive)
 
-        action_reset = QAction('Reset', self)        
+        action_reset = QAction('Reset', self)
         action_reset.setStatusTip('Reload asset metadata')
         action_reset.triggered.connect(self.on_reset)
         menu.addAction(action_reset)
-        
+
         menu.addSeparator()
-        
-        action_send_to = QAction('&Send to...', self)        
+
+        action_send_to = QAction('&Send to...', self)
         action_send_to.setStatusTip('Create action for selected asset(s)')
         action_send_to.triggered.connect(self.on_send_to)
         menu.addAction(action_send_to)
-    
+
         menu.addSeparator()
-    
-        action_columns = QAction('Choose columns', self)        
+
+        action_columns = QAction('Choose columns', self)
         action_columns.setStatusTip('Choose header columns')
         action_columns.triggered.connect(self.on_choose_columns)
         menu.addAction(action_columns)
-    
-        menu.exec_(event.globalPos()) 
+
+        menu.exec_(event.globalPos())
 
     def on_focus(self):
         pass #TODO
@@ -256,7 +265,7 @@ class Browser(BaseWidget):
 
         for idx in self.view.selectionModel().selectedIndexes():
             row      =  self.sort_model.mapToSource(idx).row()
-            if row in rows: 
+            if row in rows:
                 continue
             rows.append(row)
             obj = self.model.object_data[row]
