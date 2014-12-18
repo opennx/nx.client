@@ -11,30 +11,58 @@ from mod_rundown_cg import CG
 from mod_rundown_model import RundownModel
 
 from dlg_sendto import SendTo
+from dlg_event import EventDialog
 
 
-DEFAULT_COLUMNS = ["rundown_symbol", "title", "duration", "run_mode", "rundown_scheduled", "rundown_broadcast", "rundown_difference", "rundown_status", "mark_in", "mark_out", "id_asset", "id_object"]
+
+def get_date():
+    class CalendarDialog(QDialog):
+        def __init__(self):
+            super(CalendarDialog, self).__init__()
+            self.setWindowTitle('Calendar')
+            self.date = False, False, False
+            self.setModal(True)
+            self.calendar = QCalendarWidget(self)
+            self.calendar.setGridVisible(True)
+            self.calendar.setFirstDayOfWeek(1)
+            self.calendar.activated[QDate].connect(self.setDate)
+
+            layout = QVBoxLayout()
+            layout.addWidget(self.calendar)
+            self.setLayout(layout)
+            self.show()
+
+        def setDate(self, date):
+            self.date = (date.year(), date.month(), date.day())
+            self.close()
+
+    cal = CalendarDialog()
+    cal.exec_()
+    return cal.date
+
+
+
+
+DEFAULT_COLUMNS = ["rundown_symbol", "title", "identifier/main",  "duration", "run_mode", "rundown_scheduled", "rundown_broadcast", "rundown_difference", "rundown_status", "mark_in", "mark_out", "id_asset", "id_object"]
 
 def day_start(ts, start):
     hh, mm = start
     r =  ts - (hh*3600 + mm*60)
     dt = datetime.datetime.fromtimestamp(r).replace(
-        hour = hh, 
-        minute = mm, 
+        hour = hh,
+        minute = mm,
         second = 0
         )
-    return time.mktime(dt.timetuple()) 
+    return time.mktime(dt.timetuple())
 
 
 class RundownDate(QLabel):
     pass
 
 
-
-
 class LeadInButton(QToolButton):
     def __init__(self, parent):
-        super(LeadInButton, self).__init__() 
+        super(LeadInButton, self).__init__()
         self.pressed.connect(self.startDrag)
         self.setIcon(QIcon(pixlib["mark_in"]))
         self.setToolTip("Drag this to rundown to create Lead-in.")
@@ -53,7 +81,7 @@ class LeadInButton(QToolButton):
 
 class LeadOutButton(QToolButton):
     def __init__(self, parent):
-        super(LeadOutButton, self).__init__() 
+        super(LeadOutButton, self).__init__()
         self.pressed.connect(self.startDrag)
         self.setIcon(QIcon(pixlib["mark_out"]))
         self.setToolTip("Drag this to rundown to create Lead-out.")
@@ -71,7 +99,7 @@ class LeadOutButton(QToolButton):
 
 class PlaceholderButton(QToolButton):
     def __init__(self, parent):
-        super(PlaceholderButton, self).__init__() 
+        super(PlaceholderButton, self).__init__()
         self.pressed.connect(self.startDrag)
         self.setIcon(QIcon(pixlib["placeholder"]))
         self.setToolTip("Drag this to rundown to create placeholder.")
@@ -94,29 +122,29 @@ class PlaceholderButton(QToolButton):
 def rundown_toolbar(wnd):
     toolbar = QToolBar(wnd)
 
-    action_day_prev = QAction(QIcon(pixlib["back"]), '&Previous day', wnd)        
+    action_day_prev = QAction(QIcon(pixlib["back"]), '&Previous day', wnd)
     action_day_prev.setShortcut('Alt+Left')
     action_day_prev.setStatusTip('Go to previous day')
     action_day_prev.triggered.connect(wnd.on_day_prev)
     toolbar.addAction(action_day_prev)
 
-    action_now = QAction(QIcon(pixlib["now"]), '&Now', wnd)        
+    action_now = QAction(QIcon(pixlib["now"]), '&Now', wnd)
     action_now.setStatusTip('Go to now')
     action_now.triggered.connect(wnd.on_now)
     toolbar.addAction(action_now)
 
-    action_calendar = QAction(QIcon(pixlib["calendar"]), '&Calendar', wnd)        
+    action_calendar = QAction(QIcon(pixlib["calendar"]), '&Calendar', wnd)
     action_calendar.setShortcut('Ctrl+D')
     action_calendar.setStatusTip('Open calendar')
     action_calendar.triggered.connect(wnd.on_calendar)
     toolbar.addAction(action_calendar)
 
-    action_refresh = QAction(QIcon(pixlib["refresh"]), '&Refresh', wnd)        
+    action_refresh = QAction(QIcon(pixlib["refresh"]), '&Refresh', wnd)
     action_refresh.setStatusTip('Refresh rundown')
     action_refresh.triggered.connect(wnd.refresh)
     toolbar.addAction(action_refresh)
 
-    action_day_next = QAction(QIcon(pixlib["next"]), '&Next day', wnd)        
+    action_day_next = QAction(QIcon(pixlib["next"]), '&Next day', wnd)
     action_day_next.setShortcut('Alt+Right')
     action_day_next.setStatusTip('Go to next day')
     action_day_next.triggered.connect(wnd.on_day_next)
@@ -124,19 +152,19 @@ def rundown_toolbar(wnd):
 
     toolbar.addSeparator()
 
-    action_toggle_mcr = QAction(QIcon(pixlib["onair"]), '&Playout controls', wnd)        
+    action_toggle_mcr = QAction(QIcon(pixlib["onair"]), '&Playout controls', wnd)
     action_toggle_mcr.setStatusTip('Toggle playout controls')
     action_toggle_mcr.triggered.connect(wnd.on_toggle_mcr)
     toolbar.addAction(action_toggle_mcr)
 
-    action_toggle_cg = QAction(QIcon(pixlib["cg"]), '&CG controls', wnd)        
+    action_toggle_cg = QAction(QIcon(pixlib["cg"]), '&CG controls', wnd)
     action_toggle_cg.setShortcut('F4')
     action_toggle_cg.setStatusTip('Toggle CG controls')
     action_toggle_cg.triggered.connect(wnd.on_toggle_cg)
     toolbar.addAction(action_toggle_cg)
 
 
-    action_toggle_tools = QAction(QIcon(pixlib["tools"]), '&Rundown tools', wnd)        
+    action_toggle_tools = QAction(QIcon(pixlib["tools"]), '&Rundown tools', wnd)
     action_toggle_tools.setStatusTip('Toggle rundown tools')
     action_toggle_tools.triggered.connect(wnd.on_toggle_tools)
     toolbar.addAction(action_toggle_tools)
@@ -165,17 +193,17 @@ class RundownView(NXView):
         self.setItemDelegate(self.delegate)
 
         self.activated.connect(self.on_activate)
-        self.setEditTriggers(QAbstractItemView.NoEditTriggers)       
+        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
 
-    def selectionChanged(self, selected, deselected):     
+    def selectionChanged(self, selected, deselected):
         rows = []
         self.selected_objects = []
         tot_dur = 0
 
         for idx in self.selectionModel().selectedIndexes():
             row = idx.row()
-            if row in rows: 
+            if row in rows:
                 continue
             rows.append(row)
             obj = self.model().object_data[row]
@@ -185,6 +213,10 @@ class RundownView(NXView):
 
         if self.selected_objects and self.focus_enabled:
             self.parent().parent().parent().focus(self.selected_objects)
+            if len(self.selected_objects) == 1 and self.selected_objects[0].object_type == "item":
+                asset = self.selected_objects[0].asset
+                times = len([obj for obj in self.model().object_data if obj.object_type == "item" and obj["id_asset"] == asset.id])
+                self.parent().status("{} is scheduled {}x in this rundown".format(asset, times))
             if len(self.selected_objects) > 1 and tot_dur:
                 self.parent().status("{} objects selected. Total duration {}".format(len(self.selected_objects), s2time(tot_dur) ))
 
@@ -207,7 +239,7 @@ class RundownView(NXView):
 
         if len(obj_set) > 0:
 
-            action_focus = QAction('&Focus', self)        
+            action_focus = QAction('&Focus', self)
             action_focus.setStatusTip('Focus selected object')
             action_focus.triggered.connect(self.on_focus)
             menu.addAction(action_focus)
@@ -220,12 +252,12 @@ class RundownView(NXView):
 
                 mode_menu = menu.addMenu("Run mode")
 
-                action_mode_auto = QAction('&Auto', self)        
+                action_mode_auto = QAction('&Auto', self)
                 action_mode_auto.setStatusTip('Set run mode to auto')
                 action_mode_auto.triggered.connect(partial(self.on_set_mode, 0))
                 mode_menu.addAction(action_mode_auto)
 
-                action_mode_manual = QAction('&Manual', self)        
+                action_mode_manual = QAction('&Manual', self)
                 action_mode_manual.setStatusTip('Set run mode to manual')
                 action_mode_manual.triggered.connect(partial(self.on_set_mode, 1))
                 mode_menu.addAction(action_mode_manual)
@@ -234,70 +266,71 @@ class RundownView(NXView):
 
                 mode_menu = menu.addMenu("Run mode")
 
-                action_mode_auto = QAction('&Auto', self)        
+                action_mode_auto = QAction('&Auto', self)
                 action_mode_auto.setStatusTip('Set run mode to auto')
                 action_mode_auto.triggered.connect(partial(self.on_set_mode, 0))
                 mode_menu.addAction(action_mode_auto)
 
-                action_mode_manual = QAction('&Manual', self)        
+                action_mode_manual = QAction('&Manual', self)
                 action_mode_manual.setStatusTip('Set run mode to manual')
                 action_mode_manual.triggered.connect(partial(self.on_set_mode, 1))
                 mode_menu.addAction(action_mode_manual)
 
-                action_mode_soft = QAction('&Soft', self)        
+                action_mode_soft = QAction('&Soft', self)
                 action_mode_soft.setStatusTip('Set run mode to soft')
                 action_mode_soft.triggered.connect(partial(self.on_set_mode, 2))
                 mode_menu.addAction(action_mode_soft)
 
-                action_mode_hard = QAction('&Hard', self)        
+                action_mode_hard = QAction('&Hard', self)
                 action_mode_hard.setStatusTip('Set run mode to hard')
                 action_mode_hard.triggered.connect(partial(self.on_set_mode, 3))
                 mode_menu.addAction(action_mode_hard)
 
 
         if "item" in obj_set:
-            action_send_to = QAction('&Send to...', self)        
+            action_send_to = QAction('&Send to...', self)
             action_send_to.setStatusTip('Create action for selected asset(s)')
             action_send_to.triggered.connect(self.on_send_to)
             menu.addAction(action_send_to)
-            
+
 
         if "event" in obj_set:
-            action_solve = QAction('Solve', self)        
+            action_solve = QAction('Solve', self)
             action_solve.setStatusTip('Solve selected event')
             action_solve.triggered.connect(self.on_solve_event)
             menu.addAction(action_solve)
 
 
-        
+
 
         if len(obj_set) > 0:
             menu.addSeparator()
-        
-            action_delete = QAction('&Delete', self)        
+
+            action_delete = QAction('&Delete', self)
             action_delete.setStatusTip('Delete selected object')
             action_delete.triggered.connect(self.on_delete)
             menu.addAction(action_delete)
-            
-        #                action_edit = QAction('&Edit', self)        
-        #                action_edit.setStatusTip('Edit selected event')
-        #                action_edit.triggered.connect(self.on_edit_event)
-        #                menu.addAction(action_edit)
+
+            if len(obj_set) == 1:
+                action_edit = QAction('&Edit', self)
+                action_edit.setStatusTip('Edit selected event')
+                action_edit.triggered.connect(self.on_edit_event)
+                menu.addAction(action_edit)
 
         menu.addSeparator()
 
-        action_columns = QAction('Choose columns', self)        
+        action_columns = QAction('Choose columns', self)
         action_columns.setStatusTip('Choose header columns')
         action_columns.triggered.connect(self.on_choose_columns)
         menu.addAction(action_columns)
-    
-        menu.exec_(event.globalPos()) 
+
+        menu.exec_(event.globalPos())
 
 
     def on_set_mode(self, mode):
-        if self.parent().id_channel not in config["rights"].get("can/rundown_edit", []):
+        if not self.parent().can_edit:
             QMessageBox.warning(self, "Error", "You are not allowed to modify this rundown")
-            return 
+            return
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.WaitCursor)
         stat, res = query("set_meta", object_type=self.selected_objects[0].object_type, objects=[obj.id for obj in self.selected_objects], data={"run_mode":mode})
@@ -317,6 +350,14 @@ class RundownView(NXView):
         items = list(set([obj.id for obj in self.selected_objects if obj.object_type == "item"]))
         events  = list(set([obj.id for obj in self.selected_objects if obj.object_type == "event"]))
 
+        if items and not self.parent().can_edit:
+            QMessageBox.warning(self, "Error", "You are not allowed to modify this rundown items")
+            return
+        elif events and not self.parent().can_schedule:
+            QMessageBox.warning(self, "Error", "You are not allowed to modify this rundown blocks")
+            return
+
+
         if events or len(items) > 10:
             ret = QMessageBox.question(self,
                 "Delete",
@@ -327,33 +368,26 @@ class RundownView(NXView):
             if ret != QMessageBox.Yes:
                 return
 
-
         if items:
-            if self.parent().id_channel not in config["rights"].get("can/rundown_edit", []):
-                QMessageBox.warning(self, "Error", "You are not allowed to modify this rundown items")
+            QApplication.processEvents()
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            stat, res = query("del_items", items=items)
+            QApplication.restoreOverrideCursor()
+            if success(stat):
+                self.parent().status("Delete item: {}".format(res))
             else:
-                QApplication.processEvents()
-                QApplication.setOverrideCursor(Qt.WaitCursor)
-                stat, res = query("del_items", items=items)
-                QApplication.restoreOverrideCursor()
-                if success(stat):
-                    self.parent().status("Delete item: {}".format(res))
-                else:
-                    QMessageBox.critical(self, "Error", res)
-        
+                QMessageBox.critical(self, "Error", res)
+
         if events:
-            if self.parent().id_channel not in config["rights"].get("can/rundown_edit", []):
-                QMessageBox.warning(self, "Error", "You are not allowed to modify this rundown blocks")
+            QApplication.processEvents()
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            print ("DEL", events)
+            stat, res = query("set_events", delete=events)
+            QApplication.restoreOverrideCursor()
+            if success(stat):
+                self.parent().status("Delete event: {}".format(res))
             else:
-                QApplication.processEvents()
-                QApplication.setOverrideCursor(Qt.WaitCursor)
-                print ("DEL", events)
-                stat, res = query("set_events", delete=events)
-                QApplication.restoreOverrideCursor()
-                if success(stat):
-                    self.parent().status("Delete event: {}".format(res))
-                else:
-                    QMessageBox.critical(self, "Error", res)
+                QMessageBox.critical(self, "Error", res)
 
         self.parent().refresh()
 
@@ -368,12 +402,14 @@ class RundownView(NXView):
 
 
     def on_edit_event(self):
-        pass
-        #TODO
+        objs = [obj for obj in self.selected_objects if obj.object_type == "event"]
+        dlg = EventDialog(self, event=objs[0])
+        if dlg.exec_() == QDialog.Accepted:
+            self.refresh()
 
 
     def on_solve_event(self):
-        if self.parent().id_channel not in config["rights"].get("can/rundown_edit", []):
+        if not self.parent().can_edit:
             QMessageBox.warning(self, QMessageBox.warning, "Error", "You are not allowed to modify this rundown")
             return
 
@@ -386,9 +422,9 @@ class RundownView(NXView):
         if ret == QMessageBox.Yes:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            stat, res = query("dramatica", 
-                handler=self.parent().handle_message, 
-                id_channel=self.parent().id_channel, 
+            stat, res = query("dramatica",
+                handler=self.parent().handle_message,
+                id_channel=self.parent().id_channel,
                 date=time.strftime("%Y-%m-%d", time.localtime(self.parent().start_time)),
                 id_event =self.selected_objects[0].id,
                 solve=True
@@ -403,7 +439,7 @@ class RundownView(NXView):
         pass
         #TODO
 
-  
+
 
 
     def on_activate(self, mi):
@@ -425,7 +461,7 @@ class Rundown(BaseWidget):
         self.current_item = False
         self.cued_item = False
 
-        
+
 
         self.view  = RundownView(self)
         self.model = RundownModel(self)
@@ -448,9 +484,17 @@ class Rundown(BaseWidget):
         layout.addWidget(self.view, 1)
 
         self.setLayout(layout)
- 
+
         self.start_time = day_start (time.time(), self.playout_config["day_start"])
         self.update_header()
+
+    @property
+    def can_edit(self):
+        return has_right("rundown_edit", self.id_channel)
+
+    @property
+    def can_schedule(self):
+        return has_right("scheduler_edit", self.id_channel)
 
 
     def save_state(self):
@@ -474,12 +518,12 @@ class Rundown(BaseWidget):
             for id_column in range(self.model.columnCount(False)):
                 self.view.resizeColumnToContents(id_column)
 
-        if state.get("mcr", False):
+        if state.get("mcr", False) and has_right("mcr", self.id_channel):
             self.mcr.show()
         else:
             self.mcr.hide()
 
-        if state.get("cg", False):
+        if state.get("cg", False) and has_right("cg", self.id_channel):
             self.cg.show()
         else:
             self.cg.hide()
@@ -491,15 +535,15 @@ class Rundown(BaseWidget):
             self.items_toolbar.hide()
 
     def seismic_handler(self, data):
-        if data.method == "playout_status": 
+        if data.method == "playout_status":
             if data.data["id_channel"] != self.id_channel:
                 return
-            
+
             if data.data["current_item"] != self.current_item:
                 self.current_item = data.data["current_item"]
                 self.model.refresh_items([self.current_item])
 
-                
+
             if data.data["cued_item"] != self.cued_item:
                 self.cued_item = data.data["cued_item"]
                 self.refresh()
@@ -523,7 +567,7 @@ class Rundown(BaseWidget):
         elif data.method == "objects_changed" and data.data["object_type"] == "event":
             my_name = self.parent().objectName()
 
-            for id_event in data.data["objects"]:#  
+            for id_event in data.data["objects"]:#
                 if data.data.get("sender", False) != my_name and id_event in self.model.event_ids :
                     self.refresh()
                     break
@@ -546,7 +590,7 @@ class Rundown(BaseWidget):
     def refresh(self):
         selection = []
         for idx in self.view.selectionModel().selectedIndexes():
-            selection.append([self.model.object_data[idx.row()].object_type, self.model.object_data[idx.row()].id]) 
+            selection.append([self.model.object_data[idx.row()].object_type, self.model.object_data[idx.row()].id])
 
         self.load(self.id_channel, self.start_time)
 
@@ -583,7 +627,15 @@ class Rundown(BaseWidget):
             self.id_channel = id_channel
             self.refresh()
             if self.cg:
-                self.cg.load_plugins(id_plugin)
+                self.cg.load_plugins(id_channel)
+
+            if self.mcr:
+                can_mcr = has_right("mcr", self.id_channel)
+                self.mcr.btn_take.setEnabled(can_mcr)
+                self.mcr.btn_freeze.setEnabled(can_mcr)
+                self.mcr.btn_retake.setEnabled(can_mcr)
+                self.mcr.btn_abort.setEnabled(can_mcr)
+
 
     def set_date(self, start_time):
         self.start_time = start_time
@@ -606,7 +658,20 @@ class Rundown(BaseWidget):
                 break
 
     def on_calendar(self):
-        pass
+        y, m, d = get_date()
+        print (y, m, d)
+        if not y:
+            return
+        hh, mm = self.playout_config["day_start"]
+        dt = datetime.datetime(y,m,d,hh,mm)
+        self.set_date(time.mktime(dt.timetuple()))
+#        r =  ts - (hh*3600 + mm*60)
+#    dt = datetime.datetime.fromtimestamp(r).replace(
+#        hour = hh,
+#        minute = mm,
+#        second = 0
+#        )
+#    return time.mktime(dt.timetuple())
         #TODO
 
     def on_toggle_mcr(self):
@@ -618,7 +683,7 @@ class Rundown(BaseWidget):
 
 
     def on_toggle_cg(self):
-        if self.cg:
+        if self.cg and has_right("cg", self.id_channel):
             if self.cg.isVisible():
                 self.cg.hide()
             else:
@@ -634,14 +699,22 @@ class Rundown(BaseWidget):
 
     def on_activate(self, mi):
         obj = self.model.object_data[mi.row()]
-        can_mcr = self.id_channel in config["rights"].get("can/mcr", [])
-        if obj.object_type == "item" and self.mcr and self.mcr.isVisible() and can_mcr:    
+        can_mcr = has_right("mcr", self.id_channel)
+        if obj.object_type == "item" and self.mcr and self.mcr.isVisible() and can_mcr:
             stat, res = query("cue", self.mcr.route, id_channel=self.id_channel, id_item=obj.id)
             if not success(stat):
                 QMessageBox.critical(self, "Error", res)
-            self.view.clearSelection() 
-        elif obj.object_type == "event":
-            self.view.on_edit_event()
+            self.view.clearSelection()
+        elif obj.object_type == "event" and has_right("scheduler_edit", self.id_channel):
+            if self.model.header_data[mi.column()] == "rundown_symbol":
+                obj["promoted"] = not obj["promoted"]
+                stat, res = query("set_events",
+                    id_channel=obj["id_channel"],
+                    events=[obj.meta]
+                    )
+                self.refresh()
+            else:
+                self.view.on_edit_event()
 
 
     ## Toolbar actions
