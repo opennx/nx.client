@@ -93,7 +93,7 @@ class SeismicListener(QThread):
             else:
                 self.queue.append(message)
         except:
-            logging.warning("Malformed seismic message detected: {}".format(data))
+            print("Malformed seismic message detected: {}".format(data))
 
 
     def halt(self):

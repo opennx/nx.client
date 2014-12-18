@@ -20,7 +20,7 @@ class NXViewModel(QAbstractTableModel):
         self.font_virtual.setItalic(True)
         self.font_bold = QFont()
         self.font_bold.setBold(True)
-        
+
 
     def rowCount(self, parent):    
         return len(self.object_data)   
@@ -42,7 +42,7 @@ class NXViewModel(QAbstractTableModel):
         obj = self.object_data[row]
         obj.model = self
         tag = self.header_data[index.column()]
-                  
+
         if   role == Qt.DisplayRole:     return obj.format_display(tag)
         elif role == Qt.ForegroundRole:  return QColor(obj.format_foreground(tag))
         elif role == Qt.BackgroundRole:  
@@ -54,7 +54,7 @@ class NXViewModel(QAbstractTableModel):
         elif role == Qt.DecorationRole:  return pixlib[obj.format_decoration(tag)]
        # elif role == Qt.ToolTipRole:     return "\n".join("{} : {}".format(format_header(tag), obj.format_display(tag)) for tag in obj.meta.keys() )
         elif role == Qt.FontRole:        return self.font_bold if obj.object_type == "event" else self.font_normal #if obj.id  else self.font_virtual
-        
+
         return None
 
 
@@ -62,10 +62,10 @@ class NXViewModel(QAbstractTableModel):
         tag = self.header_data[index.column()] 
         id_object = self.object_data[index.row()].id
         self.object_data[index.row()][tag] = data
-        
+
         if not id_object in self.changed_objects:
             self.changed_objects.append(id_object)
-        
+
         self.model.dataChanged.emit(index, index)
         self.update()
 

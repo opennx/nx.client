@@ -18,7 +18,6 @@ class EmptyEventButton(QToolButton):
         drag.setMimeData(mimeData)
         if drag.exec_(Qt.CopyAction):
             pass # nejak to rozumne ukoncit
-  
 
 
 def scheduler_toolbar(wnd):
