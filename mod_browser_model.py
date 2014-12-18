@@ -50,12 +50,17 @@ class BrowserModel(NXViewModel):
      
    
     def mimeData(self, indexes):
-        data        = [self.object_data[i] for i in set(index.row() for index in indexes if index.isValid())]
-        encodedData = json.dumps([a.meta for a in data])
+        rows = []
+        for idx in indexes:
+            if idx.row() in rows:
+                continue
+            rows.append(idx.row())
+        
+        encodedData = json.dumps([self.object_data[row].meta for row in rows])
         mimeData = QMimeData()
         mimeData.setData("application/nx.asset", encodedData.encode("ascii"))
         try:
-            urls =[QUrl.fromLocalFile(asset.get_file_path()) for asset in data if asset.get_file_path()]
+            urls =[QUrl.fromLocalFile(asset.file_path) for asset in data if asset.file_path]
             mimeData.setUrls(urls)
         except:
             pass
