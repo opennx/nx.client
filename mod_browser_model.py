@@ -47,15 +47,15 @@ class BrowserModel(NXViewModel):
 
     def mimeTypes(self):
         return ["application/nx.asset"]
-     
-   
+
+
     def mimeData(self, indexes):
         rows = []
         for idx in indexes:
             if idx.row() in rows:
                 continue
             rows.append(idx.row())
-        
+
         encodedData = json.dumps([self.object_data[row].meta for row in rows])
         mimeData = QMimeData()
         mimeData.setData("application/nx.asset", encodedData.encode("ascii"))
@@ -68,18 +68,18 @@ class BrowserModel(NXViewModel):
 
 
     def setData(self, index, data, role=False):
-        tag = self.header_data[index.column()] 
+        tag = self.header_data[index.column()]
         value = data
         id_object = self.object_data[index.row()].id
-        res, data = query("set_meta", objects=[id_object], data={tag: value})
-        if success(res):
-            self.object_data[index.row()] = Asset(from_data=data)
+        stat, res = query("set_meta", objects=[id_object], data={tag: value})
+        if success(stat):
+            self.object_data[index.row()] = Asset(from_data=res)
             self.dataChanged.emit(index, index)
         else:
-            QMessageBox.critical(self, "Error", "Unable to save")
+            QMessageBox.critical(self.parent(), "Error {}".format(stat), res)
         return True
 
-   
+
     def dropMimeData(self, data, action, row, column, parent):
         #TODO: UPLOAD
         return False
