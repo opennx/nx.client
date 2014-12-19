@@ -120,6 +120,17 @@ class PlaceholderButton(QToolButton):
 
 
 def rundown_toolbar(wnd):
+
+    action_find = QAction('Search rundown', wnd)
+    action_find.setShortcut('Ctrl+F')
+    action_find.triggered.connect(wnd.on_find)
+    wnd.addAction(action_find)
+
+    action_find_next = QAction('Search rundown', wnd)
+    action_find_next.setShortcut('F3')
+    action_find_next.triggered.connect(wnd.on_find_next)
+    wnd.addAction(action_find_next)
+
     toolbar = QToolBar(wnd)
 
     action_day_prev = QAction(QIcon(pixlib["back"]), '&Previous day', wnd)
@@ -461,7 +472,7 @@ class Rundown(BaseWidget):
         self.current_item = False
         self.cued_item = False
 
-
+        self.last_search = ""
 
         self.view  = RundownView(self)
         self.model = RundownModel(self)
@@ -543,14 +554,12 @@ class Rundown(BaseWidget):
                 self.current_item = data.data["current_item"]
                 self.model.refresh_items([self.current_item])
 
-
             if data.data["cued_item"] != self.cued_item:
                 self.cued_item = data.data["cued_item"]
                 self.refresh()
 
             if self.mcr:
                 self.mcr.seismic_handler(data)
-
 
         elif data.method == "job_progress":
             if data.data["id_action"] == config["playout_channels"][self.id_channel].get("send_action", False):
@@ -657,6 +666,7 @@ class Rundown(BaseWidget):
                 self.view.scrollTo(self.model.index(i, 0, QModelIndex()), QAbstractItemView.PositionAtCenter  )
                 break
 
+
     def on_calendar(self):
         y, m, d = get_date()
         print (y, m, d)
@@ -665,14 +675,7 @@ class Rundown(BaseWidget):
         hh, mm = self.playout_config["day_start"]
         dt = datetime.datetime(y,m,d,hh,mm)
         self.set_date(time.mktime(dt.timetuple()))
-#        r =  ts - (hh*3600 + mm*60)
-#    dt = datetime.datetime.fromtimestamp(r).replace(
-#        hour = hh,
-#        minute = mm,
-#        second = 0
-#        )
-#    return time.mktime(dt.timetuple())
-        #TODO
+
 
     def on_toggle_mcr(self):
         if self.mcr:
@@ -715,6 +718,48 @@ class Rundown(BaseWidget):
                 self.refresh()
             else:
                 self.view.on_edit_event()
+
+
+    def on_find(self):
+        text, result = QInputDialog.getText(self, "Rundown search", "Enter your blabla:", text=self.last_search)
+        if result and text:
+            self.do_find(text)
+        else:
+            self.last_search = ""
+
+    def on_find_next(self):
+        if self.last_search:
+            self.do_find(self.last_search)
+        else:
+            self.on_find()
+
+    def do_find(self, search_string, start_row=-1):
+        self.last_search = search_string
+        search_string = search_string.lower()
+
+        if start_row == -1:
+            for idx in self.view.selectionModel().selectedIndexes():
+                if idx.row() > start_row:
+                    start_row = idx.row()
+
+        start_row += 1
+
+        for i, row in enumerate(self.model.object_data[start_row:]):
+            for key in ["title", "identifier/main"]:
+                if str(row[key]).lower().find(search_string) > -1:
+                    selection = QItemSelection()
+                    i1 = self.model.index(i + start_row, 0, QModelIndex())
+                    i2 = self.model.index(i + start_row, len(self.model.header_data)-1, QModelIndex())
+                    self.view.scrollTo(i1 , QAbstractItemView.PositionAtTop  )
+                    selection.select(i1, i2)
+                    self.view.selectionModel().select(selection, QItemSelectionModel.ClearAndSelect)
+                    break
+            else:
+                continue
+            break
+        else:
+            self.status("Not found: {}".format(self.last_search))
+            self.view.clearSelection()
 
 
     ## Toolbar actions
