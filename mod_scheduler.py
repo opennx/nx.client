@@ -3,7 +3,7 @@ from mod_scheduler_model import *
 
 class EmptyEventButton(QToolButton):
     def __init__(self, parent):
-        super(EmptyEventButton, self).__init__() 
+        super(EmptyEventButton, self).__init__()
         self.pressed.connect(self.startDrag)
         self.setIcon(QIcon(pixlib["empty_event"]))
         self.setToolTip("Drag this to scheduler to create empty event.")
@@ -13,7 +13,7 @@ class EmptyEventButton(QToolButton):
         mimeData = QMimeData()
         mimeData.setData(
            "application/nx.event",
-           '[{"id_object":-1, "title":"Empty event"}]'  # Empty event
+           '[{"id_object":0, "title":"Empty event"}]'  # Empty event
            )
         drag.setMimeData(mimeData)
         if drag.exec_(Qt.CopyAction):
@@ -23,24 +23,24 @@ class EmptyEventButton(QToolButton):
 def scheduler_toolbar(wnd):
     toolbar = QToolBar(wnd)
 
-    action_week_prev = QAction(QIcon(pixlib["back"]), '&Previous week', wnd)        
+    action_week_prev = QAction(QIcon(pixlib["back"]), '&Previous week', wnd)
     action_week_prev.setStatusTip('Go to previous week')
     action_week_prev.triggered.connect(wnd.on_week_prev)
     toolbar.addAction(action_week_prev)
 
-    action_refresh = QAction(QIcon(pixlib["refresh"]), '&Refresh', wnd)        
+    action_refresh = QAction(QIcon(pixlib["refresh"]), '&Refresh', wnd)
     action_refresh.setStatusTip('Refresh scheduler')
     action_refresh.triggered.connect(wnd.refresh)
     toolbar.addAction(action_refresh)
 
-    action_week_next = QAction(QIcon(pixlib["next"]), '&Next week', wnd)        
+    action_week_next = QAction(QIcon(pixlib["next"]), '&Next week', wnd)
     action_week_next.setStatusTip('Go to next week')
     action_week_next.triggered.connect(wnd.on_week_next)
     toolbar.addAction(action_week_next)
 
     toolbar.addSeparator()
 
-    wnd.action_show_runs = QAction(QIcon(pixlib["repeat"]), '&Show runs', wnd)        
+    wnd.action_show_runs = QAction(QIcon(pixlib["repeat"]), '&Show runs', wnd)
     wnd.action_show_runs.setStatusTip('Show runs')
     wnd.action_show_runs.setCheckable(True)
     #action_show_runs.triggered.connect(wnd.on_show_runs)
@@ -91,15 +91,15 @@ class Scheduler(BaseWidget):
 
     def on_week_prev(self):
         self.calendar.load(self.calendar.id_channel, self.calendar.start_time-(3600*24*7))
-    
+
     def on_week_next(self):
         self.calendar.load(self.calendar.id_channel, self.calendar.start_time+(3600*24*7))
-    
+
     def focus(self, objects):
         if self.action_show_runs.isChecked():
             asset_ids = [obj.id for obj in objects if obj.object_type == "asset"]
             if not asset_ids:
-                return 
+                return
             res, data = query("get_runs", id_channel=self.id_channel, asset_ids=asset_ids )
             if success(res):
                 self.calendar.focus_data = data["data"]
@@ -111,7 +111,7 @@ class Scheduler(BaseWidget):
             my_name =self.parent().objectName()
 #            print (data.data)
 #            print (my_name)
-#            for id_event in data.data["objects"]:#  
+#            for id_event in data.data["objects"]:#
 #                if data.data["sender"] != my_name and id_event in self.model.event_ids :
 #                    self.refresh()
 #                    break
