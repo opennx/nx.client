@@ -26,25 +26,20 @@ def event_toolbar(wnd):
     toolbar.setMovable(False)
     toolbar.setFloatable(False)
 
-    #action_add_run = QAction(QIcon(pixlib["add"]), 'Add run', wnd)
-    #action_add_run.setShortcut('+')
-    #action_add_run.triggered.connect(wnd.on_add_run)
-    #toolbar.addAction(action_add_run)
-
-    #action_remove_event = QAction(QIcon(pixlib["remove"]), 'Remove selected run', wnd)
-    #action_remove_event.setShortcut('-')
-    #action_remove_event.triggered.connect(wnd.on_remove_run)
-    #toolbar.addAction(action_remove_event)
+    wnd.action_toggle_promoted = QAction('Toggle promoted', wnd)
+    wnd.action_toggle_promoted.setShortcut('*')
+    wnd.action_toggle_promoted.triggered.connect(wnd.on_toggle_promoted)
+    toolbar.addAction(wnd.action_toggle_promoted)
 
     toolbar.addWidget(ToolBarStretcher(toolbar))
 
     action_accept = QAction(QIcon(pixlib["accept"]), 'Accept changes', wnd)
-    action_accept.setShortcut('ESC')
+    action_accept.setShortcut('Ctrl+S')
     action_accept.triggered.connect(wnd.on_accept)
     toolbar.addAction(action_accept)
 
     action_cancel = QAction(QIcon(pixlib["cancel"]), 'Cancel', wnd)
-    action_cancel.setShortcut('Alt+F4')
+    action_cancel.setShortcut('ESC')
     action_cancel.triggered.connect(wnd.on_cancel)
     toolbar.addAction(action_cancel)
 
@@ -60,9 +55,9 @@ class EventForm(QWidget):
         self.data = {}
 
         for key, title, widget in [
-            ("start", "Start", NXE_datetime), 
-            ("title", "Title", NXE_text), 
-            ("title/subtitle", "Subtitle", NXE_text), 
+            ("start", "Start", NXE_datetime),
+            ("title", "Title", NXE_text),
+            ("title/subtitle", "Subtitle", NXE_text),
             ("description", "Description", NXE_blob)
             ]: # TODO: load title and widget from metatypes somehow
 
@@ -105,6 +100,8 @@ class EventDialog(QDialog):
             self.form.title.set_value(asset["title"])
             self.form.description.set_value(asset["description"])
 
+        self.on_toggle_promoted(value=self.event["promoted"])
+
         self.form = EventForm(self, self.event)
 
         layout = QVBoxLayout()
@@ -146,9 +143,25 @@ class EventDialog(QDialog):
             if value:
                 self.event[key] = self.form[key]
 
-        stat, res = query("set_events", 
+        stat, res = query("set_events",
                 id_channel=self.event["id_channel"],
                 events=[self.event.meta]
                     )
 
         self.close()
+
+
+    def on_toggle_promoted(self, **kwargs):
+        if not "value" in kwargs:
+            print (self.event["promoted"], not self.event["promoted"])
+            self.event["promoted"] = not bool(self.event["promoted"])
+        else:
+            self.event["promoted"] = bool(kwargs.get("value"))
+
+        self.action_toggle_promoted.setIcon(
+            [
+                QIcon(pixlib["star_disabled"]),
+                QIcon(pixlib["star_enabled"])
+            ][bool(self.event["promoted"])]
+            )
+
