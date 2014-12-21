@@ -322,7 +322,7 @@ class RundownView(NXView):
             action_delete.triggered.connect(self.on_delete)
             menu.addAction(action_delete)
 
-            if len(obj_set) == 1:
+            if len(obj_set) == 1 and "event" in obj_set:
                 action_edit = QAction('&Edit', self)
                 action_edit.setStatusTip('Edit selected event')
                 action_edit.triggered.connect(self.on_edit_event)
