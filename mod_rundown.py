@@ -599,7 +599,8 @@ class Rundown(BaseWidget):
     def refresh(self):
         selection = []
         for idx in self.view.selectionModel().selectedIndexes():
-            selection.append([self.model.object_data[idx.row()].object_type, self.model.object_data[idx.row()].id])
+            if self.model.object_data[idx.row()].id:
+                selection.append([self.model.object_data[idx.row()].object_type, self.model.object_data[idx.row()].id])
 
         self.load(self.id_channel, self.start_time)
 
