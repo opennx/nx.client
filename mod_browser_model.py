@@ -23,7 +23,8 @@ class BrowserModel(NXViewModel):
             if to_update:
                 self.parent().parent().parent().update_assets(to_update)
             self.object_data = [asset_cache[id_asset] for id_asset, mtime in asset_ids]
-
+        else:
+            QMessageBox.warning(self.parent(), "Error", data)
         self.endResetModel()
         QApplication.restoreOverrideCursor()
         self.parent().status("Got {} assets in {:.03f} seconds. ({} updated)".format(len(self.object_data), time.time()-start_time, len(to_update)))
