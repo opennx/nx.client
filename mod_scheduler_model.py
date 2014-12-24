@@ -400,7 +400,7 @@ class TXDayWidget(TXVerticalBar):
         elif type(self.calendar.dragging) == Event:
             event = self.calendar.dragging
             event["start"] = drop_tc
-            if event.id == -1:
+            if event.id == 0:
                 # Create empty event. Event edit dialog is enforced.
                 dlg = EventDialog(self,
                         id_channel=self.id_channel,
