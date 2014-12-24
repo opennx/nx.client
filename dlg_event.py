@@ -7,20 +7,6 @@ from firefly_widgets import *
 from nx.objects import Event
 
 
-#class RunsModel(QAbstractListModel):
-#    def __init__(self, parent=None):
-#        super(RunsModel, self).__init__(parent)
-#        self.object_data = ["13456"]
-#
-#    def rowCount(self ,parent):
-#        return len(self.object_data)
-
-#class RunsView(QListView):
-#    pass
-
-
-
-
 def event_toolbar(wnd):
     toolbar = QToolBar(wnd)
     toolbar.setMovable(False)
