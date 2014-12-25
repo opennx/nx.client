@@ -47,21 +47,22 @@ class SubclipSelectDialog(QDialog):
         layout = QVBoxLayout()
 
         btn = QPushButton("Entire clip")
-        btn.clicked.connect(partial(self.on_submit, [asset["mark_in"],asset["mark_out"]]))
+        btn.clicked.connect(partial(self.on_submit, "", [asset["mark_in"],asset["mark_out"]]))
         layout.addWidget(btn)
 
         subclips = asset.meta.get("subclips", {})
-        for subclip in subclips:
+        for subclip in sorted(subclips):
             marks = subclips[subclip]
             btn = QPushButton(subclip)
-            btn.clicked.connect(partial(self.on_submit, marks))
+            btn.clicked.connect(partial(self.on_submit, subclip, marks))
             layout.addWidget(btn)
 
         self.setLayout(layout)
 
 
-    def on_submit(self, marks):
-        self.marks = marks
+    def on_submit(self, clip, marks):
+        self.marks = [float(mark) for mark in marks]
+        self.clip = clip
         self.ok = True
         self.close()
 
@@ -80,7 +81,7 @@ class RundownModel(NXViewModel):
         self.event_ids = [] # helper for auto refresh
 
         res, data = query("rundown", handler=self.handle_load, id_channel=id_channel, start_time=start_time)
-        if not (success(res) and data): 
+        if not (success(res) and data):
             QApplication.restoreOverrideCursor()
             return
 
@@ -177,7 +178,7 @@ class RundownModel(NXViewModel):
 
 
     def flags(self,index):
-        flags = super(RundownModel, self).flags(index) 
+        flags = super(RundownModel, self).flags(index)
         if index.isValid():
             obj = self.object_data[index.row()]
             if obj.id and obj.object_type == "item":
@@ -205,14 +206,15 @@ class RundownModel(NXViewModel):
             mimeData.setUrls(urls)
         except:
             pass
-        return mimeData 
+        return mimeData
 
     def dropMimeData(self, data, action, row, column, parent):
         if action == Qt.IgnoreAction:
             return True
 
-        if self.id_channel not in config["rights"].get("can/rundown_edit", []):
+        if not has_right("rundown_edit", self.id_channel):
             QMessageBox.warning(self.parent(), "Error", "You are not allowed to modify this rundown")
+            return False
 
         if row < 1:
             return False
@@ -233,7 +235,7 @@ class RundownModel(NXViewModel):
                         if not dlg.ok:
                             return
                         obj["title"] = dlg.title.get_value()
-                        obj["duration"] = dlg.duration.get_value() 
+                        obj["duration"] = dlg.duration.get_value()
 
                     drop_objects.append(Item(from_data=obj))
 
@@ -250,48 +252,51 @@ class RundownModel(NXViewModel):
 
         pre_items = []
         dbg = []
-        i = row-1   
+        i = row-1
         to_bin = self.object_data[i]["rundown_bin"]
 
         while i >= 1:
             if self.object_data[i].object_type != "item" or self.object_data[i]["rundown_bin"] != to_bin: break
             p_item = self.object_data[i].id
 
-            if not p_item in [item.id for item in drop_objects]: 
+            if not p_item in [item.id for item in drop_objects]:
                 pre_items.append({"object_type" : ITEM, "id_object" : p_item, "params" : {}})
                 dbg.append(self.object_data[i].id)
             i-=1
         pre_items.reverse()
 
 
-        for obj in drop_objects: 
-            if data.hasFormat("application/nx.item"):  
+        for obj in drop_objects:
+            if data.hasFormat("application/nx.item"):
                 pre_items.append({"object_type" : ITEM, "id_object" : obj.id, "params" : obj.meta})
                 dbg.append(obj.id)
 
-            elif data.hasFormat("application/nx.asset"): 
+            elif data.hasFormat("application/nx.asset"):
                 mark_in = mark_out = False
 
+                params = {}
+
                 if obj["subclips"]:
-                    dlg = SubclipSelectDialog(self, obj)
+                    dlg = SubclipSelectDialog(self.parent(), obj)
                     dlg.exec_()
                     if dlg.ok:
-                        obj["mark_in"], obj["mark_out"] = dlg.marks
+                        mark_in, mark_out = dlg.marks
+                        if dlg.clip:
+                            params["title"] = "{} ({})".format(obj["title"], dlg.clip)
                 else:
                     mark_in  = obj["mark_in"]
                     mark_out = obj["mark_out"]
 
-                params = {}
                 if mark_in:  params["mark_in"]  = mark_in
                 if mark_out: params["mark_out"] = mark_out
-                pre_items.append({"object_type" : ASSET, "id_object" : obj.id, "params" : params}) 
+                pre_items.append({"object_type" : ASSET, "id_object" : obj.id, "params" : params})
 
         i = row
         while i < len(self.object_data):
             if self.object_data[i].object_type != "item" or self.object_data[i]["rundown_bin"] != to_bin: break
             p_item = self.object_data[i].id
 
-            if not p_item in [item.id for item in drop_objects]: 
+            if not p_item in [item.id for item in drop_objects]:
                 pre_items.append({"object_type" : ITEM, "id_object" : p_item, "params" : {}})
                 dbg.append(self.object_data[i].id)
             i+=1
@@ -299,12 +304,13 @@ class RundownModel(NXViewModel):
         if pre_items:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
+            print (pre_items)
             stat, res = query("bin_order", id_bin=to_bin, order=pre_items, sender=self.parent().parent().objectName())
             QApplication.restoreOverrideCursor()
             if success(stat):
                 self.parent().status("Bin order changed")
             else:
-                QMessageBox.critical(self, "Error", res)
+                QMessageBox.critical(self.parent(), "Error {}".format(stat), res)
             self.load(self.id_channel, self.start_time)
         return True
 
