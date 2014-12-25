@@ -79,6 +79,7 @@ class SeismicListener(QThread):
                     if m.method == "objects_changed" and m.data["object_type"] == message.data["object_type"]:
                         r = list(set(m.data["objects"] + message.data["objects"] ))
                         self.queue[i].data["objects"] = r
+                        break
                 else:
                     self.queue.append(message)
 
