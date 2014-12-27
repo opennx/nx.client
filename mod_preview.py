@@ -73,20 +73,23 @@ def action_toolbar(wnd):
 
     toolbar.addWidget(ToolBarStretcher(wnd))
 
-    action_save_marks = QAction(QIcon(pixlib["save_marks"]),'Save marks', wnd)        
-    action_save_marks.setShortcut('X')
-    action_save_marks.triggered.connect(wnd.on_save_marks)
-    toolbar.addAction(action_save_marks)
 
-#    action_create_region = QAction(QIcon(pixlib["create_region"]),'Create region', wnd)        
-#    action_create_region.setShortcut('C')
-    #action_create_region.triggered.connect(wnd.on_goto_in)
-#    toolbar.addAction(action_create_region)
+    wnd.action_marks = QMenu("Save marks")
+    wnd.action_marks.setStyleSheet(base_css)
+    wnd.action_marks.menuAction().setIcon(QIcon(pixlib["save_marks"]))
+    wnd.action_marks.menuAction().setShortcut('X')
+    wnd.action_marks.menuAction().triggered.connect(wnd.on_save_marks)
 
-#    action_manage_regions = QAction(QIcon(pixlib["manage_regions"]),'Manage regions', wnd)        
-#    action_manage_regions.setShortcut('V')
-    #action_create_region.triggered.connect(wnd.on_goto_in)
-#    toolbar.addAction(action_manage_regions)
+    toolbar.addAction(wnd.action_marks.menuAction())
+
+    action_create_subclip = QAction("Create subclip", wnd)        
+    action_create_subclip.setShortcut('C')
+    action_create_subclip.triggered.connect(wnd.on_create_subclip)
+    wnd.action_marks.addAction(action_create_subclip)
+
+    action_manage_subclips = QAction("Manage subclips", wnd)        
+    action_manage_subclips.triggered.connect(wnd.on_manage_subclips)
+    wnd.action_marks.addAction(action_manage_subclips)
 
     toolbar.addWidget(ToolBarStretcher(wnd))
     return toolbar
@@ -454,6 +457,9 @@ class Preview(BaseWidget):
 
 
     def on_save_marks(self):
+        if not self.current_object:
+            return
+            
         data = {}
         if self.current_object["mark_in"] != self.mark_in:
             data["mark_in"] = self.mark_in
@@ -469,6 +475,30 @@ class Preview(BaseWidget):
                 self.status("Unable to set marks")
         else:
             self.status("Marks unchanged")
+
+
+    def on_create_subclip(self):
+        if self.current_object.object_type != "asset":
+            self.status("Only assets can have subclips")
+            return
+
+        text, result = QInputDialog.getText(self, 
+            "Create subclip",
+            "Range {} to {} will be used to create subclip.\n\nEnter subclip name:".format(
+                s2tc(self.mark_in, self.fps),
+                s2tc(self.mark_out, self.fps)
+                ))
+
+        if result:
+            subclips = self.current_object["subclips"] or {}
+            subclips[text] = [self.mark_in, self.mark_out]
+            res, data = query("set_meta", object_type=self.current_object.object_type, objects=[self.current_object.id], data={"subclips": subclips})
+            if success(res):
+                self.current_object["subclips"] = data["subclips"]
+
+
+    def on_manage_subclips(self):
+        pass
 
 
     def focus(self, objects):
