@@ -9,28 +9,28 @@ T_MARK_OUT = 1
 T_POSITION = 2
 T_DURATION = 3
 
-# TODO: THIS CLASS
-class Timeline(QWidget):
+class RegionBar(QWidget):
     def __init__(self,parent):
-        super(Timeline, self).__init__(parent)
-        self.setFixedHeight(15)
+        super(RegionBar, self).__init__(parent)
+        self.marks_color = QColor("#009fbc")
+        self.setFixedHeight(3)
         self.data = [0,0,0,0]
         self.show()
          
-    def mark_in(self, value=False):
+    def mark_in(self, value=-1):
         return self._value(T_MARK_IN, value)
     
-    def mark_out(self, value=False):
+    def mark_out(self, value=-1):
         return self._value(T_MARK_OUT, value)
     
-    def position(self, value=False):
+    def position(self, value=-1):
         return self._value(T_POSITION, value)
     
-    def duration(self, value=False):
+    def duration(self, value=-1):
         return self._value(T_DURATION, value)
 
     def _value(self, key, value):
-        if value and value != self.data[key]:
+        if value >= 0 and value != self.data[key]:
             self.data[key] = value
             self.update()
         return self.data[key]
@@ -42,14 +42,17 @@ class Timeline(QWidget):
         qp.end()
    
     def drawRegion(self, qp):
+        duration = self.duration()
+        if not duration:
+            return
         mark_in = self.mark_in() or 0
-        mark_out = self.mark_out() or self.duration()
-        # FIXMEFIXMEFIXME
+        mark_out = self.mark_out() or duration
         w = self.width()
         h = self.height()
-        x1 = float(w) * (mark_in)
-        x2 = float(w) * (mark_out-mark_in) 
-        qp.setBrush(QColor(0, 200, 200))
+        x1 = (float(w) / duration) * (mark_in)
+        x2 = (float(w) / duration) * (mark_out-mark_in) 
+        qp.setBrush(self.marks_color)
+        qp.setPen(Qt.NoPen)
         qp.drawRect(x1, 1, x2, h-1)
 
 
@@ -255,6 +258,8 @@ class Preview(BaseWidget):
         self.video_widget = VideoWidget(self)
         self.current_id = False
 
+        self.region_bar = RegionBar(self)
+
         self.timeline = QSlider(Qt.Horizontal)
         self.timeline.setRange(0, 0)
         self.timeline.sliderMoved.connect(self.set_position)
@@ -269,11 +274,12 @@ class Preview(BaseWidget):
         layout.addWidget(self.dout , 0, 2)
         
         layout.addWidget(self.video_widget ,1, 0, 1, -1)
-        layout.addWidget(self.timeline     ,2, 0, 1, -1)
+        layout.addWidget(self.region_bar   ,2, 0, 1, -1)
+        layout.addWidget(self.timeline     ,3, 0, 1, -1)
         
-        layout.addWidget(self.dpos,    3,0)
-        layout.addWidget(self.buttons, 3,1)
-        layout.addWidget(self.ddur,    3,2)
+        layout.addWidget(self.dpos,    4,0)
+        layout.addWidget(self.buttons, 4,1)
+        layout.addWidget(self.ddur,    4,2)
         
         layout.setRowStretch(1,2)
         
@@ -320,6 +326,11 @@ class Preview(BaseWidget):
             self.dout.setText(s2time(self.mark_out))
             #TODO REMAINING DISPLAYS
 
+        self.region_bar.mark_in(self.mark_in)
+        self.region_bar.mark_out(self.mark_out)
+        self.region_bar.position(self.position)
+
+
     def duration_changed(self, duration):
         self.timeline.setRange(0, duration)
         if self.fps:
@@ -327,6 +338,7 @@ class Preview(BaseWidget):
         else:
             dstring = s2tc(duration/1000.0)
         self.ddur.setText(dstring)
+        self.region_bar.duration(duration/1000.0)
         
     def get_position(self):
         return self.media_player.position()
