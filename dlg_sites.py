@@ -15,7 +15,7 @@ class SiteSelect(QDialog):
 
         layout = QVBoxLayout()
         for i, site in enumerate(sites):
-            btn_site = SendToButton(site["site_name"])
+            btn_site = SendToButton(site.get("site_title", False) or site["site_name"])
             btn_site.clicked.connect(partial(self.on_select, i))
             layout.addWidget(btn_site, 1)
 
