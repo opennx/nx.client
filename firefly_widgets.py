@@ -150,6 +150,22 @@ class NXE_datetime(QLineEdit):
         return float(time.mktime(t))
         
 
+class NXE_integer(QSpinBox):
+    def __init__(self, parent, **kwargs):
+        super(NXE_integer,self).__init__(parent)
+        self.setMaximum(kwargs.get("max", 99999))
+
+    def set_value(self, value):
+        self.default = value
+        if value == self.get_value():
+            return
+        self.setValue(int(value))
+
+    def get_value(self):
+        return self.value()
+
+
+
 class NXE_text(QLineEdit):
     def set_value(self, value):
         self.default = value
@@ -292,6 +308,9 @@ class MetaEditor(QWidget):
 
             elif meta_types[tag].class_ == DATETIME:
                 self.inputs[tag] = NXE_datetime(self, **meta_types[tag].settings)
+
+            elif meta_types[tag].class_ == INTEGER:
+                self.inputs[tag] = NXE_integer(self, **(meta_types[tag].settings or {}))
 
             else:
                 self.inputs[tag] = NXE_text(self)

@@ -109,7 +109,7 @@ QGroupBox {
 }
 
 
-QLineEdit, QTextEdit, QComboBox, QPushButton {
+QLineEdit, QTextEdit, QComboBox, QPushButton, QSpinBox {
     background-color : #242424;
     color : #c0c0c0;
     border : 1px solid #646464;
@@ -129,7 +129,6 @@ QPushButton:checked{
 
 QTextEdit {
     color : #f8f8f2;
-    font: "Courier";
     min-height: 150px;
 }
 
