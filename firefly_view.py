@@ -52,7 +52,13 @@ class NXViewModel(QAbstractTableModel):
         elif role == Qt.EditRole:        return obj.format_edit(tag)
         elif role == Qt.UserRole:        return obj.format_sort(tag)
         elif role == Qt.DecorationRole:  return pixlib[obj.format_decoration(tag)]
-        elif role == Qt.ToolTipRole:     return "\n".join("{} : {}".format(format_header(tag), obj.format_display(tag)) for tag in obj.meta.keys() ) if config.get("debug", False) else None
+        elif role == Qt.ToolTipRole:     return "\n".join(
+            "{} : {}".format(
+                meta_types.tag_alias(tag, config.get("language","en-US")),
+                obj.format_display(tag)
+                ) for tag in sorted(obj.meta.keys()) if obj.format_display(tag)
+            ) if config.get("debug", False) else None
+
         elif role == Qt.FontRole:        return self.font_bold if obj.object_type == "event" else self.font_normal
 
         return None
