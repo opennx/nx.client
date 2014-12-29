@@ -83,6 +83,8 @@ class Firefly(QMainWindow):
         self.seismic_timer.start(40)
 
         self.status("Ready")
+        from pprint import pprint
+        pprint (config["rights"])
 
 
     def resizeEvent(self, evt):

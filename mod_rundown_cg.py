@@ -93,7 +93,7 @@ class CG(QTabWidget):
         self.id_channel = id_channel
         stat, plugins = query("cg_list", self.parent().mcr.route, id_channel=id_channel)
         if not success(stat):
-            logging.warning ("Unable to load CG plugins")
+            print("Unable to load CG plugins")
             return
 
         for plugin in plugins:

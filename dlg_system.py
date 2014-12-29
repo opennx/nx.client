@@ -4,14 +4,14 @@ from firefly_widgets import *
 
 
 def format_header(tag):
-    return {"id_service" : "#", 
-            "agent" : "Agent", 
-            "title" : "Title", 
-            "host" : "Host", 
-            "autostart" : "", 
-            "loop_delay" : "LD", 
-            "settings" : "Settings", 
-            "state" : "State", 
+    return {"id_service" : "#",
+            "agent" : "Agent",
+            "title" : "Title",
+            "host" : "Host",
+            "autostart" : "",
+            "loop_delay" : "LD",
+            "settings" : "Settings",
+            "state" : "State",
             "last_seen" : "Last seen",
             "ctrl" : ""
             }[tag]
@@ -30,26 +30,26 @@ class ServiceViewModel(QAbstractTableModel):
         self.object_data     = []
         self.header_data     = ["id_service", "agent", "host", "title", "state", "last_seen","autostart", "ctrl"]
 
-    def rowCount(self, parent):    
-        return len(self.object_data)   
+    def rowCount(self, parent):
+        return len(self.object_data)
 
-    def columnCount(self, parent): 
-        return len(self.header_data) 
+    def columnCount(self, parent):
+        return len(self.header_data)
 
     def headerData(self, col, orientation=Qt.Horizontal, role=Qt.DisplayRole):
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole: 
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return format_header(self.header_data[col])
         return None
 
-    def data(self, index, role=Qt.DisplayRole): 
-        if not index.isValid(): 
-            return None 
+    def data(self, index, role=Qt.DisplayRole):
+        if not index.isValid():
+            return None
 
         row = index.row()
         col = index.column()
         tag = self.header_data[col]
         obj = self.object_data[row]
-                  
+
         if role == Qt.DisplayRole:
             if tag in ["autostart", "ctrl"]:
                 return None
@@ -100,7 +100,7 @@ class ServiceView(QTableView):
         self.setSelectionMode(self.NoSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setSelectionMode(self.ExtendedSelection)
-        
+
         self.setShowGrid(False)
         self.setAlternatingRowColors(True)
         self.selected_services = []
@@ -111,11 +111,11 @@ class ServiceView(QTableView):
         for idx in self.selectionModel().selectedIndexes():
             row =  self.parent().sort_model.mapToSource(idx).row()
             id_service = self.parent().model.object_data[row]["id_service"]
-            if id_service in self.selected_services: 
+            if id_service in self.selected_services:
                 continue
             self.selected_services.append(id_service)
         super(QTableView, self).selectionChanged(selected, deselected)
- 
+
     def on_activate(self,mi):
         row = self.parent().sort_model.mapToSource(mi).row()
         col = self.parent().sort_model.mapToSource(mi).column()
@@ -133,9 +133,11 @@ class ServiceView(QTableView):
                 }[svc["state"]]
             self.parent().status(msg)
             query("services", command=cmd, id_service=id_service)
+
         elif action == "autostart":
-            query("services", command=-1, id_service=id_service)
-        
+            stat, res = query("services", command=-1, id_service=id_service)
+            self.parent().load()
+
 
 
 
@@ -147,7 +149,7 @@ class SystemDialog(QDialog):
         self.setWindowTitle("System manager")
 
         self.view = ServiceView(self)
-        self.model       = ServiceViewModel(self) 
+        self.model       = ServiceViewModel(self)
         self.sort_model  = ServiceSortModel(self.model)
         self.view.setModel(self.sort_model)
 
@@ -210,20 +212,20 @@ class SystemDialog(QDialog):
     def seismic_handler(self, data):
 
         if data.method == "log":
-            
+
             self.status("{}: {}".format(data.data["user"], data.data["message"]))
 
         if data.method == "hive_heartbeat":
             sstat = {}
             for svc in data.data["service_status"]:
                 sstat[svc[0]] = svc[1:]
-            
+
             for svc in self.model.object_data:
                 if svc["id_service"] not in sstat:
                     continue
                 svc["state"], svc["last_seen"] = sstat[svc["id_service"]]
                 svc["last_seen"] = data.timestamp - svc["last_seen"]
             self.model.dataChanged.emit(self.model.index(0, 0), self.model.index(len(self.model.object_data)-1, len(self.model.header_data)-1))
-            
+
 
 

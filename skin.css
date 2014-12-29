@@ -1,13 +1,14 @@
 QMainWindow, QDialog, QWidget, QToolBar, QMenu {
     background-color : #242424;
     color : #c0c0c0;
-    } 
+    }
 
 QStatusBar, QHeaderView, QMenuBar {
     background-color : #161616;
     color : #c0c0c0;
     border: 0;
     }
+
 
 /**********************************************************************
                 MENU
@@ -41,15 +42,15 @@ QTableView {
     background-color: #222222;
     alternate-background-color: #202020;
     selection-background-color : rgba(110, 110, 110, 170);
-    color : #c0c0c0; 
+    color : #c0c0c0;
     border: 0;
     }
 
 QTableView::item {
-    /*color : #c0c0c0; 
+    /*color : #c0c0c0;
     */}
 
-QTableView::item:focus { 
+QTableView::item:focus {
     background-color: rgba(160, 160, 160, 160);
 }
 
@@ -90,7 +91,7 @@ QTabBar::tab {
 }
 
 QTabBar::tab:selected {
-    background-color: #161616;   
+    background-color: #161616;
     padding: 5px;
     margin-bottom: 5px;
     color: #00a5c3;
@@ -128,13 +129,13 @@ QPushButton:checked{
 
 QTextEdit {
     color : #f8f8f2;
-    font: 9pt "Courier";
+    font: "Courier";
     min-height: 150px;
 }
 
 
 .NXE_timecode {
-    font: 12px "Courier"; 
+    font: 12px "Courier";
     font-weight: bold;
     min-width : 88px;
     max-width : 88px;
@@ -160,16 +161,16 @@ QTextEdit {
 
 
 QProgressBar {
-    background: #161616; 
-    border:0; 
-    border-radius:0; 
+    background: #161616;
+    border:0;
+    border-radius:0;
     height: 4px
 }
 
 QProgressBar::chunk{
     background : QLinearGradient(x1: 0, y1: 0,x2: 0, y2: 1,  stop: 0 #009fbc, stop: 1 #00a5c3);
     }
-    
+
 
 QSlider::groove:horizontal {
     background: #161616;
@@ -210,7 +211,7 @@ QScrollBar::handle:vertical {
     background: gray;
     min-height: 12 px;
  }
- 
+
 QScrollBar::add-line:horizontal,  QScrollBar::add-line:vertical { background: none; }
 QScrollBar::sub-line:horizontal,  QScrollBar::sub-line:vertical { background: none; }
 QScrollBar::left-arrow:horizontal,QScrollBar::right-arrow:horizontal,QScrollBar:left-arrow:vertical, QScrollBar::right-arrow:vertical { background: none; }
