@@ -275,9 +275,17 @@ class TXDayWidget(TXVerticalBar):
 
             if end >= ts > event["start"] >= self.start_time:
                 self.cursor_event = event
-                self.setToolTip("<b>{title}</b><br>Start: {start}".format(
+                diff = event["start"] + event["duration"] - end
+                if diff < 0:
+                    diff = "Remaining: " + s2tc(abs(diff))
+                else:
+                    diff = "Over: " + s2tc(diff)
+
+
+                self.setToolTip("<b>{title}</b><br>Start: {start}<br>{diff}".format(
                     title=event["title"],
-                    start=time.strftime("%H:%M",time.localtime(event["start"]))
+                    start=time.strftime("%H:%M",time.localtime(event["start"])),
+                    diff=diff
                     ))
                 break
             self.cursor_event = False
