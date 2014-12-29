@@ -17,7 +17,6 @@ class DetailTabMain(QWidget):
         self.id_folder = False
         self.status = -1
 
-
         self.scroll_area = QScrollArea(self)
         self.scroll_area.setFrameStyle(QFrame.NoFrame)
         self.scroll_area.setWidgetResizable(True)
@@ -61,15 +60,17 @@ class DetailTabMain(QWidget):
 
 
 
-
-class DetailTabExtended(QTextEdit):
+class MetaList(QTextEdit):
     def __init__(self, parent):
-        super(DetailTabExtended, self).__init__(parent)
+        super(MetaList, self).__init__(parent)
+        fixed_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
+        self.setCurrentFont(fixed_font)
         self.setReadOnly(True)
         self.setStyleSheet("border:0;")
 
-    def load(self, obj):
 
+class DetailTabExtended(MetaList):
+    def load(self, obj):
         self.tag_groups = {
                 "core" :  [],
                 "other"  : [],
@@ -99,12 +100,8 @@ class DetailTabExtended(QTextEdit):
 
 
 
-class DetailTabTechnical(QTextEdit):
-    def __init__(self, parent):
-        super(DetailTabTechnical, self).__init__(parent)
-        self.setReadOnly(True)
-        self.setStyleSheet("border:0;")
-
+class DetailTabTechnical(MetaList):
+    def load(self, obj):        
         self.tag_groups = {
                 "File" : [],
                 "Format"  : [],
@@ -119,7 +116,6 @@ class DetailTabTechnical(QTextEdit):
             elif meta_types[tag].namespace == "qc" and not tag.startswith("qc/"):
                 self.tag_groups["QC"].append(tag)
 
-    def load(self, obj):
         data = ""
         if not obj["id_folder"]:
             return
@@ -134,6 +130,8 @@ class DetailTabTechnical(QTextEdit):
             data += "\n\n"
 
         self.setText(data)
+
+
 
 
 
@@ -197,19 +195,19 @@ def detail_toolbar(wnd):
 
     wnd.action_approve = QAction(QIcon(pixlib["qc_approved"]),'Approve', wnd)        
     wnd.action_approve.setShortcut('Y')
-    wnd.action_approve.triggered.connect(wnd.on_approve)
+    wnd.action_approve.triggered.connect(partial(wnd.on_set_qc, 4))
     wnd.action_approve.setEnabled(False)
     toolbar.addAction(wnd.action_approve)
 
     wnd.action_qc_reset = QAction(QIcon(pixlib["qc_new"]),'QC Reset', wnd)        
     wnd.action_qc_reset.setShortcut('T')
-    wnd.action_qc_reset.triggered.connect(wnd.on_qc_reset)
+    wnd.action_qc_reset.triggered.connect(partial(wnd.on_set_qc, 0))
     wnd.action_qc_reset.setEnabled(False)
     toolbar.addAction(wnd.action_qc_reset)
 
     wnd.action_reject = QAction(QIcon(pixlib["qc_rejected"]),'Reject', wnd)        
     wnd.action_reject.setShortcut('U')
-    wnd.action_reject.triggered.connect(wnd.on_reject)
+    wnd.action_reject.triggered.connect(partial(wnd.on_set_qc, 3))
     wnd.action_reject.setEnabled(False)
     toolbar.addAction(wnd.action_reject)
 
@@ -397,14 +395,11 @@ class Detail(BaseWidget):
         if self.object:
             self.focus([asset_cache[self.object.id]], silent=False)
 
-    def on_approve(self):
-        res, data = query("set_meta", objects=[self.object.id], data={"qc/state" : 4} )
+    def on_set_qc(self, state):
+        stat, res = query("set_meta", objects=[self.object.id], data={"qc/state" : state} )
+        if not success(stat):
+            QMessageBox.critical(self, "Error", res)
 
-    def on_qc_reset(self):
-        res, data = query("set_meta", objects=[self.object.id], data={"qc/state" : 0} )
-
-    def on_reject(self):
-        res, data = query("set_meta", objects=[self.object.id], data={"qc/state" : 3} )
 
     def seismic_handler(self, data):
         if data.method == "objects_changed" and data.data["object_type"] == "asset" and self.object: 
