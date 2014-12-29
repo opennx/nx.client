@@ -63,6 +63,11 @@ class Browser(BaseWidget):
         self.action_search.menuAction().triggered.connect(self.browse)
         self.load_view_menu()
 
+        action_copy = QAction('Copy result', self)
+        action_copy.setShortcut('CTRL+C')
+        action_copy.triggered.connect(self.on_copy_result)
+        self.addAction(action_copy)
+
         toolbar = QToolBar()
         toolbar.addAction(action_clear)
         toolbar.addWidget(self.search_box)
@@ -255,7 +260,12 @@ class Browser(BaseWidget):
     def on_choose_columns(self):
         pass #TODO
 
-
+    def on_copy_result(self):
+        result = ""
+        for obj in self.view.selected_objects:
+            result += "{}\n".format("\t".join([obj.format_display(key) or "" for key in self.model.header_data]))
+        clipboard = QApplication.clipboard();
+        clipboard.setText(result)
 
     def selectionChanged(self, selected, deselected):
         rows = []
