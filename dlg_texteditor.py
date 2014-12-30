@@ -7,12 +7,12 @@ class TextWidget(QTextEdit):
         super(TextWidget, self).__init__(parent)
         self.syntax = syntax
 
-        if syntax == "python": 
+        if syntax == "python":
             hl = PythonHL(self)
             #option = self.document().defaultTextOption()
             #option.setFlags(option.flags() | QTextOption.ShowTabsAndSpaces);
             #self.document().setDefaultTextOption(option)
-        
+
     def keyPressEvent(self,  event):
         if event.key() == Qt.Key_Return:
             cursor = self.textCursor()
@@ -26,13 +26,13 @@ class TextWidget(QTextEdit):
                 if words and words[0] in ["return", "pass", "break"]:
                     trail_spaces = max(trail_spaces-4, 0)
 
-            cursor.insertText("\n" + " "*trail_spaces)            
+            cursor.insertText("\n" + " "*trail_spaces)
             return
 
         elif event.key() == Qt.Key_Tab:
             cursor = self.textCursor()
             cursor.insertText("    ")
-            return    
+            return
 
         QTextEdit.keyPressEvent(self,  event)
 
@@ -46,24 +46,24 @@ def editor_toolbar(wnd):
     toolbar = QToolBar(wnd)
     toolbar.setMovable(False)
     toolbar.setFloatable(False)
-    
+
     toolbar.addSeparator()
-  
+
     action_accept = QAction(QIcon(pixlib["accept"]), 'Accept changes', wnd)
-    action_accept.setShortcut('ESC')
-    action_accept.triggered.connect(wnd.on_accept)        
+    action_accept.setShortcut('CTRL+S')
+    action_accept.triggered.connect(wnd.on_accept)
     toolbar.addAction(action_accept)
-  
+
     action_cancel = QAction(QIcon(pixlib["cancel"]), 'Cancel', wnd)
-    action_cancel.setShortcut('Alt+F4')
-    action_cancel.triggered.connect(wnd.on_cancel)        
+    action_cancel.setShortcut('ESC')
+    action_cancel.triggered.connect(wnd.on_cancel)
     toolbar.addAction(action_cancel)
 
     return toolbar
-  
 
 
-class TextEditor(QDialog):    
+
+class TextEditor(QDialog):
     def __init__(self, default, index=False, syntax=False):
         super(TextEditor, self).__init__()
 
@@ -75,16 +75,16 @@ class TextEditor(QDialog):
         self.edit = TextWidget(self, syntax)
         self.default = default
         self.setText(default)
-          
+
         self.index = index
-          
+
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
         layout.setSpacing(5)
 
         layout.addWidget(self.toolbar, 1)
-        layout.addWidget(self.edit,2) 
-          
+        layout.addWidget(self.edit,2)
+
         self.setStyleSheet(base_css)
         self.setLayout(layout)
         self.resize(640,640)
@@ -93,7 +93,7 @@ class TextEditor(QDialog):
         self.raise_()
         self.edit.activateWindow()
         self.edit.setFocus()
-        
+
 
     def on_accept(self):
         if self.index:
@@ -102,7 +102,7 @@ class TextEditor(QDialog):
 
     def on_cancel(self):
         self.close()
-        
+
     def setText(self,text):
         self.edit.setText(text)
 
@@ -140,4 +140,3 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     dlg = TextEditor(r, syntax="python")
     dlg.exec_()
-    
