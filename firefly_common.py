@@ -1,13 +1,20 @@
 import uuid
 import socket
+import pickle
+import pprint
 
 from nx.common import *
 from nx.common.metadata import meta_types
 from nx.connection import *
+from nx.objects import Asset
 
 from qt_common import *
 from firefly_rc import *
 from default_state import DEFAULT_STATE
+
+
+def p(*args):
+    l = pprint.pprint(*args)
 
 
 def ffsettings():
@@ -37,19 +44,70 @@ class Pixlib(dict):
         return self.get(key, None)
 
 pixlib = Pixlib()
-asset_cache = {}
+
+
+class AssetCache():
+    def __init__(self):
+        self.data = {}
+        self.cache_time = 0
+
+    def __getitem__(self, key):
+        if key == 0:
+            return Asset()
+        return self.data[key]
+
+    def __setitem__(self, key, value):
+        self.data[key] = value
+        self.cache_time = time.time()
+
+    def __contains__(self, key):
+        return key in self.data
+
+    def keys(self):
+        return self.data.keys()
+
+    @property
+    def local_file(self):
+        return "state.{}.{}.nxcache".format(socket.gethostname(), config["site_name"])
+
+    def save(self):
+        f = open(self.local_file, "wb")
+        pickle.dump([time.time(), [asset.meta for asset in self.data.values()]], f)
+        f.close()
+
+    def load(self):
+        print ("Loading cache")
+        if os.path.exists(self.local_file):
+            try:    
+                f = open(self.local_file, "rb")
+                self.cache_time, _data = pickle.load(f)
+                f.close()
+                for meta in _data:
+                    self.data[meta["id_object"]] = Asset(from_data=meta)
+            except:
+                pass
+            else:
+                print ("{} cached assets loaded".format(len(self.data)))
+                return        
+        self.data = {}
+
+asset_cache = AssetCache()
 
 
 
 def has_right(key, val=True):
     """Don't worry. It's also validated server-side"""
-    if config["rights"].get("is_admin", False):
+    if str(config["rights"].get("is_admin", False)).lower() == "true":
         return True
     key = "can/{}".format(key)
     if not key in config["rights"]:
         return False
-    return config["rights"][key] == True or (
-        type(config["rights"][key]) == list and val in config["rights"][key])
+    tval = config["rights"][key]
+    if tval is True:
+        return True
+    if val is True:
+        return True
+    return tval and type(tval) == list and val in tval
 
 
 
