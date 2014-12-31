@@ -33,7 +33,7 @@ class TextWidget(QTextEdit):
             cursor = self.textCursor()
             cursor.insertText("    ")
             return
-
+        self.parent().status("")
         QTextEdit.keyPressEvent(self,  event)
 
 
@@ -71,6 +71,7 @@ class TextEditor(QDialog):
         self.setModal(True)
 
         self.toolbar = editor_toolbar(self)
+        self.statusbar = QStatusBar()
 
         self.edit = TextWidget(self, syntax)
         self.default = default
@@ -83,7 +84,8 @@ class TextEditor(QDialog):
         layout.setSpacing(5)
 
         layout.addWidget(self.toolbar, 1)
-        layout.addWidget(self.edit,2)
+        layout.addWidget(self.edit, 2)
+        layout.addWidget(self.statusbar, 0)
 
         self.setStyleSheet(base_css)
         self.setLayout(layout)
@@ -93,7 +95,12 @@ class TextEditor(QDialog):
         self.raise_()
         self.edit.activateWindow()
         self.edit.setFocus()
+        self.status("Press ESC to discard changes or CTRL+S to save and close")
 
+
+    def status(self, message, message_type=INFO):
+        if message_type > DEBUG:
+            self.statusbar.showMessage(message)
 
     def on_accept(self):
         if self.index:
