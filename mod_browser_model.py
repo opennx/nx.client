@@ -18,8 +18,12 @@ class BrowserModel(NXViewModel):
         if success(res) and "result" in data:
             asset_ids = data["result"]
             for id_asset, mtime in asset_ids:
-                if not (id_asset in asset_cache and asset_cache[id_asset]["mtime"] == mtime):
+                if not id_asset in asset_cache:
+                    asset_cache[id_asset] = Asset()
+
+                if asset_cache[id_asset]["mtime"] != mtime:
                     to_update.append(id_asset)
+
             if to_update:
                 self.parent().parent().parent().update_assets(to_update)
             self.object_data = [asset_cache[id_asset] for id_asset, mtime in asset_ids]

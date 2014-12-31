@@ -131,9 +131,13 @@ class RundownModel(NXViewModel):
             for i_data in edata["items"]:
                 item = Item(from_data=i_data)
                 id_asset = item["id_asset"]
-                if not id_asset in asset_cache:
-                    asset_cache[id_asset] = Asset()
-                    required_assets.append(id_asset)
+
+                if id_asset:
+                    if not id_asset in asset_cache:
+                        asset_cache[id_asset] = Asset()
+                        required_assets.append(id_asset)
+                    elif asset_cache[id_asset]["mtime"] != item["asset_mtime"]:
+                        required_assets.append(id_asset)
 
                 item._asset = asset_cache[item["id_asset"]]
                 item["rundown_bin"] = current_bin
@@ -304,7 +308,6 @@ class RundownModel(NXViewModel):
         if pre_items:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            print (pre_items)
             stat, res = query("bin_order", id_bin=to_bin, order=pre_items, sender=self.parent().parent().objectName())
             QApplication.restoreOverrideCursor()
             if success(stat):
