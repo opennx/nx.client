@@ -51,6 +51,7 @@ def check_login():
 class Firestarter(QApplication):
     def __init__(self, main_window):
         super(Firestarter, self).__init__(sys.argv)
+        self.setStyleSheet(base_css)
         self.main_window = False
         self.splash = QSplashScreen(pixlib['splash'])
         self.splash.show()
@@ -76,7 +77,8 @@ class Firestarter(QApplication):
                       self.load_site_settings,
                       self.load_meta_types,
                       self.load_storages,
-                      self.init_listener
+                      self.init_listener,
+                      asset_cache.load
                      ]
 
         for task in self.tasks:
