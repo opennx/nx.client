@@ -270,7 +270,7 @@ class NXCellFormat():
         #    res = format_helpers[key].edit(self)
         #    if res:
         #        return res
-        if key in meta_types:# and meta_types[key].editable:
+        if key in meta_types and meta_types[key].editable:
             return key, meta_types[key].class_, meta_types[key].settings, self
         return key, "NOEDIT", False, self
 
@@ -278,6 +278,11 @@ class NXCellFormat():
     def format_decoration(self, key):
         if key in format_helpers:
             return format_helpers[key].decoration(self)
+        if key == "title" and self.object_type in ["asset", "item"]:
+            if self["status"] == ARCHIVED:
+                return "archive"
+            elif self["status"] == TRASHED:
+                return "trash"    
         return None
 
 
