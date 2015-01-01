@@ -49,7 +49,6 @@ class SeismicListener(QThread):
         self.halted = True
 
     def listen_http(self):
-        print ("Switching to HTTP listener")
         url = "{protocol}://{host}:{port}/msg_subscribe?id={site_name}".format(
                 protocol  = ["http", "https"][config.get("hive_ssl", False)],
                 host      = config["hive_host"], 
