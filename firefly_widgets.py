@@ -52,7 +52,6 @@ class NXE_radio(QWidget):
 
     def set_data(self, data):
         self.current_index = -1
-        groupBox = QButtonGroup()
         vbox = QHBoxLayout()
         for i, row in enumerate(sorted(data)):
             value, label = row
@@ -91,6 +90,12 @@ class NXE_radio(QWidget):
         if self.current_index == -1:
             return ""
         return self.cdata[self.current_index]
+
+
+    def setReadOnly(self, val):
+        for w in self.buttons:
+            w.setEnabled(not val)
+
 
 
 class NXE_timecode(QLineEdit):
@@ -178,6 +183,11 @@ class NXE_text(QLineEdit):
 
 
 class NXE_blob(QTextEdit):
+    def __init__(self, parent):
+        super(NXE_blob, self).__init__(parent)
+        fixed_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
+        self.setCurrentFont(fixed_font)
+        
     def set_value(self, value):
         if value == self.get_value():
             return
@@ -324,4 +334,9 @@ class MetaEditor(QWidget):
 
     def __setitem__(self, key, value):
         self.inputs[key].set_value(value)
+
+    def setEnabled(self, stat):
+        #super(MetaEditor, self).setEnabled(stat)
+        for w in self.inputs:
+            self.inputs[w].setReadOnly(not stat)
 
