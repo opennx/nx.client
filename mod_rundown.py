@@ -224,7 +224,7 @@ class RundownView(NXView):
 
         if self.selected_objects and self.focus_enabled:
             self.parent().parent().parent().focus(self.selected_objects)
-            if len(self.selected_objects) == 1 and self.selected_objects[0].object_type == "item":
+            if len(self.selected_objects) == 1 and self.selected_objects[0].object_type == "item" and self.selected_objects[0]["id_asset"]:
                 asset = self.selected_objects[0].asset
                 times = len([obj for obj in self.model().object_data if obj.object_type == "item" and obj["id_asset"] == asset.id])
                 self.parent().status("{} is scheduled {}x in this rundown".format(asset, times))
@@ -274,26 +274,35 @@ class RundownView(NXView):
                 mode_menu.addAction(action_mode_manual)
 
             elif obj_set[0] == "event" and len(self.selected_objects) == 1:
+                print (self.selected_objects[0]["run_mode"])
 
                 mode_menu = menu.addMenu("Run mode")
 
                 action_mode_auto = QAction('&Auto', self)
                 action_mode_auto.setStatusTip('Set run mode to auto')
+                action_mode_auto.setCheckable(True)
+                action_mode_auto.setChecked(self.selected_objects[0]["run_mode"] == 0)
                 action_mode_auto.triggered.connect(partial(self.on_set_mode, 0))
                 mode_menu.addAction(action_mode_auto)
 
                 action_mode_manual = QAction('&Manual', self)
                 action_mode_manual.setStatusTip('Set run mode to manual')
+                action_mode_manual.setCheckable(True)
+                action_mode_manual.setChecked(self.selected_objects[0]["run_mode"] == 1)
                 action_mode_manual.triggered.connect(partial(self.on_set_mode, 1))
                 mode_menu.addAction(action_mode_manual)
 
                 action_mode_soft = QAction('&Soft', self)
                 action_mode_soft.setStatusTip('Set run mode to soft')
+                action_mode_soft.setCheckable(True)
+                action_mode_soft.setChecked(self.selected_objects[0]["run_mode"] == 2)
                 action_mode_soft.triggered.connect(partial(self.on_set_mode, 2))
                 mode_menu.addAction(action_mode_soft)
 
                 action_mode_hard = QAction('&Hard', self)
                 action_mode_hard.setStatusTip('Set run mode to hard')
+                action_mode_hard.setCheckable(True)
+                action_mode_hard.setChecked(self.selected_objects[0]["run_mode"] == 3)
                 action_mode_hard.triggered.connect(partial(self.on_set_mode, 3))
                 mode_menu.addAction(action_mode_hard)
 
@@ -346,11 +355,10 @@ class RundownView(NXView):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         stat, res = query("set_meta", object_type=self.selected_objects[0].object_type, objects=[obj.id for obj in self.selected_objects], data={"run_mode":mode})
         QApplication.restoreOverrideCursor()
-        if success(stat):
-            self.parent().status("Delete item: {}".format(res))
-        else:
+        if not success(stat):
             QMessageBox.critical(self, "Error", res)
         self.parent().refresh()
+        self.selectionModel().clear()
         return
 
     def on_focus(self):
@@ -401,6 +409,7 @@ class RundownView(NXView):
                 QMessageBox.critical(self, "Error", res)
 
         self.parent().refresh()
+        self.selectionModel().clear()
 
 
     def on_send_to(self):
