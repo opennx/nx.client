@@ -18,12 +18,12 @@ class SearchWidget(QLineEdit):
 
     def keyPressEvent(self, event):
         if event.key() in [Qt.Key_Return,Qt.Key_Enter]:
-            if event.modifiers() & Qt.ControlModifier:
-                print ("extend search")
-                self.parent().OnSearch(extend=True)
-            else:
+            #if event.modifiers() & Qt.ControlModifier:
+            #    print ("extend search")
+            #    self.parent().OnSearch(extend=True)
+            #else:
                 self.parent().parent().browse()
-            return
+            #return
 
         elif event.key() == Qt.Key_Escape:
             self.line_edit.setText("")
@@ -155,7 +155,12 @@ class Browser(BaseWidget):
         self.browse(fulltext="")
 
     def browse(self,**kwargs):
-        self.search_query["fulltext"] = self.search_box.text()
+        search_string = self.search_box.text()
+        if search_string.startswith("\\\\"):
+            exec(search_string.lstrip("\\"))
+            return
+
+        self.search_query["fulltext"] = search_string
         self.search_query.update(kwargs)
         self.model.browse(**self.search_query)
 
@@ -171,16 +176,17 @@ class Browser(BaseWidget):
             return
         menu = QMenu(self)
 
-        action_focus = QAction('Focus', self)
-        action_focus.setStatusTip('Focus selection')
-        action_focus.triggered.connect(self.on_focus)
-        menu.addAction(action_focus)
+        # DEPRECATED
+        # action_focus = QAction('Focus', self)
+        # action_focus.setStatusTip('Focus selection')
+        # action_focus.triggered.connect(self.on_focus)
+        # menu.addAction(action_focus)
 
         statuses = [obj["status"] for obj in self.view.selected_objects ]
 
         if len(statuses) == 1 and statuses[0] == TRASHED:
             action_untrash = QAction('Untrash', self)
-            action_untrash.setStatusTip('Take selected asset(s) to trash')
+            action_untrash.setStatusTip('Take selected asset(s) from trash')
             action_untrash.triggered.connect(self.on_untrash)
             menu.addAction(action_untrash)
         else:
@@ -189,10 +195,17 @@ class Browser(BaseWidget):
             action_move_to_trash.triggered.connect(self.on_trash)
             menu.addAction(action_move_to_trash)
 
-        # action_move_to_archive = QAction('Move to archive', self)
-        # action_move_to_archive.setStatusTip('Move selected asset(s) to archive')
-        # action_move_to_archive.triggered.connect(self.on_archive)
-        # menu.addAction(action_move_to_archive)
+        if len(statuses) == 1 and statuses[0] == ARCHIVED:
+            action_unarchive = QAction('Unarchive', self)
+            action_unarchive.setStatusTip('Take selected asset(s) from archive')
+            action_unarchive.triggered.connect(self.on_unarchive)
+            menu.addAction(action_unarchive)
+        else:
+            action_move_to_archive = QAction('Move to archive', self)
+            action_move_to_archive.setStatusTip('Move selected asset(s) to archive')
+            action_move_to_archive.triggered.connect(self.on_archive)
+            menu.addAction(action_move_to_archive)
+
 
         action_reset = QAction('Reset', self)
         action_reset.setStatusTip('Reload asset metadata')
@@ -215,9 +228,7 @@ class Browser(BaseWidget):
 
         menu.exec_(event.globalPos())
 
-    def on_focus(self):
-        pass #TODO
-
+    
     def on_send_to(self):
         dlg = SendTo(self, self.view.selected_objects)
         dlg.exec_()
@@ -250,15 +261,17 @@ class Browser(BaseWidget):
             QMessageBox.Yes | QMessageBox.No
             )
         if ret == QMessageBox.Yes:
-            QMessageBox.warning(self,
-                "Not available",
-                "This feature is not available in this version",
-                QMessageBox.Cancel
-                )
+            stat, res = query("archive", objects=[obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED]])
+
+    def on_unarchive(self):
+        objs = [obj.id for obj in self.view.selected_objects if obj["status"] in [ARCHIVED]]
+        if objs:
+            stat, res = query("unarchive", objects=objs)
 
 
     def on_choose_columns(self):
         pass #TODO
+
 
     def on_copy_result(self):
         result = ""
