@@ -127,6 +127,11 @@ QPushButton:checked{
     color: #000000;
 }
 
+QPushButton:pressed{
+    border-color:#00a5c3;
+    color: #c0c0c0;
+}
+
 QTextEdit {
     color : #f8f8f2;
     min-height: 150px;
