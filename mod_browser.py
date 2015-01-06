@@ -10,6 +10,7 @@ from mod_browser_model import BrowserModel
 
 
 from dlg_sendto import SendTo
+from dlg_batch import BatchDialog
 
 
 class SearchWidget(QLineEdit):
@@ -219,6 +220,12 @@ class Browser(BaseWidget):
         action_send_to.triggered.connect(self.on_send_to)
         menu.addAction(action_send_to)
 
+        if config["rights"]["is_admin"].lower() == "true":
+            action_batch = QAction('&Batch ops', self)
+            action_batch.setStatusTip('Batch operations')
+            action_batch.triggered.connect(self.on_batch)
+            menu.addAction(action_batch)
+
         menu.addSeparator()
 
         action_columns = QAction('Choose columns', self)
@@ -268,6 +275,10 @@ class Browser(BaseWidget):
         if objs:
             stat, res = query("unarchive", objects=objs)
 
+
+    def on_batch(self):
+        dlg = BatchDialog(self, self.view.selected_objects)
+        dlg.exec_()
 
     def on_choose_columns(self):
         pass #TODO
