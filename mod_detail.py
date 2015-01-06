@@ -32,12 +32,14 @@ class DetailTabMain(QWidget):
         self.setLayout(scroll_layout)
 
 
-    def load(self, obj):
-        if obj["id_folder"] != self.id_folder or obj["status"] != self.status:
-            if obj["id_folder"] == 0:
+    def load(self, obj, **kwargs):
+        id_folder = kwargs.get("id_folder", obj["id_folder"])
+        if id_folder != self.id_folder:
+            if id_folder == 0:
                 self.tags = []
             else:
-                self.tags = config["folders"][obj["id_folder"]][2]
+                self.tags = config["folders"][id_folder][2]
+
 
             if self.form:
                 # SRSLY. I've no idea what I'm doing here
@@ -52,11 +54,14 @@ class DetailTabMain(QWidget):
 
             self.form = MetaEditor(self, self.tags)
             self.layout.addWidget(self.form)
-            self.id_folder = obj["id_folder"]
+            self.id_folder = id_folder
             self.status = obj["status"]
 
         for tag, conf in self.tags:
             self.form[tag] = obj[tag]
+        
+        enabled = has_right("asset_edit", id_folder)
+        self.form.setEnabled(enabled)
 
 
 
@@ -70,7 +75,7 @@ class MetaList(QTextEdit):
 
 
 class DetailTabExtended(MetaList):
-    def load(self, obj):
+    def load(self, obj, **kwargs):
         self.tag_groups = {
                 "core" :  [],
                 "other"  : [],
@@ -101,7 +106,7 @@ class DetailTabExtended(MetaList):
 
 
 class DetailTabTechnical(MetaList):
-    def load(self, obj):        
+    def load(self, obj, **kwargs):        
         self.tag_groups = {
                 "File" : [],
                 "Format"  : [],
@@ -136,11 +141,11 @@ class DetailTabTechnical(MetaList):
 
 
 class DetailTabJobs(QWidget):
-    def load(self, obj):
+    def load(self, obj, **kwargs):
         pass
 
 class DetailTabUsage(QWidget):
-    def load(self, obj):
+    def load(self, obj, **kwargs):
         pass
 
 
@@ -161,7 +166,7 @@ class DetailTabs(QTabWidget):
 #        self.addTab(self.tab_jobs, "Jobs")
 #        self.addTab(self.tab_usage, "Usage")
 
-    def load(self, obj):
+    def load(self, obj, **kwargs):
         tabs = [
                 self.tab_main,
                 self.tab_extended,
@@ -170,7 +175,7 @@ class DetailTabs(QTabWidget):
 #                self.tab_usage
                 ]
         for tab  in tabs:
-            tab.load(obj)
+            tab.load(obj, **kwargs)
 
 
 
@@ -212,11 +217,12 @@ def detail_toolbar(wnd):
     toolbar.addAction(wnd.action_reject)
 
     toolbar.addWidget(ToolBarStretcher(wnd))
-    
-    action_revert = QAction(QIcon(pixlib["cancel"]), '&Revert changes', wnd)        
-    action_revert.setStatusTip('Revert changes')
-    action_revert.triggered.connect(wnd.on_revert)
-    toolbar.addAction(action_revert)
+ 
+### Does not work with cache.... FIX LATER   
+#    action_revert = QAction(QIcon(pixlib["cancel"]), '&Revert changes', wnd)        
+#    action_revert.setStatusTip('Revert changes')
+#    action_revert.triggered.connect(wnd.on_revert)
+#    toolbar.addAction(action_revert)
 
     action_apply = QAction(QIcon(pixlib["accept"]), '&Apply changes', wnd)        
     action_apply.setShortcut('Ctrl+S')
@@ -326,10 +332,11 @@ class Detail(BaseWidget):
                 else:
                     self.duration.hide()
 
-            
-            self.action_approve.setEnabled(True)
-            self.action_qc_reset.setEnabled(True)
-            self.action_reject.setEnabled(True)
+            enabled = (self.object.id == 0) or has_right("asset_edit", self.object["id_folder"])
+            self.folder_select.setEnabled(enabled)
+            self.action_approve.setEnabled(enabled)
+            self.action_qc_reset.setEnabled(enabled)
+            self.action_reject.setEnabled(enabled)
 
             self._is_loading = False
             if self._load_queue:
@@ -338,13 +345,14 @@ class Detail(BaseWidget):
 
 
     def on_folder_changed(self):
-        self.update_data()
-        self.detail_tabs.load(self.object)
+        #self.update_data()
+        self.detail_tabs.load(self.object, id_folder=self.folder_select.get_value())
 
-    def update_data(self):
-        self.object["id_folder"] = self.folder_select.get_value()
-        for key, cfg in self.detail_tabs.tab_main.tags:
-            self.object[key] = self.form.inputs[key].get_value()
+    ## WHY????
+    #def update_data(self):
+    #    self.object["id_folder"] = self.folder_select.get_value()
+    #    for key, cfg in self.detail_tabs.tab_main.tags:
+    #        self.object[key] = self.form.inputs[key].get_value()
             
                 
 
@@ -393,7 +401,7 @@ class Detail(BaseWidget):
 
     def on_revert(self):
         if self.object:
-            self.focus([asset_cache[self.object.id]], silent=False)
+            self.focus([asset_cache[self.object.id]], silent=True)
 
     def on_set_qc(self, state):
         stat, res = query("set_meta", objects=[self.object.id], data={"qc/state" : state} )
