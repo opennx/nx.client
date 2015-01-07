@@ -377,7 +377,7 @@ class TXDayWidget(TXVerticalBar):
         self.update()
 
     def dropEvent(self, evt):
-        drop_tc = max(self.start_time, self.round_ts(self.cursor_time - self.calendar.drag_offset))
+        drop_ts = max(self.start_time, self.round_ts(self.cursor_time - self.calendar.drag_offset))
         
         if not has_right("scheduler_edit", self.id_channel):
             QMessageBox.warning(self, "Error", "You are not allowed to modify schedule of this channel.")
@@ -392,14 +392,14 @@ class TXDayWidget(TXVerticalBar):
                 dlg = EventDialog(self,
                         asset=self.calendar.dragging,
                         id_channel=self.id_channel,
-                        start=drop_tc
+                        start=drop_ts
                     )
                 dlg.exec_()
             else:
                 query("set_events", 
                         events=[{
                                 "id_asset" : self.calendar.dragging.id,
-                                "start" : drop_tc,
+                                "start" : drop_ts,
                                 "id_channel" : self.id_channel
                                 # TODO: If shift modifier is pressed add id_event of original event here
                                 }]
@@ -407,17 +407,34 @@ class TXDayWidget(TXVerticalBar):
 
         elif type(self.calendar.dragging) == Event:
             event = self.calendar.dragging
-            event["start"] = drop_tc
-            if event.id == 0:
-                # Create empty event. Event edit dialog is enforced.
-                dlg = EventDialog(self,
-                        id_channel=self.id_channel,
-                        start=drop_tc
+
+            move = True
+
+            if event.id and abs(event["start"] - drop_ts) > 3600:
+                ret = QMessageBox.question(self,
+                    "Move event",
+                    "Do you really want to movee {}?\n\nFrom: {}\n To: {}".format(self.cursor_event, time.strftime("%Y-%m-%d %H:%M", time.localtime(event["start"])) , time.strftime("%Y-%m-%d %H:%M", time.localtime(drop_ts)) ),
+                    QMessageBox.Yes | QMessageBox.No
                     )
-                dlg.exec_()
-            else:
-                # Just dragging events around. Instant save
-                result, data = query("set_events", events=[event.meta])
+                if ret == QMessageBox.Yes:
+                    move = True
+                else:
+                    move = False
+
+
+            if move:
+                event["start"] = drop_ts
+                if event.id == 0:
+                    # Create empty event. Event edit dialog is enforced.
+                    dlg = EventDialog(self,
+                            id_channel=self.id_channel,
+                            start=drop_ts
+                        )
+                    dlg.exec_()
+                else:
+                    # Just dragging events around. Instant save
+                    result, data = query("set_events", events=[event.meta])
+
 
         self.calendar.drag_source = False
         self.calendar.dragging = False
