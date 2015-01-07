@@ -176,6 +176,12 @@ class OnAir(QWidget):
 
             self.progress_bar.setValue(int(rpos*self.fps))
             self.display_pos.set_text(f2tc(min(self.dur, rpos), self.fps))
-            self.display_rem.set_text(f2tc(max(0,self.dur - rpos), self.fps))
+
+            rem = self.dur - rpos
+            t = f2tc(max(0, rem), self.fps)
+            if rem < 250: 
+                self.display_rem.set_text("<font color='red'>{}</font>".format(t))
+            else:
+                self.display_rem.set_text(t)
         except:
             pass
