@@ -60,8 +60,9 @@ class DetailTabMain(QWidget):
         for tag, conf in self.tags:
             self.form[tag] = obj[tag]
         
-        enabled = has_right("asset_edit", id_folder)
-        self.form.setEnabled(enabled)
+        if self.form:
+            enabled = has_right("asset_edit", id_folder)
+            self.form.setEnabled(enabled)
 
 
 
