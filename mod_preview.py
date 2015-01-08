@@ -1,8 +1,11 @@
+from functools import partial
+from urllib.request import urlopen
+
 from firefly_common import *
 from firefly_widgets import *
 from nx.common.metadata import fract2float
-from functools import partial
-from urllib.request import urlopen
+
+from dlg_subclips import SubclipsDialog
 
 T_MARK_IN  = 0
 T_MARK_OUT = 1
@@ -91,6 +94,7 @@ def action_toolbar(wnd):
     wnd.action_marks.addAction(action_create_subclip)
 
     action_manage_subclips = QAction("Manage subclips", wnd)        
+    action_manage_subclips.setShortcut('V')
     action_manage_subclips.triggered.connect(wnd.on_manage_subclips)
     wnd.action_marks.addAction(action_manage_subclips)
 
@@ -490,7 +494,7 @@ class Preview(BaseWidget):
 
 
     def on_create_subclip(self):
-        if self.current_object.object_type != "asset":
+        if not self.current_object or self.current_object.object_type != "asset":
             self.status("Only assets can have subclips")
             return
 
@@ -510,7 +514,15 @@ class Preview(BaseWidget):
 
 
     def on_manage_subclips(self):
-        pass
+        if not self.current_object or self.current_object.object_type != "asset":
+            return
+
+        dlg = SubclipsDialog(None, asset=self.current_object)
+        dlg.exec_()
+
+        if dlg.selection:
+            self.mark_in, self.mark_out = dlg.selection
+            self.update_displays()
 
 
     def focus(self, objects):
