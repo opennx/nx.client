@@ -259,7 +259,7 @@ class RundownView(NXView):
 
 
         if len(obj_set) == 1:
-            if obj_set[0] == "item":
+            if obj_set[0] == "item" and self.selected_objects[0]["id_asset"]:
 
                 mode_menu = menu.addMenu("Run mode")
 
@@ -673,7 +673,7 @@ class Rundown(BaseWidget):
 
         for i,r in enumerate(self.model.object_data):
             if self.current_item == r.id and r.object_type=="item":
-                self.view.scrollTo(self.model.index(i, 0, QModelIndex()), QAbstractItemView.PositionAtCenter  )
+                self.view.scrollTo(self.model.index(i, 0, QModelIndex()), QAbstractItemView.PositionAtTop  )
                 break
 
 
