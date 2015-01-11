@@ -100,7 +100,7 @@ class TagRundownSymbol(TagFormat):
 class TagRundownStatus(TagFormat):
     tag = "rundown_status"
     def display(self, obj):
-        if obj.object_type != "item" :
+        if obj.object_type != "item" or not obj["id_asset"]:
             return ""
 
         if obj["rundown_transfer_progress"] and float(obj["rundown_transfer_progress"]) == -1:
@@ -157,6 +157,9 @@ class TagRundownDifference(TagFormat):
 class TagRunMode(TagFormat):
     tag = "run_mode"
     def display(self, obj):
+        if obj.object_type == "item" and not obj["id_asset"]:
+            return
+
         if obj[self.tag] == 1:
             return "MANUAL"
         if obj[self.tag] == 2:
@@ -259,17 +262,13 @@ class NXCellFormat():
             return label or value
 
         elif mtype.class_ == [ENUM, SELECT]:
-            return value # FIXME
+            return value # FIXME. FIX WHAT?
             #return mtype.settings.get()[1] or mtype.settings[0]
 
         return value 
 
 
     def format_edit(self, key):
-        #if key in format_helpers:
-        #    res = format_helpers[key].edit(self)
-        #    if res:
-        #        return res
         if key in meta_types and meta_types[key].editable:
             return key, meta_types[key].class_, meta_types[key].settings, self
         return key, "NOEDIT", False, self
