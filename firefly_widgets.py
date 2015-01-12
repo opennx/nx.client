@@ -15,7 +15,10 @@ class NXE_select(QComboBox):
         self.cdata = []
         self.set_data(data)
         self.default = False
-      
+
+    def setReadOnly(self, val):
+        self.setEnabled(not val)
+
     def set_data(self, data):
         for i, row in enumerate(sorted(data)):
             value, label = row
@@ -33,6 +36,8 @@ class NXE_select(QComboBox):
             if val == value:
                 self.setCurrentIndex(i)
                 break
+        else:
+            self.setCurrentIndex(-1)
 
     def get_value(self):
         if self.currentIndex() == -1:
