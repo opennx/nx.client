@@ -1,2 +1,2 @@
-VERSION_INFO = "Firefly 4.13a"
+VERSION_INFO = "Firefly 4.13b"
 PROTOCOL = 150101
