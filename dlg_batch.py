@@ -39,7 +39,7 @@ class BatchDialog(QDialog):
     def on_change(self):
         self.preview.clear()
         txt = ""
-        for asset in self.objects:
+        for i, asset in enumerate(self.objects):
             if self.exp.text():
                 try:
                     value = eval(self.exp.text())
