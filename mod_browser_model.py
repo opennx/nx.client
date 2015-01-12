@@ -61,14 +61,12 @@ class BrowserModel(NXViewModel):
                 continue
             rows.append(idx.row())
 
-        encodedData = json.dumps([self.object_data[row].meta for row in rows])
+        data = [self.object_data[row].meta for row in rows]
+        urls = [QUrl.fromLocalFile(self.object_data[row].file_path) for row in rows if self.object_data[row].file_path]
+
         mimeData = QMimeData()
-        mimeData.setData("application/nx.asset", encodedData.encode("ascii"))
-        try:
-            urls =[QUrl.fromLocalFile(asset.file_path) for asset in data if asset.file_path]
-            mimeData.setUrls(urls)
-        except:
-            pass
+        mimeData.setData("application/nx.asset", json.dumps(data).encode("ascii"))
+        mimeData.setUrls(urls)
         return mimeData
 
 
