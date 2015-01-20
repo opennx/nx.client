@@ -106,6 +106,7 @@ class RundownModel(NXViewModel):
             evt.bin = Bin(from_data=edata["bin_meta"])
             current_bin = evt.bin.id
             self.event_ids.append(evt.id)
+            event_asset = evt["id_asset"]
 
             evt["rundown_bin"] = current_bin
             evt["rundown_row"] = row
@@ -142,6 +143,7 @@ class RundownModel(NXViewModel):
                 item._asset = asset_cache[item["id_asset"]]
                 item["rundown_bin"] = current_bin
                 item["rundown_row"] = row
+                item["rundown_event_asset"] = event_asset
                 if reset:
                     self.object_data.append(item)
                 elif self.object_data[row] != item:

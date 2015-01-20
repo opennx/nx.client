@@ -20,6 +20,8 @@ class NXViewModel(QAbstractTableModel):
         self.font_virtual.setItalic(True)
         self.font_bold = QFont()
         self.font_bold.setBold(True)
+        self.font_underline = QFont()
+        self.font_underline.setUnderline(True)
 
 
     def rowCount(self, parent):
@@ -59,7 +61,13 @@ class NXViewModel(QAbstractTableModel):
                 ) for tag in sorted(obj.meta.keys()) if obj.format_display(tag)
             ) if config.get("debug", False) else None
 
-        elif role == Qt.FontRole:        return self.font_bold if obj.object_type == "event" else self.font_normal
+        elif role == Qt.FontRole:
+            if obj.object_type == "event":
+                return self.font_bold
+            elif obj.object_type == "item" and obj["id_asset"] == obj["rundown_event_asset"]:
+                return self.font_bold
+            else:
+                return self.font_normal
 
         return None
 
