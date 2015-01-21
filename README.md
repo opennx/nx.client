@@ -28,21 +28,17 @@ http://repo.imm.cz/firefly-latest.zip
 
 ### Linux (Ubuntu 14.04)
 
-```bash
-sudo apt-get install python3
-```
-
-Firefly requires PyQT 5.3.2 or higher, which is unfortunately present in Ubuntu Trusty
-
-Add Utopic repository to your /etc/apt/sources.list
+Firefly requires PyQT 5.3.2 or higher, which is unfortunately present in Ubuntu Trusty.
+So you have to add Utopic repository to your /etc/apt/sources.list
 
 ```
 deb http://cz.archive.ubuntu.com/ubuntu/ utopic main restricted
 deb-src http://cz.archive.ubuntu.com/ubuntu/ utopic main restricted
 ```
 
+Create file /etc/apt/preferences with following content to pin Trusty as your default source.
+Pinning is a process that allows you to remain on a stable release of Ubuntu while grabbing packages from a more recent version.
 
-Create file /etc/apt/preferences with following content
 ```
 Package: *
 Pin: release n=trusty
@@ -52,7 +48,8 @@ Pin-Priority: 501
 Then you can install required packages from Utopic repository
 
 ```bash
-sudo apt-get install -t utopic python3-pyqt5 python3-pyqt5.qtmultimedia libqt5multimedia5-plugins
+sudo apt-get update
+sudo apt-get install -t utopic python3 python3-pyqt5 python3-pyqt5.qtmultimedia libqt5multimedia5-plugins
 ```
 
 For video playback, you will need gstreamer ffmpeg plugin
