@@ -50,6 +50,8 @@ class EventForm(QWidget):
             self.data[key] = widget(self)
             if event[key]:
                 self.data[key].set_value(event[key])
+                if key == "title":
+                    self.data[key].setFocus()
 
             layout.addRow(title, self.data[key])
 
