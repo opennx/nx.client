@@ -46,7 +46,6 @@ class Firefly(QMainWindow):
         self.on_change_channel(1) # todo: Load default from settings
         self.workspace_locked = settings.value("main_window/locked", False)
 
-
         for dock_key in settings.allKeys():
             if not dock_key.startswith("docks/"):
                 continue
@@ -83,8 +82,6 @@ class Firefly(QMainWindow):
         self.seismic_timer.start(40)
 
         self.status("Ready")
-        from pprint import pprint
-        pprint (config["rights"])
 
 
     def resizeEvent(self, evt):
@@ -103,7 +100,7 @@ class Firefly(QMainWindow):
                 }[widget_class]
 
         if right and not has_right(right):
-            print ("Not authorised to show {}".format(widget_class))
+            self.status("Not authorised to show {}".format(widget_class))
             return
 
         create = True
@@ -163,7 +160,7 @@ class Firefly(QMainWindow):
 
     def status(self, message, message_type=INFO):
         if message_type > DEBUG:
-            self.statusBar().showMessage(message)
+            self.statusBar().showMessage(message, 10000)
 
 
     def closeEvent(self, event):
@@ -180,6 +177,8 @@ class Firefly(QMainWindow):
         settings.remove("docks")
         for dock in self.docks:
             dock.save()
+
+        asset_cache.save()
 
     def on_dock_destroyed(self):
         for i, dock in enumerate(self.docks):
@@ -325,7 +324,7 @@ class Firefly(QMainWindow):
 
     def update_assets(self, asset_ids=[]):
         # Call this if you want to update asset cache
-        res, adata = query("get_assets", handler=self.update_assets_handler , asset_ids=asset_ids )
+        res, adata = query("get_assets", handler=self.update_assets_handler , asset_ids=asset_ids)
         for dock in self.docks:
             self.push_asset_data(dock)
 
