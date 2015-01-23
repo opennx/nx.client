@@ -117,7 +117,8 @@ class Browser(BaseWidget):
         action.triggered.connect(self.reset_view)
         self.action_search.addAction(action)
 
-
+    def refresh(self):
+        self.browse()
 
 
     def set_view(self, id_view, initial=False):
