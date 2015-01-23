@@ -90,7 +90,7 @@ class NXE_radio(QWidget):
                 button.setAutoExclusive(False);
                 button.setChecked(False);
                 button.setAutoExclusive(True);
-                
+
     def get_value(self):
         if self.current_index == -1:
             return ""
@@ -108,7 +108,7 @@ class NXE_timecode(QLineEdit):
         super(NXE_timecode,self).__init__(parent)
         self.setInputMask("99:99:99:99")
         self.setText("00:00:00:00")
-       
+
     def set_value(self, value):
         self.default = value
         self.setText(s2time(value))
@@ -141,7 +141,7 @@ class NXE_datetime(QLineEdit):
                 self.format += ":%S"
 
         self.setInputMask(self.mask)
-        
+
     def set_value(self, timestamp):
         self.setInputMask("")
         self.default = timestamp
@@ -155,10 +155,10 @@ class NXE_datetime(QLineEdit):
     def get_value(self):
         if not self.text().replace("-", ""):
             return float(0)
-        
+
         t = time.strptime(self.text(), self.format)
         return float(time.mktime(t))
-        
+
 
 class NXE_integer(QSpinBox):
     def __init__(self, parent, **kwargs):
@@ -192,7 +192,7 @@ class NXE_blob(QTextEdit):
         super(NXE_blob, self).__init__(parent)
         fixed_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
         self.setCurrentFont(fixed_font)
-        
+
     def set_value(self, value):
         if value == self.get_value():
             return
@@ -211,7 +211,7 @@ class MetaEditItemDelegate(QStyledItemDelegate):
         self.settings = {}
 
     def createEditor(self, parent, styleOption, index):
-        parent.is_editing = True  
+        parent.is_editing = True
         try:
             key, class_, msettings, obj = index.model().data(index, Qt.EditRole)
         except:
@@ -222,10 +222,10 @@ class MetaEditItemDelegate(QStyledItemDelegate):
 
         if isinstance(msettings, dict):
             settings.update(msettings)
-        
-        if default_value == "None": 
+
+        if default_value == "None":
             default_value = ""
-        
+
         if class_ == DATETIME:
             editor = NXE_datetime(parent, **settings)
             editor.set_value(default_value or time.time())
@@ -240,18 +240,18 @@ class MetaEditItemDelegate(QStyledItemDelegate):
             editor = NXE_timecode(parent)
             editor.set_value(default_value)
             editor.editingFinished.connect(self.commitAndCloseEditor)
-         
+
         elif class_ == TEXT:
             editor = NXE_text(parent)
             editor.set_value(default_value)
             editor.editingFinished.connect(self.commitAndCloseEditor)
-         
+
         elif class_ == BLOB:
             parent.text_editor = TextEditor(default_value, index=index)
             parent.text_editor.setWindowTitle('{} / {} : Firefly text editor'.format(obj["title"], key))
             parent.text_editor.exec_()
             return None
-        
+
         elif class_ == BOOLEAN:
             model = index.model()
             model.setData(index, int(not default_value))
@@ -262,21 +262,21 @@ class MetaEditItemDelegate(QStyledItemDelegate):
 
         return editor
 
-     
+
     def commitAndCloseEditor(self):
          editor = self.sender()
          self.commitData.emit(editor)
          self.closeEditor.emit(editor, QAbstractItemDelegate.NoHint)
          self.parent().editor_closed_at = time.time()
-    
+
     def setEditorData(self, editor, index):
         editor.set_value(editor.default)
         # why is this here??
-            
+
     def setModelData(self, editor, model, index):
-        if editor.get_value() != editor.default: 
+        if editor.get_value() != editor.default:
             model.setData(index, editor.get_value())
-      
+
 
 
 
@@ -289,7 +289,7 @@ class MetaEditor(QWidget):
 
         for tag, conf in keys:
             tagname = meta_types.tag_alias(tag, config.get("language","en-US"))
-            
+
             if meta_types[tag].class_ == TEXT:
                 self.inputs[tag] = NXE_text(self)
 

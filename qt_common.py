@@ -8,7 +8,7 @@ from PyQt5.QtMultimediaWidgets import QVideoWidget
 
 Signal = pyqtSignal
 Slot = pyqtSlot
-Property = pyqtProperty 
+Property = pyqtProperty
 
 
 try:
