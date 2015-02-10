@@ -14,6 +14,46 @@ from dlg_sendto import SendTo
 from dlg_event import EventDialog
 
 
+DEFAULT_COLUMNS = [
+    "rundown_symbol",
+    "title",
+    "identifier/main",
+    "duration",
+    "run_mode",
+    "rundown_scheduled",
+    "rundown_broadcast",
+    "rundown_difference",
+    "rundown_status",
+    "mark_in",
+    "mark_out",
+    "id_asset",
+    "id_object"
+    ]
+
+
+ITEM_BUTTONS = [
+    {
+        "icon"      : "placeholder",
+        "title"     : "Placeholder",
+        "tooltip"   : "Drag this to rundown to create placeholder",
+        "item_role" : "placeholder",
+    },
+
+    {
+        "icon"      : "mark_in",
+        "title"     : "Lead-in",
+        "tooltip"   : "Drag this to rundown to create Lead-in",
+        "item_role" : "lead_in",
+    },
+
+    {
+        "icon"      : "mark_out",
+        "title"     : "Lead-out",
+        "tooltip"   : "Drag this to rundown to create Lead-out",
+        "item_role" : "lead_out",
+    }
+    ]
+
 
 def get_date():
     class CalendarDialog(QDialog):
@@ -26,7 +66,6 @@ def get_date():
             self.calendar.setGridVisible(True)
             self.calendar.setFirstDayOfWeek(1)
             self.calendar.activated[QDate].connect(self.setDate)
-
             layout = QVBoxLayout()
             layout.addWidget(self.calendar)
             self.setLayout(layout)
@@ -42,9 +81,6 @@ def get_date():
 
 
 
-
-DEFAULT_COLUMNS = ["rundown_symbol", "title", "identifier/main",  "duration", "run_mode", "rundown_scheduled", "rundown_broadcast", "rundown_difference", "rundown_status", "mark_in", "mark_out", "id_asset", "id_object"]
-
 def day_start(ts, start):
     hh, mm = start
     r =  ts - (hh*3600 + mm*60)
@@ -59,65 +95,28 @@ def day_start(ts, start):
 class RundownDate(QLabel):
     pass
 
-
-class LeadInButton(QToolButton):
-    def __init__(self, parent):
-        super(LeadInButton, self).__init__()
+class ItemButton(QToolButton):
+    def __init__(self, parent, config):
+        super(ItemButton, self).__init__()
+        self.button_config = config
         self.pressed.connect(self.startDrag)
-        self.setIcon(QIcon(pixlib["mark_in"]))
-        self.setToolTip("Drag this to rundown to create Lead-in.")
+        self.setIcon(QIcon(pixlib[self.button_config["icon"]]))
+        self.setToolTip(self.button_config["tooltip"])
 
     def startDrag(self):
+        item_data = [{
+            "title" : self.button_config["title"],
+            "item_role" : self.button_config["item_role"]
+            }]
         drag = QDrag(self);
         mimeData = QMimeData()
         mimeData.setData(
            "application/nx.item",
-           '[{"item_role":"lead_in", "title":"Lead in"}]'
+           json.dumps(item_data)
            )
         drag.setMimeData(mimeData)
         if drag.exec_(Qt.CopyAction):
-            pass # nejak to rozumne ukoncit
-
-
-class LeadOutButton(QToolButton):
-    def __init__(self, parent):
-        super(LeadOutButton, self).__init__()
-        self.pressed.connect(self.startDrag)
-        self.setIcon(QIcon(pixlib["mark_out"]))
-        self.setToolTip("Drag this to rundown to create Lead-out.")
-
-    def startDrag(self):
-        drag = QDrag(self);
-        mimeData = QMimeData()
-        mimeData.setData(
-           "application/nx.item",
-           '[{"item_role":"lead_out", "title":"Lead out"}]'
-           )
-        drag.setMimeData(mimeData)
-        if drag.exec_(Qt.CopyAction):
-            pass # nejak to rozumne ukoncit
-
-class PlaceholderButton(QToolButton):
-    def __init__(self, parent):
-        super(PlaceholderButton, self).__init__()
-        self.pressed.connect(self.startDrag)
-        self.setIcon(QIcon(pixlib["placeholder"]))
-        self.setToolTip("Drag this to rundown to create placeholder.")
-
-    def startDrag(self):
-        drag = QDrag(self);
-        mimeData = QMimeData()
-        mimeData.setData(
-           "application/nx.item",
-           '[{"item_role":"placeholder", "title":"Placeholder"}]'
-           )
-        drag.setMimeData(mimeData)
-        if drag.exec_(Qt.CopyAction):
-            pass # nejak to rozumne ukoncit
-
-
-
-
+            pass # nejak to rozumne ukonc
 
 def rundown_toolbar(wnd):
 
@@ -191,9 +190,8 @@ def rundown_toolbar(wnd):
 
 def items_toolbar(wnd):
     toolbar = QToolBar(wnd)
-    toolbar.addWidget(LeadInButton(wnd))
-    toolbar.addWidget(LeadOutButton(wnd))
-    toolbar.addWidget(PlaceholderButton(wnd))
+    for btn_config in ITEM_BUTTONS:
+        toolbar.addWidget(ItemButton(wnd, item_lead_in))
     return toolbar
 
 
@@ -242,7 +240,6 @@ class RundownView(NXView):
 
     ###################################################
     ## Rundown actions
-
 
     def contextMenuEvent(self, event):
         obj_set = list(set([itm.object_type for itm in self.selected_objects]))
@@ -679,7 +676,6 @@ class Rundown(BaseWidget):
 
     def on_calendar(self):
         y, m, d = get_date()
-        print (y, m, d)
         if not y:
             return
         hh, mm = self.playout_config["day_start"]
