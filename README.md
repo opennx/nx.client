@@ -15,8 +15,8 @@ Firefly is QT based client application for nx.server (Nebula).
         "hive_ssl"   : true,
         "hive_host"  : "192.168.0.1",
         "hive_port"  : 443,
-        "media_host" : "192.168.0.1",    // if not set, hive host will be used
-        "media_port" : "80"              // if not set, hive port will be used
+        "media_host" : "192.168.0.1",
+        "media_port" : "80"
     }
 ]
 ```
@@ -28,7 +28,7 @@ http://repo.imm.cz/firefly-latest.zip
 
 ### Linux (Ubuntu 14.04)
 
-Firefly requires PyQT 5.3.2 or higher, which is unfortunately present in Ubuntu Trusty.
+Firefly requires PyQT 5.3.2 or higher, which is not present in Ubuntu Trusty.
 So you have to add Utopic repository to your /etc/apt/sources.list
 
 ```
