@@ -191,7 +191,7 @@ def rundown_toolbar(wnd):
 def items_toolbar(wnd):
     toolbar = QToolBar(wnd)
     for btn_config in ITEM_BUTTONS:
-        toolbar.addWidget(ItemButton(wnd, item_lead_in))
+        toolbar.addWidget(ItemButton(wnd, btn_config))
     return toolbar
 
 
