@@ -3,6 +3,7 @@
 chmod 644 LICENSE
 chmod 644 README.md
 chmod 644 firefly.ico
+chmod 644 .gitignore
 
 chmod 644 *.py
 chmod 644 *.css
