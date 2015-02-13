@@ -22,7 +22,6 @@ from mod_preview import Preview
 from mod_detail import Detail
 from mod_rundown import Rundown
 from mod_scheduler import Scheduler
-from mod_teleprompter import Teleprompter
 
 from nx.objects import Asset
 from nx.connection import AUTH_KEY
@@ -95,8 +94,7 @@ class Firefly(QMainWindow):
                 "scheduler"    : [Scheduler, "scheduler_view"],
                 "rundown"      : [Rundown, "rundown_view"],
                 "preview"      : [Preview, False],
-                "detail"       : [Detail, False],
-                "teleprompter" : [Teleprompter, "rundown_view"]
+                "detail"       : [Detail, False]
                 }[widget_class]
 
         if right and not has_right(right):

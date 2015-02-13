@@ -126,14 +126,6 @@ def create_menu(wnd):
         action_wnd_rundown.setEnabled(False)
     menu_window.addAction(action_wnd_rundown)
 
-
-    action_wnd_teleprompter = QAction('&Teleprompter', wnd)
-    action_wnd_teleprompter.setStatusTip('Open teleprompter window')
-    action_wnd_teleprompter.triggered.connect(partial(wnd.create_dock, widget_class="teleprompter", one_instance=True))
-    if not (has_right("rundown_view") or has_right("rundown_edit")):
-        action_wnd_teleprompter.setEnabled(False)
-    menu_window.addAction(action_wnd_teleprompter)
-
     menu_window.addSeparator()
 
     action_refresh = QAction('&Refresh', wnd)
