@@ -332,6 +332,9 @@ class MetaEditor(QWidget):
                 self.inputs[tag] = NXE_text(self)
                 self.inputs[tag].setReadOnly(True)
 
+            if type(conf) == dict and "default" in conf:
+                self.inputs[tag].set_value(conf["default"])
+
             layout.addRow(tagname, self.inputs[tag])
         self.setLayout(layout)
 
