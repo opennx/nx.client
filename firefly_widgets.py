@@ -338,6 +338,13 @@ class MetaEditor(QWidget):
             layout.addRow(tagname, self.inputs[tag])
         self.setLayout(layout)
 
+    def keys(self):
+        return self.inputs.keys()
+
+    @property
+    def meta(self):
+        return {key : self[key] for key in self.keys()}
+
     def __getitem__(self, key):
         return self.inputs[key].get_value()
 
