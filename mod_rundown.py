@@ -40,6 +40,13 @@ ITEM_BUTTONS = [
     },
 
     {
+        "icon"      : "talking_head",
+        "title"     : "Studio",
+        "tooltip"   : "Drag this to rundown to create studio placeholder",
+        "item_role" : "studio",
+    },
+
+    {
         "icon"      : "mark_in",
         "title"     : "Lead-in",
         "tooltip"   : "Drag this to rundown to create Lead-in",
@@ -52,6 +59,7 @@ ITEM_BUTTONS = [
         "tooltip"   : "Drag this to rundown to create Lead-out",
         "item_role" : "lead_out",
     }
+
     ]
 
 
