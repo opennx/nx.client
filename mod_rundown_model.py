@@ -6,34 +6,50 @@ from firefly_view import *
 from nx.objects import *
 
 
+
+ITEM_ROLES = {
+    "placeholder" : [["title", "Studio"], ["duration", 300], ["article", ""]],
+    "studio" : [["title", "Placeholder"], ["duration", 3600] ],
+}
+
+
 class PlaceholderDialog(QDialog):
-    def __init__(self,  parent):
+    def __init__(self,  parent, item_role):
         super(PlaceholderDialog, self).__init__(parent)
-        self.setModal(True)
-        self.setStyleSheet(base_css)
-        self.setWindowTitle("Create placeholder")
+        self.setWindowTitle("Rundown placeholder")
 
         self.ok = False
-        self.title = NXE_text(self)
-        self.title.set_value("Placeholder")
 
-        self.duration = NXE_timecode(self)
-        self.duration.set_value(3600)
+        toolbar = QToolBar(self)
+        toolbar.setMovable(False)
+        toolbar.setFloatable(False)
+        toolbar.addWidget(ToolBarStretcher(toolbar))
 
-        self.btn_submit = QPushButton("Save")
-        self.btn_submit.clicked.connect(self.on_submit)
+        action_accept = QAction(QIcon(pixlib["accept"]), 'Accept changes', self)
+        action_accept.setShortcut('Ctrl+S')
+        action_accept.triggered.connect(self.on_accept)
+        toolbar.addAction(action_accept)
 
-        layout = QFormLayout()
-        layout.addRow("Title", self.title)
-        layout.addRow("Duration", self.duration)
-        layout.addRow("", self.btn_submit)
+        keys =  [[key, {"default":default}] for key, default in ITEM_ROLES[item_role]]
+        self.form = MetaEditor(parent, keys)
 
+        layout = QVBoxLayout()
+        layout.addWidget(toolbar, 0)
+        layout.addWidget(self.form, 1)
         self.setLayout(layout)
+
+        self.setModal(True)
+        self.setStyleSheet(base_css)
         self.setMinimumWidth(400)
 
-    def on_submit(self):
+    @property
+    def meta(self):
+        return self.form.meta
+
+    def on_accept(self):
         self.ok = True
         self.close()
+
 
 
 class SubclipSelectDialog(QDialog):
@@ -65,7 +81,6 @@ class SubclipSelectDialog(QDialog):
         self.clip = clip
         self.ok = True
         self.close()
-
 
 
 
@@ -235,13 +250,13 @@ class RundownModel(NXViewModel):
                 return False
             else:
                 for obj in items:
-                    if not obj.get("id_object", False) and obj.get("item_role", False) == "placeholder":
-                        dlg = PlaceholderDialog(self.parent())
+                    if not obj.get("id_object", False) and obj.get("item_role", False) in ITEM_ROLES:
+                        dlg = PlaceholderDialog(self.parent(), obj["item_role"])
                         dlg.exec_()
                         if not dlg.ok:
                             return
-                        obj["title"] = dlg.title.get_value()
-                        obj["duration"] = dlg.duration.get_value()
+                        for key in dlg.meta:
+                            obj[key] = dlg.meta[key]
 
                     drop_objects.append(Item(from_data=obj))
 
