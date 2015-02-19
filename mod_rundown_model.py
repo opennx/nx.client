@@ -8,8 +8,8 @@ from nx.objects import *
 
 
 ITEM_ROLES = {
-    "placeholder" : [["title", "Studio"], ["duration", 300], ["article", ""]],
-    "studio" : [["title", "Placeholder"], ["duration", 3600] ],
+    "studio" : [["title", "Studio"], ["duration", 300], ["article", ""]],
+    "placeholder" : [["title", "Placeholder"], ["duration", 3600] ],
 }
 
 
