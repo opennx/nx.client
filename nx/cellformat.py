@@ -96,6 +96,8 @@ class TagRundownSymbol(TagFormat):
             return "mark_in"
         elif obj["item_role"] == "lead_out":
             return "mark_out"
+        elif obj["item_role"] == "studio":
+            return "talking_head"
 
 class TagRundownStatus(TagFormat):
     tag = "rundown_status"
