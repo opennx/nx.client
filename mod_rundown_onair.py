@@ -44,7 +44,8 @@ class OnAir(QWidget):
         self.current  = "(loading)"
         self.cued     = "(loading)"
         self.request_time = 0
-        self.paused = True
+        self.paused = False
+        self.stopped = True
         self.local_request_time = time.time()
 
         self.fps = 25.0
@@ -142,9 +143,10 @@ class OnAir(QWidget):
 
     def seismic_handler(self, data):
         status = data.data
-        self.pos = status["position"]
+        self.pos = status["position"] + (1/self.fps)
         self.request_time = status["request_time"]
         self.paused = status["paused"]
+        self.stopped = status["stopped"]
         self.local_request_time = time.time()
 
         if self.dur !=  status["duration"]:
@@ -163,13 +165,13 @@ class OnAir(QWidget):
 
     def update_display(self):
         try:
-            if self.paused:
-                adv = 0
-            else:
-                adv = time.time() - self.local_request_time
-
+            adv = time.time() - self.local_request_time
+            
             rtime = self.request_time+adv
-            rpos = self.pos + (adv*self.fps)
+            rpos = self.pos
+
+            if not (self.paused or self.stopped):
+                rpos += adv * self.fps
 
             clock = time.strftime("%H:%M:%S:{:02d}", time.localtime(rtime)).format(int(25*(rtime-math.floor(rtime))))
             self.display_clock.set_text(clock)
@@ -179,7 +181,7 @@ class OnAir(QWidget):
 
             rem = self.dur - rpos
             t = f2tc(max(0, rem), self.fps)
-            if rem < 250: 
+            if rem < 250:
                 self.display_rem.set_text("<font color='red'>{}</font>".format(t))
             else:
                 self.display_rem.set_text(t)
