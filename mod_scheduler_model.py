@@ -396,7 +396,8 @@ class TXDayWidget(TXVerticalBar):
                     )
                 dlg.exec_()
             else:
-                query("set_events", 
+                QApplication.setOverrideCursor(Qt.WaitCursor)
+                stat, res = query("set_events", 
                         events=[{
                                 "id_asset" : self.calendar.dragging.id,
                                 "start" : drop_ts,
@@ -404,6 +405,10 @@ class TXDayWidget(TXVerticalBar):
                                 # TODO: If shift modifier is pressed add id_event of original event here
                                 }]
                     )
+                QApplication.restoreOverrideCursor()
+                if not success(stat):
+                    QMessageBox.warning(self, "Error", res)    
+
 
         elif type(self.calendar.dragging) == Event:
             event = self.calendar.dragging
@@ -433,7 +438,13 @@ class TXDayWidget(TXVerticalBar):
                     dlg.exec_()
                 else:
                     # Just dragging events around. Instant save
-                    result, data = query("set_events", events=[event.meta])
+                    QApplication.setOverrideCursor(Qt.WaitCursor)
+                    stat, res = query("set_events", events=[event.meta])
+                    QApplication.restoreOverrideCursor()
+
+                    if not success(stat):
+                        QMessageBox.warning(self, "Error", res)    
+
 
 
         self.calendar.drag_source = False
@@ -496,6 +507,10 @@ class TXDayWidget(TXVerticalBar):
                 solve=True
                 )
             QApplication.restoreOverrideCursor()
+
+            if not success(stat):
+                    QMessageBox.warning(self, "Error", data)    
+
             self.calendar.refresh()
 
 
@@ -519,6 +534,7 @@ class TXDayWidget(TXVerticalBar):
                 self.calendar.refresh()
             else:
                 QMessageBox.warning(self, "Unable to delete event", res)
+                self.calendar.refresh()
 
 
     def wheelEvent(self,event):
@@ -592,6 +608,8 @@ class HeaderWidget(QLabel):
                 template=[False, "default_template"][dlg.chk_aptpl.isChecked()],
                 )
             QApplication.restoreOverrideCursor()
+            if not success(stat):
+                QMessageBox.warning(self, "Error", res)    
             self.parent().refresh()
 
 
