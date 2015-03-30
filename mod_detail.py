@@ -7,6 +7,8 @@ from nx.common.metadata import meta_types
 from nx.objects import Asset
 
 
+from dlg_ingest import IngestDialog
+
 class DetailTabMain(QWidget):
     def __init__(self, parent):
         super(DetailTabMain, self).__init__(parent)
@@ -217,6 +219,14 @@ def detail_toolbar(wnd):
     wnd.action_reject.setEnabled(False)
     toolbar.addAction(wnd.action_reject)
 
+    toolbar.addSeparator()
+
+    wnd.action_ingest = QAction(QIcon(pixlib["record"]),'Ingest', wnd)        
+    wnd.action_ingest.setShortcut('CTRL+7')
+    wnd.action_ingest.triggered.connect(wnd.on_ingest)
+    wnd.action_ingest.setEnabled(False)
+    toolbar.addAction(wnd.action_ingest)
+
     toolbar.addWidget(ToolBarStretcher(wnd))
  
 ### Does not work with cache.... FIX LATER   
@@ -338,6 +348,7 @@ class Detail(BaseWidget):
             self.action_approve.setEnabled(enabled)
             self.action_qc_reset.setEnabled(enabled)
             self.action_reject.setEnabled(enabled)
+            self.action_ingest.setEnabled(enabled)
 
             self._is_loading = False
             if self._load_queue:
@@ -408,6 +419,12 @@ class Detail(BaseWidget):
         stat, res = query("set_meta", objects=[self.object.id], data={"qc/state" : state} )
         if not success(stat):
             QMessageBox.critical(self, "Error", res)
+
+
+    def on_ingest(self):
+        dlg = IngestDialog(self, self.object)
+        dlg.exec_()
+
 
 
     def seismic_handler(self, data):
