@@ -70,6 +70,7 @@ class NXE_radio(QWidget):
             self.buttons[-1].clicked.connect(partial(self.switch, i))
             vbox.addWidget(self.buttons[-1])
 
+        vbox.setContentsMargins(0,0,0,0)
         self.setLayout(vbox)
 
     def switch(self, index):
