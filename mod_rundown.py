@@ -100,8 +100,6 @@ def day_start(ts, start):
     return time.mktime(dt.timetuple())
 
 
-class RundownDate(QLabel):
-    pass
 
 class ItemButton(QToolButton):
     def __init__(self, parent, config):
@@ -189,8 +187,8 @@ def rundown_toolbar(wnd):
 
     toolbar.addWidget(ToolBarStretcher(wnd))
 
-    wnd.date_display = RundownDate()
-    toolbar.addWidget(wnd.date_display)
+    wnd.channel_display = ChannelDisplay()
+    toolbar.addWidget(wnd.channel_display)
 
     return toolbar
 
@@ -629,6 +627,7 @@ class Rundown(BaseWidget):
         self.view.focus_enabled = True
 
     def update_header(self):
+        ch = config["playout_channels"][self.id_channel]["title"]
         t = datetime.date.fromtimestamp(self.start_time)
 
         if t < datetime.date.today():
@@ -640,7 +639,7 @@ class Rundown(BaseWidget):
 
         t = t.strftime("%A %Y-%m-%d")
         self.parent().setWindowTitle("Rundown {}".format(t))
-        self.date_display.setText("<font{}>{}</font>".format(s, t))
+        self.channel_display.setText("<font{}>{}</font> {}".format(s, t, ch))
 
 
     ################################################################

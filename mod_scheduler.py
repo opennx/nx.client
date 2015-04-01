@@ -43,13 +43,16 @@ def scheduler_toolbar(wnd):
     wnd.action_show_runs = QAction(QIcon(pixlib["repeat"]), '&Show runs', wnd)
     wnd.action_show_runs.setStatusTip('Show runs')
     wnd.action_show_runs.setCheckable(True)
-    #action_show_runs.triggered.connect(wnd.on_show_runs)
     toolbar.addAction(wnd.action_show_runs)
 
+    toolbar.addSeparator()
+
+    toolbar.addWidget(EmptyEventButton(wnd))
 
     toolbar.addWidget(ToolBarStretcher(wnd))
 
-    toolbar.addWidget(EmptyEventButton(wnd))
+    wnd.channel_display = ChannelDisplay()
+    toolbar.addWidget(wnd.channel_display)
 
     return toolbar
 
@@ -59,9 +62,9 @@ class Scheduler(BaseWidget):
         super(Scheduler, self).__init__(parent)
         toolbar = scheduler_toolbar(self)
         self.parent().setWindowTitle("Scheduler")
+        self.id_channel = False
 
-        self.id_channel = self.parent().parent().id_channel
-
+        
         self.calendar = TXCalendar(self)
 
         layout = QVBoxLayout()
@@ -71,13 +74,16 @@ class Scheduler(BaseWidget):
         layout.addWidget(self.calendar, 1)
 
         self.setLayout(layout)
-        self.calendar.load(self.id_channel, time.time())
+        self.set_channel(self.parent().parent().id_channel)
+        #self.id_channel = self.parent().parent().id_channel
+        #self.calendar.load(self.id_channel, time.time())
 
 
     def set_channel(self, id_channel):
         if self.id_channel != id_channel:
             self.id_channel = id_channel
             self.calendar.load(self.id_channel, self.calendar.start_time)
+            self.channel_display.setText(config["playout_channels"][self.id_channel]["title"])
 
     def save_state(self):
         state = {}

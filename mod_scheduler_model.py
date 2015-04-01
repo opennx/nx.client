@@ -622,7 +622,8 @@ class TXCalendar(QWidget):
         super(TXCalendar, self).__init__(parent)
         self.id_channel = 0
         self.num_days = 7
-
+        self.start_time = time.time()
+        
         self.events = []
         self.focus_data = []
         self.dragging = False
