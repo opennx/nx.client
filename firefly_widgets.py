@@ -7,6 +7,9 @@ from nx.common.metadata import meta_types
 from dlg_texteditor import TextEditor
 
 
+class ChannelDisplay(QLabel):
+    pass
+
 # radio or select data . array of [value, label] or array of values
 
 class NXE_select(QComboBox):
