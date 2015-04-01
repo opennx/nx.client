@@ -118,7 +118,7 @@ def create_menu(wnd):
         action_wnd_scheduler.setEnabled(False)
     menu_window.addAction(action_wnd_scheduler)
 
-    
+
     action_wnd_rundown = QAction('&Rundown', wnd)
     action_wnd_rundown.setStatusTip('Open rundown window')
     action_wnd_rundown.triggered.connect(partial(wnd.create_dock, widget_class="rundown", one_instance=True))

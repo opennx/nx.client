@@ -87,12 +87,13 @@ class Messaging():
         self.MCAST_PORT = int(config["seismic_port"])
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 255)
-  
+
     def send(self, method, **data):
         """
         message = [timestamp, site_name, host, method, DATA] 
         """        
-        self.sock.sendto(json.dumps([time.time(), config["site_name"], config["host"], method, data]), (self.MCAST_ADDR,self.MCAST_PORT) )
+        message = json.dumps([time.time(), config["site_name"], config["host"], method, data])
+        self.sock.sendto(message, (self.MCAST_ADDR, self.MCAST_PORT))
 
 messaging = Messaging()
 
