@@ -161,7 +161,7 @@ class RundownModel(NXViewModel):
                 item["rundown_event_asset"] = event_asset
                 if reset:
                     self.object_data.append(item)
-                elif self.object_data[row] != item:
+                elif self.object_data[row].meta != item.meta:
                     self.object_data[row] = item
                     changed_rows.append(row)
                 row += 1
@@ -171,9 +171,9 @@ class RundownModel(NXViewModel):
 
         if reset:
             self.endResetModel()
-        else:
-            for row in changed_rows:
-                self.dataChanged.emit(self.index(row, 0), self.index(row, len(self.header_data)-1))
+        elif changed_rows:
+            self.dataChanged.emit(self.index(min(changed_rows), 0), self.index(max(changed_rows), len(self.header_data)-1))
+
 
         QApplication.restoreOverrideCursor()
         self.parent().status("Rundown loaded in {:.03f}".format(time.time()-dbg_start_time))
