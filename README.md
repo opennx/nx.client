@@ -2,7 +2,7 @@ Firefly
 =======
 
 ## About
-Firefly is QT based client application for nx.server (Nebula).
+Firefly is QT based client application for [Nebula](https://github.com/opennx/nx.server).
 
 ## Installation
 
@@ -20,6 +20,18 @@ Firefly is QT based client application for nx.server (Nebula).
     }
 ]
 ```
+You can define multiple sites in settings file. You will be prompted which site you want to connect during
+application start-up. In site definition, following parameters are available.
+
+ - `site_name` (required)
+ - `hive_host` (required)
+ - `hive_port` (required)
+ - `hive_ssl` (optional, default false) - Use ssl for hive requests
+ - `hive_gzip` (optional, default false) - compress hive responses
+ - `hive_timeout` (optional, default 3) - Max request timeout in seconds
+ - `media_host` (optional) - Use another server for proxies and thumbs (ip or hostname)
+ - `media_port` (optional) - Use another server for proxies and thumbs (port #)
+ - `debug` (optional, default false) - debug mode (more verbose logging etc.)
 
 ### Windows
 Latest windows binaries are available here:
@@ -58,3 +70,9 @@ sudo add-apt-repository ppa:mc3man/trusty-media
 sudo apt-get update
 sudo apt-get install gstreamer0.10-ffmpeg
 ```
+
+
+## Notes
+ 
+ - Firefly saves it's state to file `state.HOSTNAME.SITENAME.nxsettings`. If you encounter problems with UI, 
+   it is possible to restore default state by deleting this file.
