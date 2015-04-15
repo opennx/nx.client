@@ -543,7 +543,6 @@ class TXDayWidget(TXVerticalBar):
 
 
     def wheelEvent(self,event):
-        #print (dir(event))#print (event.delta()/120)
         if event.modifiers() & Qt.ControlModifier:
             zoom_step = 100
             if (event.angleDelta().y() > 0):
@@ -553,7 +552,8 @@ class TXDayWidget(TXVerticalBar):
                 print ("zoom out")
                 self.calendar.zoom.setValue(max(0, self.calendar.zoom.value()-zoom_step))
         
-        super(TXDayWidget, self).wheelEvent(event)
+        else:
+            super(TXDayWidget, self).wheelEvent(event)
 
 
 
@@ -682,7 +682,18 @@ class TXCalendar(QWidget):
 
 
     def on_zoom(self):
-        self.scroll_widget.setMinimumHeight(self.zoom.value())
+        #self.scroll_widget.setMinimumHeight(self.zoom.value())
+        
+
+        #pos = self.zoom.self.zoom.maximum()
+
+        pos = self.scroll_area.verticalScrollBar().value() / max(self.scroll_area.verticalScrollBar().maximum(), .5)
+
+        ratio = max(1, self.zoom.value() / 1000.0)
+        h = self.scroll_area.height() * ratio
+        self.scroll_widget.setMinimumHeight(h)
+
+        self.scroll_area.verticalScrollBar().setValue(pos * self.scroll_area.verticalScrollBar().maximum())
 
 
     def resizeEvent(self, evt):
