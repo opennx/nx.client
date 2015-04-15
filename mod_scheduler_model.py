@@ -281,7 +281,6 @@ class TXDayWidget(TXVerticalBar):
                 else:
                     diff = "Over: " + s2tc(diff)
 
-
                 self.setToolTip("<b>{title}</b><br>Start: {start}<br>{diff}".format(
                     title=event["title"],
                     start=time.strftime("%H:%M",time.localtime(event["start"])),
@@ -291,13 +290,16 @@ class TXDayWidget(TXVerticalBar):
             self.cursor_event = False
         else:
             self.cursor_event = False
-            return
+            
+
+        if not self.cursor_event:
+            self.setToolTip("No event scheduled")
+            return 
 
         if e.buttons() != Qt.LeftButton:
             return
     
         self.calendar.drag_offset = ts - event["start"]
-        print(self.calendar.drag_offset, event["duration"])
         if self.calendar.drag_offset > event["duration"]:
             self.calendar.drag_offset = event["duration"]
 
@@ -357,7 +359,7 @@ class TXDayWidget(TXVerticalBar):
 
     def dragMoveEvent(self, evt):
         self.dragging= True
-        #self.calendar.focus_data = []
+        self.calendar.focus_data = []
         self.mx = evt.pos().x()
         self.my = evt.pos().y()
         cursor_time = (self.my / self.min_size*60) + self.start_time
@@ -453,6 +455,9 @@ class TXDayWidget(TXVerticalBar):
 
 
     def contextMenuEvent(self, event):
+        if not self.cursor_event:
+            return 
+
         menu = QMenu(self.parent())
         menu.setStyleSheet(base_css)
 
