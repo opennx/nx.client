@@ -639,7 +639,7 @@ class Rundown(BaseWidget):
 
         t = t.strftime("%A %Y-%m-%d")
         self.parent().setWindowTitle("Rundown {}".format(t))
-        self.channel_display.setText("<font{}>{}</font> {}".format(s, t, ch))
+        self.channel_display.setText("<font{}>{}</font> - {}".format(s, t, ch))
 
 
     ################################################################
