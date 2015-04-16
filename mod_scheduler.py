@@ -79,11 +79,17 @@ class Scheduler(BaseWidget):
         #self.calendar.load(self.id_channel, time.time())
 
 
+    def update_header(self):
+        week_no = time.strftime("%W", time.localtime(self.calendar.start_time))
+        week_no = int(week_no) + 1 # Have no idea why
+        header = "Week {} - {}".format(week_no, config["playout_channels"][self.id_channel]["title"])
+        self.channel_display.setText(header)
+
     def set_channel(self, id_channel):
         if self.id_channel != id_channel:
             self.id_channel = id_channel
             self.calendar.load(self.id_channel, self.calendar.start_time)
-            self.channel_display.setText(config["playout_channels"][self.id_channel]["title"])
+            self.update_header()
 
     def save_state(self):
         state = {}
@@ -97,9 +103,11 @@ class Scheduler(BaseWidget):
 
     def on_week_prev(self):
         self.calendar.load(self.calendar.id_channel, self.calendar.start_time-(3600*24*7))
+        self.update_header()
 
     def on_week_next(self):
         self.calendar.load(self.calendar.id_channel, self.calendar.start_time+(3600*24*7))
+        self.update_header()
 
     def focus(self, objects):
         if self.action_show_runs.isChecked():
