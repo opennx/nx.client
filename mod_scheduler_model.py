@@ -138,6 +138,7 @@ class TXDayWidget(TXVerticalBar):
         self.dragging = False
         self.drag_outside = False
 
+        self.last_wheel_direction = 0
 
     @property 
     def id_channel(self):
@@ -544,13 +545,25 @@ class TXDayWidget(TXVerticalBar):
 
     def wheelEvent(self,event):
         if event.modifiers() & Qt.ControlModifier:
-            zoom_step = 100
-            if (event.angleDelta().y() > 0):
-                print ("zoom in")
-                self.calendar.zoom.setValue(min(6000, self.calendar.zoom.value()+zoom_step))
-            else:
-                print ("zoom out")
-                self.calendar.zoom.setValue(max(0, self.calendar.zoom.value()-zoom_step))
+            zoom_step = 500
+
+            p = event.angleDelta().y()
+
+            if p > 0:
+                if self.last_wheel_direction == -1:
+                    self.last_wheel_direction = 0
+                else:
+                    print ("zoom in")
+                    self.calendar.zoom.setValue(min(10000, self.calendar.zoom.value()+zoom_step))
+                    self.last_wheel_direction = 1
+
+            elif p < 0:
+                if self.last_wheel_direction == 1:
+                    self.last_wheel_direction = 0
+                else:
+                    print ("zoom out")
+                    self.calendar.zoom.setValue(max(0, self.calendar.zoom.value()-zoom_step))
+                    self.last_wheel_direction = -1
         
         else:
             super(TXDayWidget, self).wheelEvent(event)
@@ -670,7 +683,7 @@ class TXCalendar(QWidget):
 
         self.zoom = QSlider(Qt.Horizontal)
         self.zoom.setMinimum(0)
-        self.zoom.setMaximum(6000)
+        self.zoom.setMaximum(10000)
         self.zoom.valueChanged.connect(self.on_zoom)
 
         layout = QVBoxLayout()
@@ -682,18 +695,13 @@ class TXCalendar(QWidget):
 
 
     def on_zoom(self):
-        #self.scroll_widget.setMinimumHeight(self.zoom.value())
-        
-
-        #pos = self.zoom.self.zoom.maximum()
-
-        pos = self.scroll_area.verticalScrollBar().value() / max(self.scroll_area.verticalScrollBar().maximum(), .5)
-
         ratio = max(1, self.zoom.value() / 1000.0)
-        h = self.scroll_area.height() * ratio
-        self.scroll_widget.setMinimumHeight(h)
 
-        self.scroll_area.verticalScrollBar().setValue(pos * self.scroll_area.verticalScrollBar().maximum())
+        h = self.scroll_area.height() * ratio
+        pos = self.scroll_area.verticalScrollBar().value() / self.scroll_widget.height()
+
+        self.scroll_widget.setMinimumHeight(h)
+        self.scroll_area.verticalScrollBar().setValue(pos * h)
 
 
     def resizeEvent(self, evt):
