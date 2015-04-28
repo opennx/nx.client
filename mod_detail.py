@@ -42,7 +42,6 @@ class DetailTabMain(QWidget):
             else:
                 self.tags = config["folders"][id_folder][2]
 
-
             if self.form:
                 # SRSLY. I've no idea what I'm doing here
                 self.layout.removeWidget(self.form)
@@ -65,7 +64,6 @@ class DetailTabMain(QWidget):
         if self.form:
             enabled = has_right("asset_edit", id_folder)
             self.form.setEnabled(enabled)
-
 
 
 class MetaList(QTextEdit):
@@ -355,18 +353,9 @@ class Detail(BaseWidget):
                 self.focus(self._load_queue)
 
 
-
     def on_folder_changed(self):
-        #self.update_data()
         self.detail_tabs.load(self.object, id_folder=self.folder_select.get_value())
-
-    ## WHY????
-    #def update_data(self):
-    #    self.object["id_folder"] = self.folder_select.get_value()
-    #    for key, cfg in self.detail_tabs.tab_main.tags:
-    #        self.object[key] = self.form.inputs[key].get_value()
-            
-                
+       
 
     def new_asset(self):
         new_asset = Asset()
@@ -377,6 +366,7 @@ class Detail(BaseWidget):
         self.object = False
         self.duration.set_value(0)
         self.focus([new_asset])
+
 
     def clone_asset(self):
         new_asset = Asset()
@@ -415,6 +405,7 @@ class Detail(BaseWidget):
         if self.object:
             self.focus([asset_cache[self.object.id]], silent=True)
 
+
     def on_set_qc(self, state):
         stat, res = query("set_meta", objects=[self.object.id], data={"qc/state" : state} )
         if not success(stat):
@@ -431,5 +422,3 @@ class Detail(BaseWidget):
         if data.method == "objects_changed" and data.data["object_type"] == "asset" and self.object: 
             if self.object.id in data.data["objects"] and self.object.id:
                 self.focus([asset_cache[self.object.id]], silent=True)
-
-
