@@ -331,16 +331,15 @@ class Detail(BaseWidget):
             self.folder_select.set_value(self.object["id_folder"])
 
             if self.object.object_type in ["asset", "item"]:
-                if self.object["content_type"] in [VIDEO, AUDIO]:
-                    self.duration.set_value(self.object.duration)
-                    self.duration.show()
-                    if self.object["status"] == OFFLINE:
-                        self.duration.setEnabled(True)
-                    else:
-                        self.duration.setEnabled(False)
+                self.duration.set_value(self.object.duration)
+                self.duration.show()
+                if self.object["status"] == OFFLINE:
+                    print (3)
+                    self.duration.setEnabled(True)
                 else:
-                    self.duration.hide()
-
+                    print (4)
+                    self.duration.setEnabled(False)
+    
             enabled = (self.object.id == 0) or has_right("asset_edit", self.object["id_folder"])
             self.folder_select.setEnabled(enabled)
             self.action_approve.setEnabled(enabled)
@@ -359,6 +358,7 @@ class Detail(BaseWidget):
 
     def new_asset(self):
         new_asset = Asset()
+        print ("status:", new_asset["status"])
         if self.object and self.object["id_folder"]:
             new_asset["id_folder"] = self.object["id_folder"]
         else:
