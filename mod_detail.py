@@ -60,6 +60,7 @@ class DetailTabMain(QWidget):
 
         for tag, conf in self.tags:
             self.form[tag] = obj[tag]
+            obj[tag] = self.form[tag]
         
         if self.form:
             enabled = has_right("asset_edit", id_folder)
@@ -292,13 +293,22 @@ class Detail(BaseWidget):
             if self.form and self.object and not silent:
                 if self.object["id_folder"] != self.folder_select.get_value():
                     changed = True
+                    print ("folder changed")
                # elif int(self.object["duration"]) != int(self.duration.get_value()):
                #     changed = True
                 else:
-                    for tag in self.form.inputs:
-                        if str(self.form[tag]).strip() != str(self.object[tag]).strip().replace("\r",""):    
-                            changed = True
-                            break
+                    changed = self.form.changed
+               #     for tag in self.form.inputs:
+               #         if str(self.form[tag]).strip() != str(self.object[tag]).strip().replace("\r",""):    
+               #             changed = True
+               #             print ("\n\n")
+               #             print (tag)
+               #             print ("*************************")
+               #             print (str(self.form[tag]).strip())
+               #             print ("*************************")
+               #             print (str(self.object[tag]).strip().replace("\r",""))
+               #             print ("\n\n")
+               #             break
 
             if changed:
                 reply = QMessageBox.question(
@@ -334,10 +344,8 @@ class Detail(BaseWidget):
                 self.duration.set_value(self.object.duration)
                 self.duration.show()
                 if self.object["status"] == OFFLINE:
-                    print (3)
                     self.duration.setEnabled(True)
                 else:
-                    print (4)
                     self.duration.setEnabled(False)
     
             enabled = (self.object.id == 0) or has_right("asset_edit", self.object["id_folder"])

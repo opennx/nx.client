@@ -17,7 +17,7 @@ class NXE_select(QComboBox):
         super(NXE_select,self).__init__(parent)
         self.cdata = []
         self.set_data(data)
-        self.default = False
+        self.default = self.get_value()
 
     def setReadOnly(self, val):
         self.setEnabled(not val)
@@ -34,13 +34,13 @@ class NXE_select(QComboBox):
     def set_value(self, value):
         if value == self.get_value():
             return
-        self.default = value
         for i, val in enumerate(self.cdata):
             if val == value:
                 self.setCurrentIndex(i)
                 break
         else:
             self.setCurrentIndex(-1)
+        self.default = self.get_value()
 
     def get_value(self):
         if self.currentIndex() == -1:
@@ -53,10 +53,10 @@ class NXE_radio(QWidget):
     def __init__(self, parent, data):
         super(NXE_radio,self).__init__(parent)
         self.cdata = []
-        self.default = False
         self.current_index = -1
         self.buttons = []
         self.set_data(data)
+        self.default = self.get_value()
 
     def set_data(self, data):
         self.current_index = -1
@@ -82,7 +82,6 @@ class NXE_radio(QWidget):
     def set_value(self, value):
         if value == self.get_value():
             return
-        self.default = value
         for i, val in enumerate(self.cdata):
             if val == value:
                 self.buttons[i].setChecked(True)
@@ -94,6 +93,7 @@ class NXE_radio(QWidget):
                 button.setAutoExclusive(False);
                 button.setChecked(False);
                 button.setAutoExclusive(True);
+        self.default = self.get_value()
 
     def get_value(self):
         if self.current_index == -1:
@@ -112,11 +112,12 @@ class NXE_timecode(QLineEdit):
         super(NXE_timecode,self).__init__(parent)
         self.setInputMask("99:99:99:99")
         self.setText("00:00:00:00")
+        self.default = self.get_value()
 
     def set_value(self, value):
-        self.default = value
         self.setText(s2time(value))
         self.setCursorPosition(0)
+        self.default = self.get_value()
 
     def get_value(self):
         hh, mm, ss, ff = [int(i) for i in self.text().split(":")]
@@ -145,16 +146,17 @@ class NXE_datetime(QLineEdit):
                 self.format += ":%S"
 
         self.setInputMask(self.mask)
+        self.default = self.get_value()
 
     def set_value(self, timestamp):
         self.setInputMask("")
-        self.default = timestamp
         if timestamp:
             tt = time.localtime(timestamp)
             self.setText(time.strftime(self.format, tt))
         else:
             self.setText(self.format.replace("9","-"))
         self.setInputMask(self.mask)
+        self.default = self.get_value()
 
     def get_value(self):
         if not self.text().replace("-", ""):
@@ -168,12 +170,13 @@ class NXE_integer(QSpinBox):
     def __init__(self, parent, **kwargs):
         super(NXE_integer,self).__init__(parent)
         self.setMaximum(kwargs.get("max", 99999))
+        self.default = self.get_value()
 
     def set_value(self, value):
-        self.default = value
         if value == self.get_value():
             return
         self.setValue(int(value))
+        self.default = self.get_value()
 
     def get_value(self):
         return self.value()
@@ -181,11 +184,15 @@ class NXE_integer(QSpinBox):
 
 
 class NXE_text(QLineEdit):
+    def __init__(self, parent):
+        super(NXE_text, self).__init__(parent)
+        self.default = self.get_value()
+
     def set_value(self, value):
-        self.default = value
         if value == self.get_value():
             return
         self.setText(str(value))
+        self.default = self.get_value()
 
     def get_value(self):
         return self.text()
@@ -197,12 +204,13 @@ class NXE_blob(QTextEdit):
         fixed_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
         fixed_font.setStyleHint(QFont.Monospace); 
         self.setCurrentFont(fixed_font)
+        self.default = self.get_value()
 
     def set_value(self, value):
         if value == self.get_value():
             return
-        self.default = value
         self.setText(str(value))
+        self.default = self.get_value()
 
     def get_value(self):
         return self.toPlainText()
@@ -360,3 +368,9 @@ class MetaEditor(QWidget):
         for w in self.inputs:
             self.inputs[w].setReadOnly(not stat)
 
+    @property
+    def changed(self):
+        for key in self.keys():
+            if self[key] != self.inputs[key].default:
+                return True
+        return False
