@@ -291,24 +291,7 @@ class Detail(BaseWidget):
 
             changed = False
             if self.form and self.object and not silent:
-                if self.object["id_folder"] != self.folder_select.get_value():
-                    changed = True
-                    print ("folder changed")
-               # elif int(self.object["duration"]) != int(self.duration.get_value()):
-               #     changed = True
-                else:
-                    changed = self.form.changed
-               #     for tag in self.form.inputs:
-               #         if str(self.form[tag]).strip() != str(self.object[tag]).strip().replace("\r",""):    
-               #             changed = True
-               #             print ("\n\n")
-               #             print (tag)
-               #             print ("*************************")
-               #             print (str(self.form[tag]).strip())
-               #             print ("*************************")
-               #             print (str(self.object[tag]).strip().replace("\r",""))
-               #             print ("\n\n")
-               #             break
+               changed = (self.object["id_folder"] != self.folder_select.get_value()) or self.form.changed
 
             if changed:
                 reply = QMessageBox.question(
