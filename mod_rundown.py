@@ -568,7 +568,7 @@ class Rundown(BaseWidget):
 
             if data.data["cued_item"] != self.cued_item:
                 self.cued_item = data.data["cued_item"]
-                self.refresh()
+                self.refresh(reset=True)
 
             if self.mcr:
                 self.mcr.seismic_handler(data)
@@ -595,11 +595,11 @@ class Rundown(BaseWidget):
 
     ###########################################################################
 
-    def load(self, id_channel, start_time, event=False):
+    def load(self, id_channel, start_time, event=False, reset=False):
         self.id_channel = id_channel
         self.start_time = start_time
         self.update_header()
-        self.model.load(id_channel, start_time)
+        self.model.load(id_channel, start_time, reset=reset)
         if not event:
             return
 
@@ -608,13 +608,13 @@ class Rundown(BaseWidget):
                 self.view.scrollTo(self.model.index(i, 0, QModelIndex()), QAbstractItemView.PositionAtTop  )
                 break
 
-    def refresh(self):
+    def refresh(self, reset=False):
         selection = []
         for idx in self.view.selectionModel().selectedIndexes():
             if self.model.object_data[idx.row()].id:
                 selection.append([self.model.object_data[idx.row()].object_type, self.model.object_data[idx.row()].id])
 
-        self.load(self.id_channel, self.start_time)
+        self.load(self.id_channel, self.start_time, reset=reset)
 
         item_selection = QItemSelection()
         for i, row in enumerate(self.model.object_data):
