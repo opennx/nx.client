@@ -1,7 +1,9 @@
-{
-    "site_name"  : "opennx",
-    "hive_host"  : "nx_server.local",
-    "hive_ssl"   : true,
-    "hive_port"  : 11000,
-    "media_port" : 11002
-}
+[
+    {
+        "site_name"  : "opennx",
+        "hive_host"  : "nx_server.local",
+        "hive_ssl"   : true,
+        "hive_port"  : 11000,
+        "media_port" : 11002
+    }
+]
