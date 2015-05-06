@@ -159,7 +159,7 @@ class NXE_datetime(QLineEdit):
         self.default = self.get_value()
 
     def get_value(self):
-        if not self.text().replace("-", ""):
+        if not self.text().replace("-", "").replace(":","").strip():
             return float(0)
 
         t = time.strptime(self.text(), self.format)
