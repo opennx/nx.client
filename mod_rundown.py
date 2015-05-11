@@ -595,7 +595,7 @@ class Rundown(BaseWidget):
 
     ###########################################################################
 
-    def load(self, id_channel, start_time, event=False, reset=False):
+    def load(self, id_channel, start_time, event=False, reset=True):
         self.id_channel = id_channel
         self.start_time = start_time
         self.update_header()

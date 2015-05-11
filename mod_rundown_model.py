@@ -86,6 +86,7 @@ class SubclipSelectDialog(QDialog):
 
 class RundownModel(NXViewModel):
     def load(self, id_channel, start_time, reset=False):
+        print ("Rundown load. Reset:", reset)
         self.id_channel = id_channel
         self.start_time = start_time
         dbg_start_time = time.time()
@@ -105,12 +106,11 @@ class RundownModel(NXViewModel):
             data_len += 1
             data_len += max(1, len(edata["items"]))
 
-        if data_len != len(self.object_data):
+        if data_len != len(self.object_data) or reset:
             self.beginResetModel()
-            reset = True
             self.object_data = []
-        else:
-            reset = reset or reset
+            reset = True
+        
 
         row = 0
         current_bin = False
