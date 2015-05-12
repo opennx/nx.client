@@ -86,7 +86,6 @@ class SubclipSelectDialog(QDialog):
 
 class RundownModel(NXViewModel):
     def load(self, id_channel, start_time, reset=False):
-        print ("Rundown load. Reset:", reset)
         self.id_channel = id_channel
         self.start_time = start_time
         dbg_start_time = time.time()
