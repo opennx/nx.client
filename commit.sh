@@ -7,6 +7,7 @@ chmod 644 .gitignore
 
 chmod 644 *.py
 chmod 644 *.css
+chmod 644 local_settings.default
 chmod 755 firefly.py
 chmod 755 firefly.desktop
 chmod 755 commit.sh
