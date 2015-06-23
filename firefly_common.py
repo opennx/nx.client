@@ -76,8 +76,8 @@ class AssetCache():
         f.close()
 
     def load(self):
-        print ("Loading cache")
         if os.path.exists(self.local_file):
+            start_time = time.time()
             try:    
                 f = open(self.local_file, "rb")
                 self.cache_time, _data = pickle.load(f)
@@ -87,8 +87,8 @@ class AssetCache():
             except:
                 pass
             else:
-                print ("{} cached assets loaded".format(len(self.data)))
-                return        
+                print ("{} cached assets loaded in {:.02f} seconds.".format(len(self.data), time.time() - start_time))
+                return
         self.data = {}
 
 asset_cache = AssetCache()
