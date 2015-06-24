@@ -374,3 +374,9 @@ class MetaEditor(QWidget):
             if self[key] != self.inputs[key].default:
                 return True
         return False
+
+    def reset_changes(self):
+        for key in self.keys():
+            if self[key] != self.inputs[key].default:
+                self.inputs[key].default = self[key]
+                

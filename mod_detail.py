@@ -389,6 +389,7 @@ class Detail(BaseWidget):
                 obj = Asset(from_data=res)
                 asset_cache[obj.id] = obj
                 self.focus([obj], silent=True)
+        self.form.reset_changes()
         self.parent().setWindowTitle("Detail of {}".format(self.object))
 
 
