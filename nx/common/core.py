@@ -8,7 +8,10 @@ import json
 import time
 import hashlib
 
+
 from xml.etree import ElementTree as ET
+
+from nx.common import fuckit
 from nx.common.constants import *
 
 if __name__ == "__main__":
@@ -34,8 +37,6 @@ def critical_error(message):
     except: 
         print ("CRITICAL ERROR: {0}".format(message))
     sys.exit(-1)
-
-
 
 def success(ret_code):
     return ret_code < 300
@@ -87,13 +88,15 @@ class Messaging():
         self.MCAST_PORT = int(config["seismic_port"])
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 255)
-
+  
     def send(self, method, **data):
         """
         message = [timestamp, site_name, host, method, DATA] 
-        """        
-        message = json.dumps([time.time(), config["site_name"], config["host"], method, data])
-        self.sock.sendto(message, (self.MCAST_ADDR, self.MCAST_PORT))
+        """
+        try:
+            self.sock.sendto(json.dumps([time.time(), config["site_name"], config["host"], method, data]), (self.MCAST_ADDR,self.MCAST_PORT) )
+        except:
+            print ("Unable to send message")
 
 messaging = Messaging()
 
