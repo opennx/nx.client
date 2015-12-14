@@ -63,7 +63,6 @@ class Scheduler(BaseWidget):
         toolbar = scheduler_toolbar(self)
         self.parent().setWindowTitle("Scheduler")
         self.id_channel = False
-
         
         self.calendar = TXCalendar(self)
 
@@ -75,13 +74,10 @@ class Scheduler(BaseWidget):
 
         self.setLayout(layout)
         self.set_channel(self.parent().parent().id_channel)
-        #self.id_channel = self.parent().parent().id_channel
-        #self.calendar.load(self.id_channel, time.time())
 
 
     def update_header(self):
-        week_no = time.strftime("%W", time.localtime(self.calendar.start_time))
-        week_no = int(week_no) + 1 # Have no idea why
+        week_no = time.strftime("%V", time.localtime(self.calendar.start_time))
         header = "Week {} - {}".format(week_no, config["playout_channels"][self.id_channel]["title"])
         self.channel_display.setText(header)
 
