@@ -63,7 +63,7 @@ class Scheduler(BaseWidget):
         toolbar = scheduler_toolbar(self)
         self.parent().setWindowTitle("Scheduler")
         self.id_channel = False
-        
+
         self.calendar = TXCalendar(self)
 
         layout = QVBoxLayout()
@@ -77,7 +77,7 @@ class Scheduler(BaseWidget):
 
 
     def update_header(self):
-        week_no = time.strftime("%w", time.localtime(self.calendar.start_time))
+        week_no = time.strftime("%V", time.localtime(self.calendar.start_time))
         header = "Week {} - {}".format(week_no, config["playout_channels"][self.id_channel]["title"])
         self.channel_display.setText(header)
 
@@ -118,7 +118,7 @@ class Scheduler(BaseWidget):
 
     def seismic_handler(self, data):
        if data.method == "objects_changed" and data.data["object_type"] == "event":
-            my_name =self.parent().objectName()
+            my_name = self.parent().objectName()
 #            print (data.data)
 #            print (my_name)
 #            for id_event in data.data["objects"]:#
