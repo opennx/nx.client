@@ -77,7 +77,7 @@ class Scheduler(BaseWidget):
 
 
     def update_header(self):
-        week_no = time.strftime("%V", time.localtime(self.calendar.start_time))
+        week_no = time.strftime("%w", time.localtime(self.calendar.start_time))
         header = "Week {} - {}".format(week_no, config["playout_channels"][self.id_channel]["title"])
         self.channel_display.setText(header)
 
