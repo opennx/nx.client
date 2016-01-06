@@ -21,7 +21,12 @@ AUTH_KEY = hashlib.sha256("{}:{}".format(
 __all__ = ["connection_type", "query", "success"]
 
 connection_type = "client"
-context = ssl._create_unverified_context()
+
+# 3.4.3 workaround
+try:
+    context = ssl._create_unverified_context()
+except:
+    context = None
 
 
 def success(retcode):
@@ -50,7 +55,12 @@ def query(method, target="hive", handler=False, **kwargs):
     result   = False
 
     try:
-        with urlopen(url, post_data.encode("ascii"), timeout=config.get("hive_timeout", 3), context=context) as feed:
+
+        urlargs = {"timeout" : config.get("hive_timeout", 3)}
+        if context:
+            urlargs["context"] = context
+
+        with urlopen(url, post_data.encode("ascii"), **urlargs) as feed:
             while True:
                 line = feed.readline()
                 if not line:
