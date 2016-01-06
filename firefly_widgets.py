@@ -202,7 +202,7 @@ class NXE_blob(QTextEdit):
     def __init__(self, parent):
         super(NXE_blob, self).__init__(parent)
         fixed_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
-        fixed_font.setStyleHint(QFont.Monospace); 
+        fixed_font.setStyleHint(QFont.Monospace);
         self.setCurrentFont(fixed_font)
         self.default = self.get_value()
 
@@ -379,4 +379,4 @@ class MetaEditor(QWidget):
         for key in self.keys():
             if self[key] != self.inputs[key].default:
                 self.inputs[key].default = self[key]
-                
+

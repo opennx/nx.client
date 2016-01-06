@@ -4,9 +4,9 @@ from firefly_widgets import *
 
 
 
-class SubclipsModel(QAbstractTableModel): 
-    def __init__(self, parent, subclips): 
-        super(SubclipsModel, self).__init__(parent) 
+class SubclipsModel(QAbstractTableModel):
+    def __init__(self, parent, subclips):
+        super(SubclipsModel, self).__init__(parent)
         self.parent = parent
         self.header_data = ["Title", "In", "Out"]
         self.array_data  = []
@@ -14,10 +14,10 @@ class SubclipsModel(QAbstractTableModel):
             self.array_data.append((k, float(subclips[k][0]), float(subclips[k][1])))
 
     def rowCount(self,parent):
-        return len(self.array_data) 
+        return len(self.array_data)
 
     def columnCount(self,parent):
-        return len(self.header_data) 
+        return len(self.header_data)
 
     def data(self, index, role):
         if not index.isValid():
@@ -26,16 +26,16 @@ class SubclipsModel(QAbstractTableModel):
         row = index.row()
         col = index.column()
 
-        if role == Qt.DisplayRole: 
+        if role == Qt.DisplayRole:
             if col == 0:
                 return self.array_data[row][col]
             elif col in (1,2):
                 return s2tc(float(self.array_data[row][col]), base=self.parent.fps)
         return None
-     
+
     def flags(self, index):
         flags = super(SubclipsModel, self).flags(index)
-        if index.isValid(): 
+        if index.isValid():
             flags |= Qt.ItemIsSelectable
         return flags
 
@@ -56,7 +56,7 @@ class SubclipsModel(QAbstractTableModel):
 #        self.beginResetModel()
 #        data = json.loads(self.parent.parent.meta.get("Subclips","{}"))
 #        self.arraydata = []
-#        for r in data.keys(): 
+#        for r in data.keys():
 #            self.arraydata.append((r,data[r][0],data[r][1]))
 #        self.endResetModel()
 
@@ -66,20 +66,20 @@ class SubclipsView(QTableView):
     def __init__(self, parent, asset):
         super(SubclipsView, self).__init__()
         self.asset = asset
-      
+
         vh = self.verticalHeader()
         hh = self.horizontalHeader()
-        
+
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setSelectionMode(self.ExtendedSelection)
         self.setShowGrid(False)
-        
+
         self.activated.connect(self.on_activated)
-      
-        self.model = SubclipsModel(self, self.asset["subclips"] or {}) 
+
+        self.model = SubclipsModel(self, self.asset["subclips"] or {})
         self.setModel(self.model)
-  
-    @property 
+
+    @property
     def subclips(self):
         return self.model.subclips
 
@@ -99,7 +99,7 @@ class SubclipsDialog(QDialog):
         super(SubclipsDialog, self).__init__(parent)
         self.setWindowTitle("Subclips")
         self.selection = False
-        
+
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
         layout.setSpacing(5)
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     config["site_name"] = "sport5"
     asset_cache.load()
     a = asset_cache[1232]
-    
+
     app = QApplication(sys.argv)
     dlg = SubclipsDialog(None, asset=a )
     dlg.exec_()

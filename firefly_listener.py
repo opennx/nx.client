@@ -51,8 +51,8 @@ class SeismicListener(QThread):
     def listen_http(self):
         url = "{protocol}://{host}:{port}/msg_subscribe?id={site_name}".format(
                 protocol  = ["http", "https"][config.get("hive_ssl", False)],
-                host      = config["hive_host"], 
-                port      = config["hive_port"], 
+                host      = config["hive_host"],
+                port      = config["hive_port"],
                 site_name = config["site_name"]
                 )
         try:
@@ -61,7 +61,7 @@ class SeismicListener(QThread):
                     line = feed.readline()
                     self.parse_message(line)
         except:
-            return 
+            return
 
     def parse_message(self, data, addr=False):
         try:

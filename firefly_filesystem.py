@@ -23,12 +23,12 @@ def load_filesystem(handler=False):
                     id_storage = int(id_storage)
                 except:
                     continue
-                
+
                 if site != config["site_name"]:
                     continue
-                
+
                 storage = Storage()
                 storage.id_storage = id_storage
                 storage.local_path = base_path
-                
+
                 storages[id_storage] = storage

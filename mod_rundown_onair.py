@@ -166,7 +166,7 @@ class OnAir(QWidget):
     def update_display(self):
         try:
             adv = time.time() - self.local_request_time
-            
+
             rtime = self.request_time+adv
             rpos = self.pos
 

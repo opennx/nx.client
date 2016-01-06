@@ -11,6 +11,7 @@ from nx.common import *
 import hashlib
 import socket
 import getpass
+import ssl
 
 AUTH_KEY = hashlib.sha256("{}:{}".format(
     socket.gethostname(),
@@ -20,7 +21,7 @@ AUTH_KEY = hashlib.sha256("{}:{}".format(
 __all__ = ["connection_type", "query", "success"]
 
 connection_type = "client"
-
+context = ssl._create_unverified_context()
 
 
 def success(retcode):
@@ -30,6 +31,7 @@ def query(method, target="hive", handler=False, **kwargs):
     start_time = time.time()
     if config.get("hive_zlib",False):
         kwargs["hive_zlib"] = True
+
 
     url = "{protocol}://{host}:{port}/{target}".format(
             protocol = ["http", "https"][config.get("hive_ssl", False)],
@@ -48,7 +50,7 @@ def query(method, target="hive", handler=False, **kwargs):
     result   = False
 
     try:
-        with urlopen(url, post_data.encode("ascii"), timeout=config.get("hive_timeout", 3)) as feed:
+        with urlopen(url, post_data.encode("ascii"), timeout=config.get("hive_timeout", 3), context=context) as feed:
             while True:
                 line = feed.readline()
                 if not line:
@@ -81,7 +83,7 @@ def query(method, target="hive", handler=False, **kwargs):
         print ("Query {} completed in {:0.2f} seconds".format(method, time.time() - start_time))
     else:
         try:
-            print ("Query {} failed: {}".format(method, result))
+            print ("Query {} failed: ({}) {}".format(method, response, result))
         except:
             print ("Query {} failed".format(method))
     return response, result

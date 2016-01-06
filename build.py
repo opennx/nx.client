@@ -85,7 +85,7 @@ FILE_LIST = [
     ("dist/platforms/qwindows.dll", "platforms/qwindows.dll"),
 
     ("local_settings.default", "local_settings.json")
-    ]   
+    ]
 
 
 with zipfile.ZipFile('firefly-latest.zip', 'w') as arch:

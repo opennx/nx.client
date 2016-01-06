@@ -12,7 +12,7 @@ class IngestDialog(QDialog):
             self.setWindowTitle("{} ingest".format(self.asset))
         else:
             self.setWindowTitle("Scheduled ingests")
-        
+
         layout = QVBoxLayout()
         layout.addWidget(QLabel("Ingest is not supported on this system"))
 

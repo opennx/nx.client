@@ -24,7 +24,7 @@ class DetailTabMain(QWidget):
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setContentsMargins(0,0,0,0)
         self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        
+
         mwidget = QWidget()
         mwidget.setLayout(self.layout)
         self.scroll_area.setWidget(mwidget)
@@ -50,7 +50,7 @@ class DetailTabMain(QWidget):
                 self.form.destroy()
                 QApplication.processEvents()
                 self.form = None
-            for i in reversed(range(self.layout.count())): 
+            for i in reversed(range(self.layout.count())):
                 self.layout.itemAt(i).widget().deleteLater()
 
             self.form = MetaEditor(self, self.tags)
@@ -61,7 +61,7 @@ class DetailTabMain(QWidget):
         for tag, conf in self.tags:
             self.form[tag] = obj[tag]
             obj[tag] = self.form[tag]
-        
+
         if self.form:
             enabled = has_right("asset_edit", id_folder)
             self.form.setEnabled(enabled)
@@ -108,7 +108,7 @@ class DetailTabExtended(MetaList):
 
 
 class DetailTabTechnical(MetaList):
-    def load(self, obj, **kwargs):        
+    def load(self, obj, **kwargs):
         self.tag_groups = {
                 "File" : [],
                 "Format"  : [],
@@ -154,8 +154,8 @@ class DetailTabUsage(QWidget):
 class DetailTabs(QTabWidget):
     def __init__(self, parent):
         super(DetailTabs, self).__init__()
-        self.setStyleSheet(base_css)   
-        
+        self.setStyleSheet(base_css)
+
         self.tab_main = DetailTabMain(self)
         self.tab_extended = DetailTabExtended(self)
         self.tab_technical = DetailTabTechnical(self)
@@ -200,19 +200,19 @@ def detail_toolbar(wnd):
 
     toolbar.addSeparator()
 
-    wnd.action_approve = QAction(QIcon(pixlib["qc_approved"]),'Approve', wnd)        
+    wnd.action_approve = QAction(QIcon(pixlib["qc_approved"]),'Approve', wnd)
     wnd.action_approve.setShortcut('Y')
     wnd.action_approve.triggered.connect(partial(wnd.on_set_qc, 4))
     wnd.action_approve.setEnabled(False)
     toolbar.addAction(wnd.action_approve)
 
-    wnd.action_qc_reset = QAction(QIcon(pixlib["qc_new"]),'QC Reset', wnd)        
+    wnd.action_qc_reset = QAction(QIcon(pixlib["qc_new"]),'QC Reset', wnd)
     wnd.action_qc_reset.setShortcut('T')
     wnd.action_qc_reset.triggered.connect(partial(wnd.on_set_qc, 0))
     wnd.action_qc_reset.setEnabled(False)
     toolbar.addAction(wnd.action_qc_reset)
 
-    wnd.action_reject = QAction(QIcon(pixlib["qc_rejected"]),'Reject', wnd)        
+    wnd.action_reject = QAction(QIcon(pixlib["qc_rejected"]),'Reject', wnd)
     wnd.action_reject.setShortcut('U')
     wnd.action_reject.triggered.connect(partial(wnd.on_set_qc, 3))
     wnd.action_reject.setEnabled(False)
@@ -220,21 +220,21 @@ def detail_toolbar(wnd):
 
     toolbar.addSeparator()
 
-    wnd.action_ingest = QAction(QIcon(pixlib["record"]),'Ingest', wnd)        
+    wnd.action_ingest = QAction(QIcon(pixlib["record"]),'Ingest', wnd)
     wnd.action_ingest.setShortcut('CTRL+7')
     wnd.action_ingest.triggered.connect(wnd.on_ingest)
     wnd.action_ingest.setEnabled(False)
     toolbar.addAction(wnd.action_ingest)
 
     toolbar.addWidget(ToolBarStretcher(wnd))
- 
-### Does not work with cache.... FIX LATER   
-#    action_revert = QAction(QIcon(pixlib["cancel"]), '&Revert changes', wnd)        
+
+### Does not work with cache.... FIX LATER
+#    action_revert = QAction(QIcon(pixlib["cancel"]), '&Revert changes', wnd)
 #    action_revert.setStatusTip('Revert changes')
 #    action_revert.triggered.connect(wnd.on_revert)
 #    toolbar.addAction(action_revert)
 
-    action_apply = QAction(QIcon(pixlib["accept"]), '&Apply changes', wnd)        
+    action_apply = QAction(QIcon(pixlib["accept"]), '&Apply changes', wnd)
     action_apply.setShortcut('Ctrl+S')
     action_apply.setStatusTip('Apply changes')
     action_apply.triggered.connect(wnd.on_apply)
@@ -260,7 +260,7 @@ class Detail(BaseWidget):
         layout.addWidget(self.detail_tabs)
         self.setLayout(layout)
 
-    @property 
+    @property
     def form(self):
         return self.detail_tabs.tab_main.form
 
@@ -284,7 +284,7 @@ class Detail(BaseWidget):
                 return
             else:
                 self._load_queue = False
-                self._is_loading = True  
+                self._is_loading = True
 
             ###############################################
             ## Save changes?
@@ -295,8 +295,8 @@ class Detail(BaseWidget):
 
             if changed:
                 reply = QMessageBox.question(
-                        self, 
-                        "Save changes?", 
+                        self,
+                        "Save changes?",
                         "{} has been changed.\n\nSave changes?".format(self.object),
                         QMessageBox.Yes | QMessageBox.No
                         )
@@ -330,7 +330,7 @@ class Detail(BaseWidget):
                     self.duration.setEnabled(True)
                 else:
                     self.duration.setEnabled(False)
-    
+
             enabled = (self.object.id == 0) or has_right("asset_edit", self.object["id_folder"])
             self.folder_select.setEnabled(enabled)
             self.action_approve.setEnabled(enabled)
@@ -345,7 +345,7 @@ class Detail(BaseWidget):
 
     def on_folder_changed(self):
         self.detail_tabs.load(self.object, id_folder=self.folder_select.get_value())
-       
+
 
     def new_asset(self):
         new_asset = Asset()
@@ -375,7 +375,7 @@ class Detail(BaseWidget):
 
     def on_apply(self):
         if not self.form:
-            return 
+            return
         data = {"id_folder":self.folder_select.get_value()}
         for key in self.form.inputs:
             data[key] = self.form[key]
@@ -411,6 +411,6 @@ class Detail(BaseWidget):
 
 
     def seismic_handler(self, data):
-        if data.method == "objects_changed" and data.data["object_type"] == "asset" and self.object: 
+        if data.method == "objects_changed" and data.data["object_type"] == "asset" and self.object:
             if self.object.id in data.data["objects"] and self.object.id:
                 self.focus([asset_cache[self.object.id]], silent=True)

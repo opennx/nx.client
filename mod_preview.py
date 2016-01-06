@@ -19,16 +19,16 @@ class RegionBar(QWidget):
         self.setFixedHeight(3)
         self.data = [0,0,0,0]
         self.show()
-         
+
     def mark_in(self, value=-1):
         return self._value(T_MARK_IN, value)
-    
+
     def mark_out(self, value=-1):
         return self._value(T_MARK_OUT, value)
-    
+
     def position(self, value=-1):
         return self._value(T_POSITION, value)
-    
+
     def duration(self, value=-1):
         return self._value(T_DURATION, value)
 
@@ -37,13 +37,13 @@ class RegionBar(QWidget):
             self.data[key] = value
             self.update()
         return self.data[key]
-   
+
     def paintEvent(self, event=False):
         qp = QPainter()
         qp.begin(self)
         self.drawRegion(qp)
         qp.end()
-   
+
     def drawRegion(self, qp):
         duration = self.duration()
         if not duration:
@@ -53,7 +53,7 @@ class RegionBar(QWidget):
         w = self.width()
         h = self.height()
         x1 = (float(w) / duration) * (mark_in)
-        x2 = (float(w) / duration) * (mark_out-mark_in) 
+        x2 = (float(w) / duration) * (mark_out-mark_in)
         qp.setBrush(self.marks_color)
         qp.setPen(Qt.NoPen)
         qp.drawRect(x1, 1, x2, h-1)
@@ -88,12 +88,12 @@ def action_toolbar(wnd):
 
     toolbar.addAction(wnd.action_marks.menuAction())
 
-    action_create_subclip = QAction("Create subclip", wnd)        
+    action_create_subclip = QAction("Create subclip", wnd)
     action_create_subclip.setShortcut('C')
     action_create_subclip.triggered.connect(wnd.on_create_subclip)
     wnd.action_marks.addAction(action_create_subclip)
 
-    action_manage_subclips = QAction("Manage subclips", wnd)        
+    action_manage_subclips = QAction("Manage subclips", wnd)
     action_manage_subclips.setShortcut('V')
     action_manage_subclips.triggered.connect(wnd.on_manage_subclips)
     wnd.action_marks.addAction(action_manage_subclips)
@@ -106,37 +106,37 @@ def action_toolbar(wnd):
 
 
 def navigation_toolbar(wnd):
-    action_goto_in = QAction('Go to IN', wnd)        
+    action_goto_in = QAction('Go to IN', wnd)
     action_goto_in.setShortcut('Q')
     action_goto_in.triggered.connect(wnd.on_goto_in)
     wnd.addAction(action_goto_in)
 
-    action_goto_out = QAction('Go to OUT', wnd)        
+    action_goto_out = QAction('Go to OUT', wnd)
     action_goto_out.setShortcut('W')
     action_goto_out.triggered.connect(wnd.on_goto_out)
     wnd.addAction(action_goto_out)
 
-    action_shuttle_left = QAction('Shuttle left', wnd)        
+    action_shuttle_left = QAction('Shuttle left', wnd)
     action_shuttle_left.setShortcut('J')
     action_shuttle_left.triggered.connect(wnd.on_shuttle_left)
     wnd.addAction(action_shuttle_left)
 
-    action_shuttle_pause = QAction('Shuttle right', wnd)        
+    action_shuttle_pause = QAction('Shuttle right', wnd)
     action_shuttle_pause.setShortcut('K')
     action_shuttle_pause.triggered.connect(wnd.on_play)
     wnd.addAction(action_shuttle_pause)
 
-    action_shuttle_right = QAction('Shuttle right', wnd)        
+    action_shuttle_right = QAction('Shuttle right', wnd)
     action_shuttle_right.setShortcut('L')
     action_shuttle_right.triggered.connect(wnd.on_shuttle_right)
     wnd.addAction(action_shuttle_right)
 
-    action_frame_prev5 = QAction('Previous 5 frames', wnd)        
+    action_frame_prev5 = QAction('Previous 5 frames', wnd)
     action_frame_prev5.setShortcut('1')
     action_frame_prev5.triggered.connect(partial(wnd.on_frame_step, -5))
     wnd.addAction(action_frame_prev5)
 
-    action_frame_next5 = QAction('Next 5 frames', wnd)        
+    action_frame_next5 = QAction('Next 5 frames', wnd)
     action_frame_next5.setShortcut('2')
     action_frame_next5.triggered.connect(partial(wnd.on_frame_step, 5))
     wnd.addAction(action_frame_next5)
@@ -149,43 +149,43 @@ def navigation_toolbar(wnd):
 
     toolbar.addWidget(ToolBarStretcher(wnd))
 
-    action_clear_in = QAction(QIcon(pixlib["clear_in"]), 'Clear IN', wnd)        
+    action_clear_in = QAction(QIcon(pixlib["clear_in"]), 'Clear IN', wnd)
     action_clear_in.setShortcut('d')
     action_clear_in.setStatusTip('Clear IN')
     action_clear_in.triggered.connect(wnd.on_clear_in)
     toolbar.addAction(action_clear_in)
 
-    action_mark_in = QAction(QIcon(pixlib["mark_in"]), 'Mark IN', wnd)        
+    action_mark_in = QAction(QIcon(pixlib["mark_in"]), 'Mark IN', wnd)
     action_mark_in.setShortcut('E')
     action_mark_in.setStatusTip('Mark IN')
     action_mark_in.triggered.connect(wnd.on_mark_in)
     toolbar.addAction(action_mark_in)
 
-    action_frame_prev = QAction(QIcon(pixlib["frame_prev"]), 'Previous frame', wnd)        
+    action_frame_prev = QAction(QIcon(pixlib["frame_prev"]), 'Previous frame', wnd)
     action_frame_prev.setShortcut('3')
     action_frame_prev.setStatusTip('Go to previous frame')
     action_frame_prev.triggered.connect(partial(wnd.on_frame_step, -1))
     toolbar.addAction(action_frame_prev)
 
-    wnd.action_play = QAction(QIcon(pixlib["play"]), 'Play/Pause', wnd)        
+    wnd.action_play = QAction(QIcon(pixlib["play"]), 'Play/Pause', wnd)
     wnd.action_play.setShortcut('Space')
     wnd.action_play.setStatusTip('Play/Pause')
     wnd.action_play.triggered.connect(wnd.on_play)
     toolbar.addAction(wnd.action_play)
 
-    action_frame_next = QAction(QIcon(pixlib["frame_next"]), 'Next frame', wnd)        
+    action_frame_next = QAction(QIcon(pixlib["frame_next"]), 'Next frame', wnd)
     action_frame_next.setShortcut('4')
     action_frame_next.setStatusTip('Go to next frame')
     action_frame_next.triggered.connect(partial(wnd.on_frame_step, 1))
     toolbar.addAction(action_frame_next)
 
-    action_mark_out = QAction(QIcon(pixlib["mark_out"]), 'Mark OUT', wnd)        
+    action_mark_out = QAction(QIcon(pixlib["mark_out"]), 'Mark OUT', wnd)
     action_mark_out.setShortcut('R')
     action_mark_out.setStatusTip('Mark OUT')
     action_mark_out.triggered.connect(wnd.on_mark_out)
     toolbar.addAction(action_mark_out)
 
-    action_clear_out = QAction(QIcon(pixlib["clear_out"]), 'Clear OUT', wnd)        
+    action_clear_out = QAction(QIcon(pixlib["clear_out"]), 'Clear OUT', wnd)
     action_clear_out.setShortcut('f')
     action_clear_out.setStatusTip('Clear OUT')
     action_clear_out.triggered.connect(wnd.on_clear_out)
@@ -209,7 +209,7 @@ class VideoWidget(QVideoWidget):
         qp.end()
 
     def drawWidget(self, qp):
-        qp.setPen(Qt.NoPen)       
+        qp.setPen(Qt.NoPen)
         qp.setBrush(QColor("#000000"))
         qp.drawRect(0, 0, self.width(), self.height())
         x, y = int(self.width()/2), int(self.height()/2)
@@ -244,7 +244,7 @@ class Preview(BaseWidget):
         self.dpos  = NXE_timecode(self)
         self.din   = NXE_timecode(self)
         self.dout  = NXE_timecode(self)
-        
+
         self.din.setReadOnly(True) # FIX THIS
         self.dout.setReadOnly(True)
 
@@ -276,17 +276,17 @@ class Preview(BaseWidget):
         layout.addWidget(self.din  , 0, 0)
         layout.addWidget(self.buttons_up , 0, 1)
         layout.addWidget(self.dout , 0, 2)
-        
+
         layout.addWidget(self.video_widget ,1, 0, 1, -1)
         layout.addWidget(self.region_bar   ,2, 0, 1, -1)
         layout.addWidget(self.timeline     ,3, 0, 1, -1)
-        
+
         layout.addWidget(self.dpos,    4,0)
         layout.addWidget(self.buttons, 4,1)
         layout.addWidget(self.ddur,    4,2)
-        
+
         layout.setRowStretch(1,2)
-        
+
         layout.setColumnStretch(0,0)
         layout.setColumnStretch(1,1)
         layout.setColumnStretch(2,0)
@@ -318,7 +318,7 @@ class Preview(BaseWidget):
         self.timeline.setValue(position)
         self.position = position / 1000.0
         self.update_displays()
-        
+
     def update_displays(self):
         if self.fps:
             self.dpos.setText(s2tc(self.position, self.fps))
@@ -343,7 +343,7 @@ class Preview(BaseWidget):
             dstring = s2tc(duration/1000.0)
         self.ddur.setText(dstring)
         self.region_bar.duration(duration/1000.0)
-        
+
     def get_position(self):
         return self.media_player.position()
 
@@ -351,7 +351,7 @@ class Preview(BaseWidget):
         if self.media_player.state() == QMediaPlayer.StoppedState:
             return
         self.media_player.setPosition(position)
-        
+
 
     def handle_error(self):
         self.status(self.media_player.errorString(), ERROR)
@@ -363,20 +363,20 @@ class Preview(BaseWidget):
     def load(self, obj):
         self.unload()
         id_asset = obj.id
-        
+
         id_asset = obj.id if obj.object_type == "asset" else obj["id_asset"]
         if not id_asset:
-            return    
+            return
 
         try:
             if int(id_asset) < 1 or id_asset == self.current_id:
                 return
         except:
             return
-            
+
         self.current_object = obj
-        self.current_id = id_asset      
-        
+        self.current_id = id_asset
+
         try:
             self.fps = fract2float(self.current_object["video/fps"])
         except:
@@ -387,7 +387,7 @@ class Preview(BaseWidget):
         self.duration_changed(self.current_object["duration"]*1000)
         self.update_displays()
 
-        
+
         self.video_widget.load_thumb(id_asset, obj["content_type"])
         self.action_play.setIcon(QIcon(pixlib["play"]))
 
@@ -475,7 +475,7 @@ class Preview(BaseWidget):
     def on_save_marks(self):
         if not self.current_object:
             return
-            
+
         data = {}
         if self.current_object["mark_in"] != self.mark_in:
             data["mark_in"] = self.mark_in
@@ -498,7 +498,7 @@ class Preview(BaseWidget):
             self.status("Only assets can have subclips")
             return
 
-        text, result = QInputDialog.getText(self, 
+        text, result = QInputDialog.getText(self,
             "Create subclip",
             "Range {} to {} will be used to create subclip.\n\nEnter subclip name:".format(
                 s2tc(self.mark_in, self.fps),
