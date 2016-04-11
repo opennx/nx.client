@@ -64,7 +64,7 @@ def text_shorten(text, font, target_width):
 
 
 class TXVerticalBar(QWidget):
-    def __init__(self, parent):      
+    def __init__(self, parent):
         super(TXVerticalBar, self).__init__(parent)
         self.setMouseTracking(True)
 
@@ -106,8 +106,8 @@ class TXClockBar(TXVerticalBar):
 
     def drawWidget(self, qp):
         if not self.day_start:
-            return 
-        qp.setPen(Qt.NoPen)       
+            return
+        qp.setPen(Qt.NoPen)
         qp.setBrush(COLOR_CALENDAR_BACKGROUND)
         qp.drawRect(0, 0, self.width(), self.height())
 
@@ -122,13 +122,13 @@ class TXClockBar(TXVerticalBar):
             tc = (self.day_start[0]*60 + self.day_start[1]) + i
             qp.drawLine(0, y, self.width(), y)
             qp.drawText(5, y+15, s2time(tc*60, False, False))
-        
 
 
 
 
-class TXDayWidget(TXVerticalBar):  
-    def __init__(self, parent):      
+
+class TXDayWidget(TXVerticalBar):
+    def __init__(self, parent):
         super(TXDayWidget, self).__init__(parent)
         self.setMinimumWidth(120)
         self.start_time = 0
@@ -140,7 +140,7 @@ class TXDayWidget(TXVerticalBar):
 
         self.last_wheel_direction = 0
 
-    @property 
+    @property
     def id_channel(self):
         return self.calendar.id_channel
 
@@ -161,7 +161,7 @@ class TXDayWidget(TXVerticalBar):
 
 
     def drawWidget(self, qp):
-        qp.setPen(Qt.NoPen)       
+        qp.setPen(Qt.NoPen)
         qp.setBrush(COLOR_DAY_BACKGROUND)
         qp.drawRect(0, 0, self.width(), self.height())
 
@@ -169,7 +169,7 @@ class TXDayWidget(TXVerticalBar):
             for pen in TIME_PENS:
                 if i % pen[0] == 0:
                     qp.setPen(pen[1])
-                    break 
+                    break
             else:
                 continue
             y = i * self.min_size
@@ -194,7 +194,7 @@ class TXDayWidget(TXVerticalBar):
 
         if self.calendar.dragging and self.dragging:
             self.draw_dragging(qp)
-            
+
 
 
 
@@ -205,16 +205,16 @@ class TXDayWidget(TXVerticalBar):
 
         TEXT_SIZE = 9
         base_t = self.ts2pos(event["start"])
-        base_h = self.min_size * (event["duration"] / 60) 
+        base_h = self.min_size * (event["duration"] / 60)
         evt_h = self.ts2pos(end) - base_t
-        
+
         if event["color"]:
             bcolor = QColor(event["color"])
         else:
             bcolor = QColor(40,80,120)
         bcolor.setAlpha(210)
 
-        # Event block (Gradient one)        
+        # Event block (Gradient one)
         erect = QRect(0,base_t,self.width(),evt_h) # EventRectangle Muhehe!
         gradient = QLinearGradient(erect.topLeft(), erect.bottomLeft())
         gradient.setColorAt(.0, bcolor)
@@ -228,7 +228,7 @@ class TXDayWidget(TXVerticalBar):
         if base_h:
             if base_h > evt_h + (SAFE_OVR * self.min_size):
                 lcolor = QColor("#e01010")
-            erect = QRect(0, base_t, 2, min(base_h, evt_h))  
+            erect = QRect(0, base_t, 2, min(base_h, evt_h))
             qp.fillRect(erect, lcolor)
 
 
@@ -246,12 +246,12 @@ class TXDayWidget(TXVerticalBar):
             exp_dur = suggested_duration(self.calendar.dragging.get_duration())
         elif type(self.calendar.dragging) == Event:
             exp_dur = self.calendar.dragging["duration"]
-        else: 
+        else:
             return
 
         drop_ts = self.round_ts(self.cursor_time - self.calendar.drag_offset)
 
-        base_t = self.ts2pos(drop_ts) 
+        base_t = self.ts2pos(drop_ts)
         base_h = self.sec_size * max(300, exp_dur)
 
         qp.setPen(Qt.NoPen)
@@ -259,10 +259,10 @@ class TXDayWidget(TXVerticalBar):
         qp.drawRect(0, base_t, self.width(), base_h)
 
         self.status("Start time: {} End time: {}".format(
-                time.strftime("%H:%M", time.localtime(drop_ts)), 
+                time.strftime("%H:%M", time.localtime(drop_ts)),
                 time.strftime("%H:%M", time.localtime(drop_ts + max(300, exp_dur)))
                 ))
-        
+
 
     def mouseMoveEvent(self, e):
         mx = e.x()
@@ -291,15 +291,15 @@ class TXDayWidget(TXVerticalBar):
             self.cursor_event = False
         else:
             self.cursor_event = False
-            
+
 
         if not self.cursor_event:
             self.setToolTip("No event scheduled")
-            return 
+            return
 
         if e.buttons() != Qt.LeftButton:
             return
-    
+
         self.calendar.drag_offset = ts - event["start"]
         if self.calendar.drag_offset > event["duration"]:
             self.calendar.drag_offset = event["duration"]
@@ -313,7 +313,7 @@ class TXDayWidget(TXVerticalBar):
         drag.setMimeData(mimeData)
         drag.setHotSpot(e.pos() - self.rect().topLeft())
         self.calendar.drag_source = self
-        dropAction = drag.exec_(Qt.MoveAction)  
+        dropAction = drag.exec_(Qt.MoveAction)
 
 
     def dragTargetChanged(self, evt):
@@ -369,9 +369,9 @@ class TXDayWidget(TXVerticalBar):
             self.update()
 
         # disallow droping event over another event
-        if type(self.calendar.dragging) == Event: 
+        if type(self.calendar.dragging) == Event:
             if self.round_ts(self.cursor_time - self.calendar.drag_offset) in [event["start"] for event in self.calendar.events]:
-                evt.ignore()   
+                evt.ignore()
                 return
         evt.accept()
 
@@ -381,7 +381,7 @@ class TXDayWidget(TXVerticalBar):
 
     def dropEvent(self, evt):
         drop_ts = max(self.start_time, self.round_ts(self.cursor_time - self.calendar.drag_offset))
-        
+
         if not has_right("scheduler_edit", self.id_channel):
             QMessageBox.warning(self, "Error", "You are not allowed to modify schedule of this channel.")
 
@@ -389,7 +389,7 @@ class TXDayWidget(TXVerticalBar):
 
             if evt.keyboardModifiers() & Qt.AltModifier:
                 self.status("Creating event from {} at time {}".format(
-                    self.calendar.dragging, 
+                    self.calendar.dragging,
                     time.strftime("%Y-%m-%d %H:%M", time.localtime(self.cursor_time))
                     ))
                 dlg = EventDialog(self,
@@ -400,7 +400,7 @@ class TXDayWidget(TXVerticalBar):
                 dlg.exec_()
             else:
                 QApplication.setOverrideCursor(Qt.WaitCursor)
-                stat, res = query("set_events", 
+                stat, res = query("set_events",
                         events=[{
                                 "id_asset" : self.calendar.dragging.id,
                                 "start" : drop_ts,
@@ -410,25 +410,27 @@ class TXDayWidget(TXVerticalBar):
                     )
                 QApplication.restoreOverrideCursor()
                 if not success(stat):
-                    QMessageBox.warning(self, "Error", res)    
+                    QMessageBox.warning(self, "Error", res)
 
 
         elif type(self.calendar.dragging) == Event:
             event = self.calendar.dragging
-
             move = True
 
             if event.id and abs(event["start"] - drop_ts) > 3600:
                 ret = QMessageBox.question(self,
                     "Move event",
-                    "Do you really want to movee {}?\n\nFrom: {}\n To: {}".format(self.cursor_event, time.strftime("%Y-%m-%d %H:%M", time.localtime(event["start"])) , time.strftime("%Y-%m-%d %H:%M", time.localtime(drop_ts)) ),
+                    "Do you really want to move {}?\n\nFrom: {}\n To: {}".format(
+                        self.cursor_event,
+                        time.strftime("%Y-%m-%d %H:%M", time.localtime(event["start"])),
+                        time.strftime("%Y-%m-%d %H:%M", time.localtime(drop_ts))
+                        ),
                     QMessageBox.Yes | QMessageBox.No
                     )
                 if ret == QMessageBox.Yes:
                     move = True
                 else:
                     move = False
-
 
             if move:
                 event["start"] = drop_ts
@@ -446,9 +448,7 @@ class TXDayWidget(TXVerticalBar):
                     QApplication.restoreOverrideCursor()
 
                     if not success(stat):
-                        QMessageBox.warning(self, "Error", res)    
-
-
+                        QMessageBox.warning(self, "Error", res)
 
         self.calendar.drag_source = False
         self.calendar.dragging = False
@@ -457,14 +457,14 @@ class TXDayWidget(TXVerticalBar):
 
     def contextMenuEvent(self, event):
         if not self.cursor_event:
-            return 
+            return
 
         menu = QMenu(self.parent())
         menu.setStyleSheet(base_css)
 
         self.calendar.selected_event = self.cursor_event
 
-        action_show_rundown = QAction('Show in rundown', self)        
+        action_show_rundown = QAction('Show in rundown', self)
         action_show_rundown.triggered.connect(self.on_show_rundown)
         menu.addAction(action_show_rundown)
 
@@ -478,10 +478,10 @@ class TXDayWidget(TXVerticalBar):
 
         menu.addSeparator()
 
-        action_delete_event = QAction('Delete event', self)        
+        action_delete_event = QAction('Delete event', self)
         action_delete_event.triggered.connect(self.on_delete_event)
         menu.addAction(action_delete_event)
-        
+
         menu.exec_(event.globalPos())
 
     def on_show_rundown(self):
@@ -497,43 +497,45 @@ class TXDayWidget(TXVerticalBar):
             self.calendar.refresh()
 
     def on_solve_event(self):
+        cursor_event = self.cursor_event
         ret = QMessageBox.question(self,
             "Solve event",
-            "Do you really want to (re)solve {}?\nThis operation cannot be undone.".format(self.cursor_event),
+            "Do you really want to (re)solve {}?\nThis operation cannot be undone.".format(cursor_event),
             QMessageBox.Yes | QMessageBox.No
             )
         if ret == QMessageBox.Yes:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            stat, res = query("dramatica", 
-                handler=self.calendar.handle_drama, 
-                id_channel=self.id_channel, 
+            stat, res = query("dramatica",
+                handler=self.calendar.handle_drama,
+                id_channel=self.id_channel,
                 date=time.strftime("%Y-%m-%d", time.localtime(self.start_time)),
-                id_event =self.cursor_event.id,
+                id_event=cursor_event.id,
                 solve=True
                 )
             QApplication.restoreOverrideCursor()
 
             if not success(stat):
-                    QMessageBox.warning(self, "Error", data)    
+                    QMessageBox.warning(self, "Error", data)
 
             self.calendar.refresh()
 
 
     def on_delete_event(self):
+        cursor_event = self.cursor_event
         if not has_right("scheduler_edit", self.id_channel):
             QMessageBox.warning(self, "Error", "You are not allowed to modify schedule of this channel.")
             return
 
         ret = QMessageBox.question(self,
             "Delete event",
-            "Do you really want to delete {}?\nThis operation cannot be undone.".format(self.cursor_event),
+            "Do you really want to delete {}?\nThis operation cannot be undone.".format(cursor_event),
             QMessageBox.Yes | QMessageBox.No
             )
         if ret == QMessageBox.Yes:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            stat, res = query("set_events", delete=[self.cursor_event.id])
+            stat, res = query("set_events", delete=[cursor_event.id])
             QApplication.restoreOverrideCursor()
             if success(stat):
                 self.status("Event deleted")
@@ -564,7 +566,7 @@ class TXDayWidget(TXVerticalBar):
                     print ("zoom out")
                     self.calendar.zoom.setValue(max(0, self.calendar.zoom.value()-zoom_step))
                     self.last_wheel_direction = -1
-        
+
         else:
             super(TXDayWidget, self).wheelEvent(event)
 
@@ -589,21 +591,21 @@ class HeaderWidget(QLabel):
 
     def mouseDoubleClickEvent(self, event):
         self.on_open_rundown()
-    
+
     def contextMenuEvent(self, event):
         menu = QMenu(self.parent())
         menu.setStyleSheet(base_css)
-        
-        action_rundown = QAction('Open rundown', self)        
+
+        action_rundown = QAction('Open rundown', self)
         action_rundown.triggered.connect(self.on_open_rundown)
         menu.addAction(action_rundown)
 
         menu.addSeparator()
 
-        action_solve = QAction('Dramatica', self)        
+        action_solve = QAction('Dramatica', self)
         action_solve.triggered.connect(self.on_solve)
         menu.addAction(action_solve)
-        
+
         menu.exec_(event.globalPos())
 
     def on_open_rundown(self):
@@ -617,9 +619,9 @@ class HeaderWidget(QLabel):
         if dlg.result:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            stat, res = query("dramatica", 
-                handler=self.parent().handle_drama, 
-                id_channel=self.id_channel, 
+            stat, res = query("dramatica",
+                handler=self.parent().handle_drama,
+                id_channel=self.id_channel,
                 date=time.strftime("%Y-%m-%d", time.localtime(self.date)),
                 clear=dlg.chk_clear.isChecked(),
                 solve=dlg.chk_solve.isChecked(),
@@ -627,7 +629,7 @@ class HeaderWidget(QLabel):
                 )
             QApplication.restoreOverrideCursor()
             if not success(stat):
-                QMessageBox.warning(self, "Error", res)    
+                QMessageBox.warning(self, "Error", res)
             self.parent().refresh()
 
 
@@ -641,21 +643,21 @@ class TXCalendar(QWidget):
         self.id_channel = 0
         self.num_days = 7
         self.start_time = time.time()
-        
+
         self.events = []
         self.focus_data = []
         self.dragging = False
         self.drag_offset = 0
         self.drag_source = False
         self.append_condition = False
-        
+
         header_layout = QHBoxLayout()
         header_layout.addSpacing(CLOCKBAR_WIDTH+ 15)
 
         self.headers = []
         for i in range(self.num_days):
             self.headers.append(HeaderWidget())
-            header_layout.addWidget(self.headers[-1])        
+            header_layout.addWidget(self.headers[-1])
         header_layout.addSpacing(20)
 
 
@@ -667,8 +669,8 @@ class TXCalendar(QWidget):
         self.days = []
         for i in range(self.num_days):
             self.days.append(TXDayWidget(self))
-            cols_layout.addWidget(self.days[-1], 1)        
-        
+            cols_layout.addWidget(self.days[-1], 1)
+
         self.scroll_widget = QWidget()
         self.scroll_widget.status = self.status
         self.scroll_widget.setLayout(cols_layout)
@@ -724,19 +726,19 @@ class TXCalendar(QWidget):
             self.day_start = self.playout_config["day_start"]
 
         if ts:
-            self.ts = ts    
+            self.ts = ts
             dt = datetime.datetime.fromtimestamp(ts)
 
             self.week_start = dt - datetime.timedelta(days = dt.weekday())
             self.week_start = self.week_start.replace(hour = self.day_start[0], minute = self.day_start[1], second = 0)
-            
-            self.start_time = time.mktime(self.week_start.timetuple()) 
+
+            self.start_time = time.mktime(self.week_start.timetuple())
             self.end_time = self.start_time + (3600*24*7)
 
 
         self.events = []
 
-        res, data = query("get_events", 
+        res, data = query("get_events",
             handler=self.handle_load,
             id_channel=self.id_channel,
             start_time=self.start_time,
