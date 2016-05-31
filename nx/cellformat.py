@@ -1,8 +1,5 @@
-from nx.common import *
-from nx.common.utils import *
-from nx.common.metadata import meta_types, fract2float
-
-from nx.colors import *
+from .core import *
+from .colors import *
 
 def shorten(instr):
     output = instr[:100]
@@ -15,7 +12,7 @@ class TagFormat(object):
     tag = "none"
     def display(self, obj):
         return None
-    
+
     def decoration(self, obj):
         return None
 
@@ -55,9 +52,9 @@ class TagDuration(TagFormat):
         if obj.object_type not in ["asset", "item"]:
             return ""
         elif obj["video/fps"]:
-            return s2tc(obj.get_duration(),  fract2float(obj["video/fps"]))
+            return s2tc(obj.duration,  fract2float(obj["video/fps"]))
         else:
-            return s2time(obj.get_duration())
+            return s2time(obj.duration)
 
 class TagFileSize(TagFormat):
     tag = "file/size"
@@ -67,7 +64,7 @@ class TagFileSize(TagFormat):
         if not value:
             return ""
         for x in ['bytes','KB','MB','GB','TB']:
-            if value < 1024.0: 
+            if value < 1024.0:
                 return "%3.1f %s" % (value, x)
             value /= 1024.0
         return value
@@ -124,11 +121,11 @@ class TagRundownStatus(TagFormat):
             return NXColors[ASSET_FG_CREATING]
 
         if obj.object_type == "item":
-            return [NXColors[ASSET_FG_OFFLINE], 
-                    NXColors[ASSET_FG_OFFLINE], 
+            return [NXColors[ASSET_FG_OFFLINE],
+                    NXColors[ASSET_FG_OFFLINE],
                     DEFAULT_TEXT_COLOR
                     ][int(obj[self.tag])]
-            
+
 
 
 class TagRundownScheduled(TagFormat):
@@ -234,10 +231,10 @@ class NXCellFormat():
 
         mtype = meta_types[key]
 
-        if mtype.class_ in [TEXT, BLOB]:         
+        if mtype.class_ in [TEXT, BLOB]:
             return shorten(value)
 
-        elif mtype.class_ in [INTEGER, NUMERIC]:   
+        elif mtype.class_ in [INTEGER, NUMERIC]:
             return ["%.3f","%d"][float(value).is_integer()] % value if value else 0
 
         elif mtype.class_ == BOOLEAN:
@@ -267,7 +264,7 @@ class NXCellFormat():
             return value # FIXME. FIX WHAT?
             #return mtype.settings.get()[1] or mtype.settings[0]
 
-        return value 
+        return value
 
 
     def format_edit(self, key):
@@ -283,12 +280,12 @@ class NXCellFormat():
             if self["status"] == ARCHIVED:
                 return "archive"
             elif self["status"] == TRASHED:
-                return "trash"    
+                return "trash"
         return None
 
 
     def format_background(self, key, model=False):
-        if model and self.object_type == "item":   
+        if model and self.object_type == "item":
             if not self.id:
                 return "#111140"
             elif model.parent().cued_item == self.id:
@@ -301,11 +298,11 @@ class NXCellFormat():
         if self.object_type == "event" and self.model.parent().__class__.__name__ == "Rundown":
             return RUNDOWN_EVENT_BACKGROUND_COLOR
         return None
-        
+
 
     def format_foreground(self, key):
         if key in format_helpers:
-            val = format_helpers[key].foreground(self)       
+            val = format_helpers[key].foreground(self)
             if val is not None:
                 return val
 

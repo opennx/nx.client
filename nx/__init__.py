@@ -1,4 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from nx.common import *
+
+from nx.core import *
+from nx.objects import *
 from nx.connection import *

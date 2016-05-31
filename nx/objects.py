@@ -1,22 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from nx.common import *
-from nx.common.metadata import meta_types, fract2float
-from nx.connection import *
+from .core import *
+from .connection import *
 
-from nx.common.base_objects import BaseAsset, BaseItem, BaseBin, BaseEvent
-from nx.common.utils import *
+from .core.base_objects import BaseAsset, BaseItem, BaseBin, BaseEvent
 
-from nx.cellformat import NXCellFormat
-from nx.colors import *
+from .cellformat import NXCellFormat
+from .colors import *
 
 __all__ = ["Asset", "Item", "Bin", "Event", "Dummy"]
 
 
 class Asset(BaseAsset, NXCellFormat):
     def format_sort(self, key):
-        if not key in self.meta: 
+        if not key in self.meta:
             return ""
         if not key in meta_types:
             return self[key]
@@ -26,11 +24,11 @@ class Asset(BaseAsset, NXCellFormat):
         value = self[key]
 
         return value
-        
+
         if mtype.class_   in [INTEGER, NUMERIC, DATE, TIME, DATETIME, DURATION, STATUS, STATE, FILESIZE, PART, BOOLEAN, STAR]: return value #FIXME
         elif mtype.class_ in [TEXT, BLOB]: return value
         elif mtype.class_ in [SELECT, ISELECT, LIST, COMBO, FOLDER]: return unaccent(self.format_display(key))
-        
+
         return ""
 
 
@@ -53,7 +51,7 @@ class EmptyAsset():
 
 
 class Item(BaseItem, NXCellFormat):
-    @property 
+    @property
     def asset(self):
         return self._asset
 
