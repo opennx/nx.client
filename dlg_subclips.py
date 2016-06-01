@@ -1,9 +1,6 @@
 from firefly_common import *
 from firefly_widgets import *
 
-
-
-
 class SubclipsModel(QAbstractTableModel):
     def __init__(self, parent, subclips):
         super(SubclipsModel, self).__init__(parent)
@@ -112,19 +109,3 @@ class SubclipsDialog(QDialog):
         self.setLayout(layout)
         self.setModal(True)
         self.resize(400, 300)
-
-
-
-
-if __name__ == "__main__":
-    config["site_name"] = "sport5"
-    asset_cache.load()
-    a = asset_cache[1232]
-
-    app = QApplication(sys.argv)
-    dlg = SubclipsDialog(None, asset=a )
-    dlg.exec_()
-    if dlg.selection:
-        print (dlg.selection)
-
-

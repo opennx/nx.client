@@ -141,7 +141,6 @@ class EventDialog(QDialog):
 
     def on_toggle_promoted(self, **kwargs):
         if not "value" in kwargs:
-            print (self.event["promoted"], not self.event["promoted"])
             self.event["promoted"] = not bool(self.event["promoted"])
         else:
             self.event["promoted"] = bool(kwargs.get("value"))

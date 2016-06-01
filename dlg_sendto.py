@@ -2,9 +2,7 @@ import time
 import datetime
 
 from functools import partial
-
 from firefly_common import *
-
 
 class SendToButton(QPushButton):
     pass
@@ -56,7 +54,7 @@ class SendTo(QDialog):
         res, status = query("send_to", handler=self.handle_query, id_action=id_action, objects=self.assets, settings={}, restart_existing=self.restart.isChecked())
         QApplication.restoreOverrideCursor()
         if failed(res):
-            QMessageBox.critical(self, "Error", status)
+            logging.error(status)
         else:
             self.close()
 

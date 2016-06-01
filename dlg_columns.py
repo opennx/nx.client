@@ -1,9 +1,10 @@
 from qt_common import *
 
+#TODO
+
 class ColumnSelect(QDialog):
     def __init__(self,  parent, available=[], current=[]):
         super(ColumnSelect, self).__init__(parent)
-
 
         self.list_available  = QListWidget(self)
         self.list_available.setDragDropMode(QAbstractItemView.DragDrop);
@@ -16,19 +17,7 @@ class ColumnSelect(QDialog):
         for i in range(5):
             self.list_current.addItem("Item 1{}".format(i))
 
-
         list_layout = QHBoxLayout()
         list_layout.addWidget(self.list_available)
         list_layout.addWidget(self.list_current)
         self.setLayout(list_layout)
-
-
-
-if __name__ == "__main__":
-    import sys
-    app = QApplication(sys.argv)
-    form = QMainWindow()
-    form.show()
-    dlg = ColumnSelect(form)
-    dlg.exec_()
-    app.exec_()
