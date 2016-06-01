@@ -1,13 +1,12 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import json
 import socket
 import time
+import requests
 
 from urllib.request import urlopen
 
 from firefly_common import *
+from nx.connection import DEFAULT_PORT, DEFAULT_SSL, readlines
 
 
 class SeismicMessage(object):
@@ -20,7 +19,6 @@ class SeismicListener(QThread):
         QThread.__init__(self, parent)
         self._halt = False
         self.halted = True
-        self.last_msg = time.time()
         self.queue = []
 
     def listen(self, site_name, addr, port):
@@ -35,6 +33,7 @@ class SeismicListener(QThread):
 
     def run(self):
         self.halted = False
+        self.last_msg = time.time()
         while not self._halt:
             try:
                 data, addr = self.sock.recvfrom(1024)
@@ -45,23 +44,36 @@ class SeismicListener(QThread):
             if time.time() - self.last_msg < 3:
                 continue
             self.listen_http()
-        print("Listener halted")
+        logging.debug("Listener halted")
         self.halted = True
 
     def listen_http(self):
-        url = "{protocol}://{host}:{port}/msg_subscribe?id={site_name}".format(
-                protocol  = ["http", "https"][config.get("hive_ssl", False)],
-                host      = config["hive_host"],
-                port      = config["hive_port"],
-                site_name = config["site_name"]
-                )
+        logging.info("Switching to http listener")
+        host = config.get("hive_host", None)
+        port = config.get("hive_port", DEFAULT_PORT)
+        ssl = config.get("hive_ssl", DEFAULT_SSL)
+
+        url = "{protocol}://{host}:{port}/{target}".format(
+                protocol=["http", "https"][ssl],
+                host=host,
+                port=port,
+                target="msg_subscribe?id={}".format(config["site_name"])
+            )
+
         try:
-            with urlopen(url, timeout=3) as feed:
-                while not self._halt:
-                    line = feed.readline()
-                    self.parse_message(line)
+            request = requests.post(
+                    url,
+                    data=params,
+                    stream=True,
+                )
         except:
-            return
+            log_traceback("Seismic HTTP request failed")
+
+        for line in readlines(request):
+            if self._halt:
+                return
+            self.parse_message(line)
+
 
     def parse_message(self, data, addr=False):
         try:
@@ -93,7 +105,7 @@ class SeismicListener(QThread):
             else:
                 self.queue.append(message)
         except:
-            print("Malformed seismic message detected: {}".format(data))
+            logging.debug("Malformed seismic message detected: {}".format(data))
 
 
     def halt(self):
