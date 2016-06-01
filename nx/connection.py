@@ -15,7 +15,8 @@ AUTH_KEY = hashlib.sha256("{}:{}".format(
     getpass.getuser()).encode("ascii")
     ).hexdigest()
 
-
+DEFAULT_PORT = 443
+DEFAULT_SSL = True
 
 
 def success(retcode):
@@ -37,11 +38,15 @@ def readlines(f):
 def query(method, target="hive", handler=False, **kwargs):
     start_time = time.time()
 
+    host = config.get("hive_host", None)
+    port = config.get("hive_port", DEFAULT_PORT)
+    ssl = config.get("hive_ssl", DEFAULT_SSL)
+
     url = "{protocol}://{host}:{port}/{target}".format(
-            protocol = ["http", "https"][config.get("hive_ssl", False)],
-            host     = config.get("hive_host", None),
-            port     = config.get("hive_port", 80),
-            target   = target
+            protocol=["http", "https"][ssl],
+            host=host,
+            port=port,
+            target=target
             )
 
     params = {
@@ -50,11 +55,23 @@ def query(method, target="hive", handler=False, **kwargs):
             "params"   : json.dumps(kwargs)
             }
 
-    #TODO: Error handling here
-    request = requests.post(url, data=params, stream=True)
+    try:
+        request = requests.post(
+                url,
+                data=params,
+                stream=True,
+            )
+    except:
+        log_traceback("Query failed")
+
     for line in readlines(request):
-        print (line)
-        response, result = json.loads(line)
+        if config.get("debug", False):
+            print (line)
+        try:
+            response, result = json.loads(line)
+        except:
+            print (line)
+            continue
         if response == -1:
             if handler:
                 handler(result)
