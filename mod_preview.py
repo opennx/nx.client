@@ -1,11 +1,10 @@
 from functools import partial
-from urllib.request import urlopen
 
 from firefly_common import *
 from firefly_widgets import *
-from nx.common.metadata import fract2float
 
 from dlg_subclips import SubclipsDialog
+from nx.connection import DEFAULT_PORT, DEFAULT_SSL
 
 T_MARK_IN  = 0
 T_MARK_OUT = 1
@@ -61,9 +60,10 @@ class RegionBar(QWidget):
 
 
 def proxy_path(id_asset):
-    host = config.get("media_host", False) or config["hive_host"]
-    port = config.get("media_port", False) or config["hive_port"]
-    url = "http://{}:{}/proxy/{:04d}/{:d}.mp4".format(host, port, int(id_asset/1000), id_asset)
+    host = config.get("media_host", False) or config.get("hive_host")
+    port = config.get("media_port", False) or config.get("hive_port", DEFAULT_PORT)
+    ssl  = config.get("media_ssl", False) or config.get("hive_ssl", DEFAULT_SSL)
+    url  = "{}://{}:{}/proxy/{:04d}/{:d}.mp4".format(["http", "https"][ssl], host, port, int(id_asset/1000), id_asset)
     return QUrl(url)
 
 def thumb_path(id_asset):
@@ -198,8 +198,8 @@ def navigation_toolbar(wnd):
 class VideoWidget(QVideoWidget):
     def __init__(self, parent):
         super(VideoWidget,self).__init__(parent)
-        self.setMinimumWidth(512)
-        self.setMinimumHeight(288)
+        #self.setMinimumWidth(512)
+        #self.setMinimumHeight(288)
         self.pix = pixlib["thumb_video"]
 
     def paintEvent(self, e):
@@ -218,21 +218,12 @@ class VideoWidget(QVideoWidget):
         qp.drawPixmap(x, y, self.pix)
 
     def load_thumb(self, id_asset, content_type):
-        #path = thumb_path(id_asset)
-        #try:
-        #    data = urlopen(path, timeout=.05).read()
-        #except:
         self.pix = pixlib[{
             VIDEO: "thumb_video",
             AUDIO: "thumb_audio",
             IMAGE: "thumb_image",
             TEXT : "thumb_text"
             }[int(content_type)]]
-        #else:
-        #    pix = QPixmap()
-        #    pix.loadFromData(data)
-        #    self.pix = pix
-
         self.update()
 
 class Preview(BaseWidget):
@@ -354,7 +345,7 @@ class Preview(BaseWidget):
 
 
     def handle_error(self):
-        self.status(self.media_player.errorString(), ERROR)
+        logging.error(self.media_player.errorString())
 
     ###############################################
     ## loading
