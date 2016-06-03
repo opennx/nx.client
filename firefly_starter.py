@@ -58,34 +58,32 @@ class Firestarter(QApplication):
         self.got_seismic = False
         self.listener = SeismicListener()
 
-        try:
-            local_settings = json.loads(open("local_settings.json").read())
-        except:
-            critical_error("Unable to open site_settings file.")
-
         i = 0
-        if len(local_settings) > 1:
-            dlg = SiteSelect(None, local_settings)
+        if "available_sites" in config:
+            dlg = SiteSelect(None, config["available_sites"])
             i = dlg.exec_()
 
-        config.update(local_settings[i])
+        config.update(config["available_sites"][i])
 
         if not check_login():
             sys.exit(0)
 
         self.tasks = [
-                      self.load_site_settings,
-                      self.load_meta_types,
-                      self.load_storages,
-                      self.init_listener,
-                      asset_cache.load
-                     ]
+                self.load_site_settings,
+                self.load_meta_types,
+                self.load_storages,
+                self.init_listener,
+                asset_cache.load
+                ]
 
         for task in self.tasks:
             task()
 
         self.splash_message("Loading user workspace...")
         self.main_window = main_window(self)
+
+        logging.user = "Firefly"
+        logging.add_handler(self.main_window.log_handler)
 
 
     def handle_messaging(self, data):
@@ -116,8 +114,8 @@ class Firestarter(QApplication):
                 nviews = {}
                 i = 0
                 for id_view, title, columns in config["views"]:
-                        nviews[id_view] = i, title, columns
-                        i += 1
+                    nviews[id_view] = i, title, columns
+                    i += 1
                 config["views"] = nviews
 
                 nch = {}
@@ -136,8 +134,19 @@ class Firestarter(QApplication):
 
     def load_meta_types(self):
         self.splash_message("Loading metadata types")
-        if not meta_types.load():
+        stat, res = query("meta_types")
+        if not success(stat):
             critical_error("Unable to load meta types")
+        for t in res:
+            m = MetaType(t["title"])
+            m.namespace   = t["namespace"]
+            m.editable    = t["editable"]
+            m.searchable  = t["searchable"]
+            m.class_      = t["class"]
+            m.default     = t["default"]
+            m.settings    = t["settings"]
+            m.aliases     = t["aliases"]
+            meta_types[t["title"]] = m
 
     def load_storages(self):
         self.splash_message("Loading storages")
