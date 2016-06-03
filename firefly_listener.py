@@ -63,11 +63,11 @@ class SeismicListener(QThread):
         try:
             request = requests.post(
                     url,
-                    data=params,
                     stream=True,
                 )
         except:
             log_traceback("Seismic HTTP request failed")
+            return
 
         for line in readlines(request):
             if self._halt:
