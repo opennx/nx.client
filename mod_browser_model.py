@@ -28,10 +28,10 @@ class BrowserModel(NXViewModel):
                 self.parent().parent().parent().update_assets(to_update)
             self.object_data = [asset_cache[id_asset] for id_asset, mtime in asset_ids]
         else:
-            QMessageBox.warning(self.parent(), "Error", data)
+            logging.error(data)
         self.endResetModel()
         QApplication.restoreOverrideCursor()
-        self.parent().status("Got {} assets in {:.03f} seconds. ({} updated)".format(len(self.object_data), time.time()-start_time, len(to_update)))
+        logging.goodnews("Got {} assets in {:.03f} seconds. ({} updated)".format(len(self.object_data), time.time()-start_time, len(to_update)))
 
 
     def refresh_assets(self, assets):
@@ -79,7 +79,7 @@ class BrowserModel(NXViewModel):
             self.object_data[index.row()] = Asset(from_data=res)
             self.dataChanged.emit(index, index)
         else:
-            QMessageBox.critical(self.parent(), "Error {}".format(stat), res)
+            logging.error("Error {}: {}".format(stat, res))
         return True
 
 

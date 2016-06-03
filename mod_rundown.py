@@ -224,16 +224,16 @@ class RundownView(NXView):
             obj = self.model().object_data[row]
             self.selected_objects.append(obj)
             if obj.object_type in ["asset", "item"]:
-                tot_dur += obj.get_duration()
+                tot_dur += obj.duration
 
         if self.selected_objects and self.focus_enabled:
             self.parent().parent().parent().focus(self.selected_objects)
             if len(self.selected_objects) == 1 and self.selected_objects[0].object_type == "item" and self.selected_objects[0]["id_asset"]:
                 asset = self.selected_objects[0].asset
                 times = len([obj for obj in self.model().object_data if obj.object_type == "item" and obj["id_asset"] == asset.id])
-                self.parent().status("{} is scheduled {}x in this rundown".format(asset, times))
+                logging.info("{} is scheduled {}x in this rundown".format(asset, times))
             if len(self.selected_objects) > 1 and tot_dur:
-                self.parent().status("{} objects selected. Total duration {}".format(len(self.selected_objects), s2time(tot_dur) ))
+                logging.info("{} objects selected. Total duration {}".format(len(self.selected_objects), s2time(tot_dur) ))
 
         super(NXView, self).selectionChanged(selected, deselected)
 
@@ -277,8 +277,6 @@ class RundownView(NXView):
                 mode_menu.addAction(action_mode_manual)
 
             elif obj_set[0] == "event" and len(self.selected_objects) == 1:
-                print (self.selected_objects[0]["run_mode"])
-
                 mode_menu = menu.addMenu("Run mode")
 
                 action_mode_auto = QAction('&Auto', self)
@@ -352,14 +350,14 @@ class RundownView(NXView):
 
     def on_set_mode(self, mode):
         if not self.parent().can_edit:
-            QMessageBox.warning(self, "Error", "You are not allowed to modify this rundown")
+            logging.error("You are not allowed to modify this rundown")
             return
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.WaitCursor)
         stat, res = query("set_meta", object_type=self.selected_objects[0].object_type, objects=[obj.id for obj in self.selected_objects], data={"run_mode":mode})
         QApplication.restoreOverrideCursor()
         if not success(stat):
-            QMessageBox.critical(self, "Error", res)
+            logging.error(res)
         self.parent().refresh()
         self.selectionModel().clear()
         return
@@ -373,10 +371,10 @@ class RundownView(NXView):
         events  = list(set([obj.id for obj in self.selected_objects if obj.object_type == "event"]))
 
         if items and not self.parent().can_edit:
-            QMessageBox.warning(self, "Error", "You are not allowed to modify this rundown items")
+            logging.error("You are not allowed to modify this rundown items")
             return
         elif events and not self.parent().can_schedule:
-            QMessageBox.warning(self, "Error", "You are not allowed to modify this rundown blocks")
+            logging.error("You are not allowed to modify this rundown blocks")
             return
 
 
@@ -396,20 +394,19 @@ class RundownView(NXView):
             stat, res = query("del_items", items=items)
             QApplication.restoreOverrideCursor()
             if success(stat):
-                self.parent().status("Delete item: {}".format(res))
+                logging.info("Item deleted: {}".format(res))
             else:
-                QMessageBox.critical(self, "Error", res)
+                logging.error(res)
 
         if events:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            print ("DEL", events)
             stat, res = query("set_events", delete=events)
             QApplication.restoreOverrideCursor()
             if success(stat):
-                self.parent().status("Delete event: {}".format(res))
+                logging.info("Event deleted: {}".format(res))
             else:
-                QMessageBox.critical(self, "Error", res)
+                logging.error(res)
 
         self.parent().refresh()
         self.selectionModel().clear()
@@ -418,7 +415,7 @@ class RundownView(NXView):
     def on_send_to(self):
         objs = set([obj for obj in self.selected_objects if obj.object_type == "item"])
         if not objs:
-            QMessageBox.warning(self, "Warning", "No rundown item selected")
+            logging.warning("No rundown item selected")
             return
         dlg = SendTo(self, objs)
         dlg.exec_()
@@ -433,7 +430,7 @@ class RundownView(NXView):
 
     def on_solve_event(self):
         if not self.parent().can_edit:
-            QMessageBox.warning(self, QMessageBox.warning, "Error", "You are not allowed to modify this rundown")
+            logging.error("You are not allowed to modify this rundown")
             return
 
         ret = QMessageBox.question(self,
@@ -454,7 +451,7 @@ class RundownView(NXView):
                 )
             QApplication.restoreOverrideCursor()
             if not success(stat):
-                QMessageBox.critical(self, "Error", res)
+                logging.error(res)
             self.parent().refresh()
 
 
@@ -719,7 +716,7 @@ class Rundown(BaseWidget):
         if obj.object_type == "item" and self.mcr and self.mcr.isVisible() and can_mcr:
             stat, res = query("cue", self.mcr.route, id_channel=self.id_channel, id_item=obj.id)
             if not success(stat):
-                QMessageBox.critical(self, "Error", res)
+                logging.error(res)
             self.view.clearSelection()
         elif obj.object_type == "event" and has_right("scheduler_edit", self.id_channel):
             if self.model.header_data[mi.column()] == "rundown_symbol":
@@ -771,7 +768,7 @@ class Rundown(BaseWidget):
                 continue
             break
         else:
-            self.status("Not found: {}".format(self.last_search))
+            logging.warnings("Not found: {}".format(self.last_search))
             self.view.clearSelection()
 
 
@@ -779,5 +776,5 @@ class Rundown(BaseWidget):
     ################################################################
 
     def handle_message(self, msg):
-        self.status(msg.get("message",""))
+        logging.debug(msg.get("message",""))
         QApplication.processEvents()

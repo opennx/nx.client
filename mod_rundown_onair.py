@@ -3,6 +3,8 @@ import math
 from firefly_common import *
 from firefly_widgets import *
 
+PROGRESS_BAR_RESOLUTION = 2000
+
 
 class OnAirButton(QPushButton):
     def __init__(self, title, parent=None, on_click=False):
@@ -26,8 +28,8 @@ class OnAirLabel(QLabel):
     def __init__(self,head, default, parent=None, tcolor="#eeeeee"):
         super(OnAirLabel,self).__init__(parent)
         self.head = head
-        self.setStyleSheet("background-color: #161616; padding:5px; margin:3px; font:16px; font-weight: bold; color : {};".format(tcolor))
-        self.setMinimumWidth(160)
+        self.setStyleSheet("background-color: #161616; padding:5px; margin:3px; font:16px; font-weight: bold; color : {}; width:160px".format(tcolor))
+        #self.setMinimumWidth(160)
 
     def set_text(self,text):
        self.setText("%s: %s"%(self.head,text))
@@ -55,6 +57,7 @@ class OnAir(QWidget):
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setTextVisible(False)
         self.progress_bar.setValue(0)
+        self.progress_bar.setMaximum(PROGRESS_BAR_RESOLUTION)
 
         self.btn_take    = OnAirButton(u"Take",   self, self.on_take)
         self.btn_freeze  = OnAirButton(u"Freeze", self, self.on_freeze)
@@ -151,7 +154,6 @@ class OnAir(QWidget):
 
         if self.dur !=  status["duration"]:
             self.dur = status["duration"]
-            self.progress_bar.setMaximum(int(self.dur * self.fps))
             self.display_dur.set_text(f2tc(self.dur, self.fps))
 
         if self.current != status["current_title"]:
@@ -164,7 +166,6 @@ class OnAir(QWidget):
 
 
     def update_display(self):
-        try:
             adv = time.time() - self.local_request_time
 
             rtime = self.request_time+adv
@@ -175,8 +176,6 @@ class OnAir(QWidget):
 
             clock = time.strftime("%H:%M:%S:{:02d}", time.localtime(rtime)).format(int(25*(rtime-math.floor(rtime))))
             self.display_clock.set_text(clock)
-
-            self.progress_bar.setValue(int(rpos*self.fps))
             self.display_pos.set_text(f2tc(min(self.dur, rpos), self.fps))
 
             rem = self.dur - rpos
@@ -185,5 +184,10 @@ class OnAir(QWidget):
                 self.display_rem.set_text("<font color='red'>{}</font>".format(t))
             else:
                 self.display_rem.set_text(t)
-        except:
-            pass
+
+            try:
+                ppos = int((rpos/self.dur) * PROGRESS_BAR_RESOLUTION)
+            except ZeroDivisionError:
+                return
+
+            self.progress_bar.setValue(ppos)

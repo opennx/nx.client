@@ -77,7 +77,6 @@ class Scheduler(BaseWidget):
 
 
     def update_header(self):
-        #week_no = time.strftime("%V", time.localtime(self.calendar.start_time)) # this does not work on windows because of strftime c library :-/
         date = datetime.date.fromtimestamp(self.calendar.start_time)
         week_no = date.isocalendar()[1]
         header = "Week {} - {}".format(week_no, config["playout_channels"][self.id_channel]["title"])

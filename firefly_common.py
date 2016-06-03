@@ -3,19 +3,18 @@ import socket
 import pickle
 import pprint
 
-from nx.common import *
-from nx.common.metadata import meta_types
-from nx.connection import *
-from nx.objects import Asset
+from nx import *
 
 from qt_common import *
 from firefly_rc import *
 from default_state import DEFAULT_STATE
 
+#
+# Settings and utils
+#
 
 def p(*args):
     l = pprint.pprint(*args)
-
 
 def ffsettings():
     sfile = "state.{}.{}.nxsettings".format(socket.gethostname(), config["site_name"])
@@ -25,17 +24,20 @@ def ffsettings():
         f.close()
     return QSettings(sfile, QSettings.IniFormat)
 
+#
+# Icons
+#
+
 def get_pix(name):
     if not name:
         return None
-
-    elif name.startswith("folder_"):
+    if name.startswith("folder_"):
             id_folder = int(name.lstrip("folder_"))
             icn = QPixmap(12, 12)
             icn.fill(QColor(config["folders"][id_folder][1]))
             return icn
-
     return QPixmap(":/images/{}.png".format(name))
+
 
 class Pixlib(dict):
     def __getitem__(self, key):
@@ -45,6 +47,10 @@ class Pixlib(dict):
 
 pixlib = Pixlib()
 
+
+#
+# Cache
+#
 
 class AssetCache():
     def __init__(self):
@@ -78,7 +84,7 @@ class AssetCache():
     def load(self):
         if os.path.exists(self.local_file):
             start_time = time.time()
-            try:    
+            try:
                 f = open(self.local_file, "rb")
                 self.cache_time, _data = pickle.load(f)
                 f.close()
@@ -87,13 +93,15 @@ class AssetCache():
             except:
                 pass
             else:
-                print ("{} cached assets loaded in {:.02f} seconds.".format(len(self.data), time.time() - start_time))
+                logging.info("{} cached assets loaded in {:.02f} seconds.".format(len(self.data), time.time() - start_time))
                 return
         self.data = {}
 
 asset_cache = AssetCache()
 
-
+#
+# Auth
+#
 
 def has_right(key, val=True):
     """Don't worry. It's also validated server-side"""
@@ -109,8 +117,9 @@ def has_right(key, val=True):
         return True
     return tval and type(tval) == list and val in tval
 
-
-
+#
+# QT Helpers
+#
 
 class BaseWidget(QWidget):
     def __init__(self, parent):
@@ -124,7 +133,8 @@ class BaseWidget(QWidget):
         pass
 
     def status(self, message, message_type=INFO):
-        self.parent().status(message, message_type)
+        #DEPRECATED
+        print ("Deprecated status call:", message)
 
     def subscribe(self, *methods):
         self.parent().subscribe(self.seismic_handler, *methods)
@@ -137,6 +147,7 @@ class BaseWidget(QWidget):
 
     def refresh(self):
         pass
+
 
 class BaseDock(QDockWidget):
     def __init__(self, parent, main_widget, state={}):
@@ -162,7 +173,6 @@ class BaseDock(QDockWidget):
                 self.resize(800,600)
 
 
-
     def reset_object_name(self):
         self.setObjectName(str(uuid.uuid1()))
 
@@ -184,9 +194,8 @@ class BaseDock(QDockWidget):
         settings.setValue("docks/{}".format(self.objectName()), state)
 
     def status(self, message, message_type=INFO):
+        # DEPRECATED. USE LOGGING INSTEAS
         self.parent().status(message, message_type)
-
-
 
 
 
@@ -194,7 +203,3 @@ class ToolBarStretcher(QWidget):
     def __init__(self, parent):
         super(ToolBarStretcher, self).__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
-
-
-
-

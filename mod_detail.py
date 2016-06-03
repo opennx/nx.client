@@ -2,11 +2,6 @@ import copy
 
 from firefly_common import *
 from firefly_widgets import *
-
-from nx.common.metadata import meta_types
-from nx.objects import Asset
-
-
 from dlg_ingest import IngestDialog
 
 class DetailTabMain(QWidget):
@@ -141,16 +136,6 @@ class DetailTabTechnical(MetaList):
 
 
 
-
-class DetailTabJobs(QWidget):
-    def load(self, obj, **kwargs):
-        pass
-
-class DetailTabUsage(QWidget):
-    def load(self, obj, **kwargs):
-        pass
-
-
 class DetailTabs(QTabWidget):
     def __init__(self, parent):
         super(DetailTabs, self).__init__()
@@ -159,22 +144,16 @@ class DetailTabs(QTabWidget):
         self.tab_main = DetailTabMain(self)
         self.tab_extended = DetailTabExtended(self)
         self.tab_technical = DetailTabTechnical(self)
-#        self.tab_jobs = DetailTabUsage(self)
-#        self.tab_usage = DetailTabJobs(self)
 
         self.addTab(self.tab_main, "Main")
         self.addTab(self.tab_extended, "Extended")
         self.addTab(self.tab_technical, "Technical")
-#        self.addTab(self.tab_jobs, "Jobs")
-#        self.addTab(self.tab_usage, "Usage")
 
     def load(self, obj, **kwargs):
         tabs = [
                 self.tab_main,
                 self.tab_extended,
                 self.tab_technical,
-#                self.tab_jobs,
-#                self.tab_usage
                 ]
         for tab  in tabs:
             tab.load(obj, **kwargs)
@@ -227,12 +206,6 @@ def detail_toolbar(wnd):
     toolbar.addAction(wnd.action_ingest)
 
     toolbar.addWidget(ToolBarStretcher(wnd))
-
-### Does not work with cache.... FIX LATER
-#    action_revert = QAction(QIcon(pixlib["cancel"]), '&Revert changes', wnd)
-#    action_revert.setStatusTip('Revert changes')
-#    action_revert.triggered.connect(wnd.on_revert)
-#    toolbar.addAction(action_revert)
 
     action_apply = QAction(QIcon(pixlib["accept"]), '&Apply changes', wnd)
     action_apply.setShortcut('Ctrl+S')
@@ -349,7 +322,6 @@ class Detail(BaseWidget):
 
     def new_asset(self):
         new_asset = Asset()
-        print ("status:", new_asset["status"])
         if self.object and self.object["id_folder"]:
             new_asset["id_folder"] = self.object["id_folder"]
         else:
@@ -383,7 +355,7 @@ class Detail(BaseWidget):
             data["duration"] = self.duration.get_value()
         stat, res = query("set_meta", objects=[self.object.id], data=data)
         if not success(stat):
-            QMessageBox.critical(self, "Error", res)
+            logging.error(res)
         else:
             if not self.object.id:
                 obj = Asset(from_data=res)
@@ -401,7 +373,7 @@ class Detail(BaseWidget):
     def on_set_qc(self, state):
         stat, res = query("set_meta", objects=[self.object.id], data={"qc/state" : state} )
         if not success(stat):
-            QMessageBox.critical(self, "Error", res)
+            logging.error(res)
 
 
     def on_ingest(self):

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+
+import os
+import sys
 
 try:
     import locale
@@ -7,7 +9,9 @@ try:
 except:
     pass
 
-import sys
+#
+# firefly imports
+#
 
 from version_info import VERSION_INFO
 
@@ -23,8 +27,9 @@ from mod_detail import Detail
 from mod_rundown import Rundown
 from mod_scheduler import Scheduler
 
-from nx.objects import Asset
-from nx.connection import AUTH_KEY
+#
+# Application main window
+#
 
 class Firefly(QMainWindow):
     def __init__(self, parent):
@@ -80,7 +85,6 @@ class Firefly(QMainWindow):
         self.seismic_timer.timeout.connect(self.on_seismic_timer)
         self.seismic_timer.start(40)
 
-        self.status("Ready")
 
 
     def resizeEvent(self, evt):
@@ -98,7 +102,7 @@ class Firefly(QMainWindow):
                 }[widget_class]
 
         if right and not has_right(right):
-            self.status("Not authorised to show {}".format(widget_class))
+            logging.warning("Not authorised to show {}".format(widget_class))
             return
 
         create = True
@@ -156,9 +160,6 @@ class Firefly(QMainWindow):
                 dock.setTitleBarWidget(wdgt)
         self.workspace_locked = False
 
-    def status(self, message, message_type=INFO):
-        if message_type > DEBUG:
-            self.statusBar().showMessage(message, 10000)
 
 
     def closeEvent(self, event):
@@ -204,9 +205,12 @@ class Firefly(QMainWindow):
         dock = self.create_dock("rundown", state={}, show=True, one_instance=True)
         dock.main_widget.on_now()
 
-    ###############################################################################
-    ## Menu actions
-    ## FILE
+
+    #
+    # Menu actions
+    #
+
+    # FILE
 
     def on_new_asset(self):
         dock = self.create_dock("detail", state={}, show=True, one_instance=True)
@@ -227,7 +231,8 @@ class Firefly(QMainWindow):
     def on_exit(self):
         self.close()
 
-    ## VIEW
+    # VIEW
+
     def on_wnd_browser(self):
         self.create_dock("browser")
 
@@ -239,7 +244,6 @@ class Firefly(QMainWindow):
 
     def on_wnd_rundown(self):
         self.create_dock("rundown", one_instance=True)
-
 
     def on_lock_workspace(self):
         if self.workspace_locked:
@@ -265,10 +269,25 @@ class Firefly(QMainWindow):
         if ok and msg:
             query("message", message=msg)
 
+    #
+    # Status line
+    #
 
-    ## Menu actions
-    ###############################################################################
-    ## SEISMIC
+    def log_handler(self, **kwargs):
+        message_type = kwargs.get("message_type", INFO)
+        message = kwargs.get("message", "")
+        if not message:
+            return
+        if message_type == WARNING:
+            QMessageBox.warning(self, "Warning", message)
+        elif message_type== ERROR:
+            QMessageBox.critical(self, "Error", message)
+        else:
+            self.statusBar().showMessage(message, 10000)
+
+    #
+    # Seismic
+    #
 
     def on_seismic_timer(self):
         try:
@@ -282,7 +301,7 @@ class Firefly(QMainWindow):
         if data.method == "objects_changed" and data.data["object_type"] == "asset":
             aids = [aid for aid in data.data["objects"] if aid in asset_cache.keys()]
             if aids:
-                self.status ("{} has been changed by {}".format(asset_cache[aids[0]], data.data.get("user", "anonymous"))  )
+                logging.info("{} has been changed by {}".format(asset_cache[aids[0]], data.data.get("user", "anonymous"))  )
                 self.update_assets(aids)
 
         if data.method == "message" and data.data["sender"] != AUTH_KEY:
@@ -290,7 +309,7 @@ class Firefly(QMainWindow):
             return
 
         elif data.method == "firefly_shutdown":
-            print("Remote shutdown")
+            logging.warning("Remote shutdown")
             sys.exit(0)
 
 
@@ -310,15 +329,15 @@ class Firefly(QMainWindow):
 
 
     def subscribe(self, handler, *methods):
-        # subscribe dialogs and other (non-dock) windows to seismic
+        """subscribe dialogs and other (non-dock) windows to seismic"""
         self.subscribers[handler] = methods
 
     def unsubscribe(self, handler):
         del self.subscribers[handler]
 
-    ## SEISMIC
-    ###############################################################################
-    ## Asset caching
+    #
+    # Asset caching
+    #
 
     def update_assets(self, asset_ids=[]):
         # Call this if you want to update asset cache
@@ -335,7 +354,6 @@ class Firefly(QMainWindow):
         # Push asset data to dock which need it
         if dock.class_ in ["rundown", "browser"]:
             dock.main_widget.model.refresh_assets(asset_cache.keys())
-
 
 
 if __name__ == "__main__":

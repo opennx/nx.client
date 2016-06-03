@@ -3,9 +3,6 @@ from functools import partial
 from firefly_common import *
 from firefly_widgets import *
 
-
-
-
 class CGPlugin(QWidget):
     def __init__(self, parent, data):
         super(CGPlugin, self).__init__(parent)
@@ -25,7 +22,7 @@ class CGPlugin(QWidget):
                 self.buttons.append(QPushButton(slot["title"]))
                 self.buttons[-1].clicked.connect(
                     partial(
-                        self.execute, 
+                        self.execute,
                         id_slot=id_slot
                         )
                     )
@@ -48,7 +45,7 @@ class CGPlugin(QWidget):
 
             signal.connect(
                 partial(
-                    self.execute, 
+                    self.execute,
                     id_slot=id_slot
                     )
                 )
@@ -79,7 +76,7 @@ class CGPlugin(QWidget):
 class CG(QTabWidget):
     def __init__(self, parent):
         super(CG, self).__init__(parent)
-        self.setStyleSheet(base_css)   
+        self.setStyleSheet(base_css)
         self.plugins = []
         self.id_channel = False
         self.load_plugins(self.parent().id_channel)
@@ -93,7 +90,7 @@ class CG(QTabWidget):
         self.id_channel = id_channel
         stat, plugins = query("cg_list", self.parent().mcr.route, id_channel=id_channel)
         if not success(stat):
-            print("Unable to load CG plugins")
+            logging.error("Unable to load CG plugins")
             return
 
         for plugin in plugins:
@@ -104,10 +101,10 @@ class CG(QTabWidget):
 
     def execute(self, id_plugin, id_slot, value=False):
         stat, res = query(
-            "cg_exec", 
-            self.parent().mcr.route, 
-            id_channel=self.id_channel, 
-            id_plugin=id_plugin, 
-            id_slot=id_slot, 
+            "cg_exec",
+            self.parent().mcr.route,
+            id_channel=self.id_channel,
+            id_plugin=id_plugin,
+            id_slot=id_slot,
             value=value
             )

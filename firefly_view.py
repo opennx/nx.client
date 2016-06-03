@@ -106,8 +106,6 @@ class NXSortModel(QSortFilterProxyModel):
         return self.sourceModel().mimeData([self.mapToSource(idx) for idx in indexes ])
 
 
-
-
 class NXView(QTableView):
     def __init__(self, parent):
         super(NXView, self).__init__(parent)

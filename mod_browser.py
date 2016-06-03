@@ -1,13 +1,9 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import math
 
 from functools import partial
 
 from firefly_view import *
 from mod_browser_model import BrowserModel
-
 
 from dlg_sendto import SendTo
 from dlg_batch import BatchDialog
@@ -19,22 +15,12 @@ class SearchWidget(QLineEdit):
 
     def keyPressEvent(self, event):
         if event.key() in [Qt.Key_Return,Qt.Key_Enter]:
-            #if event.modifiers() & Qt.ControlModifier:
-            #    print ("extend search")
-            #    self.parent().OnSearch(extend=True)
-            #else:
-                self.parent().parent().browse()
-            #return
-
+            self.parent().parent().browse()
         elif event.key() == Qt.Key_Escape:
             self.line_edit.setText("")
-
         elif event.key() == Qt.Key_Down:
             self.parent().parent().view.setFocus()
-
         QLineEdit.keyPressEvent(self, event)
-
-
 
 
 class Browser(BaseWidget):
@@ -178,12 +164,6 @@ class Browser(BaseWidget):
             return
         menu = QMenu(self)
 
-        # DEPRECATED
-        # action_focus = QAction('Focus', self)
-        # action_focus.setStatusTip('Focus selection')
-        # action_focus.triggered.connect(self.on_focus)
-        # menu.addAction(action_focus)
-
         statuses = [obj["status"] for obj in self.view.selected_objects ]
 
         if len(statuses) == 1 and statuses[0] == TRASHED:
@@ -236,7 +216,7 @@ class Browser(BaseWidget):
 
         menu.exec_(event.globalPos())
 
-    
+
     def on_send_to(self):
         dlg = SendTo(self, self.view.selected_objects)
         dlg.exec_()
@@ -306,7 +286,7 @@ class Browser(BaseWidget):
             obj = self.model.object_data[row]
             self.view.selected_objects.append(obj)
             if obj.object_type in ["asset", "item"]:
-                tot_dur += obj.get_duration()
+                tot_dur += obj.duration
 
         days = math.floor(tot_dur / (24*3600))
         durstr = "{} days {}".format(days, s2time(tot_dur)) if days else s2time(tot_dur)

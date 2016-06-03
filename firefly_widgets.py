@@ -1,9 +1,9 @@
 import time
 from functools import partial
 
+from nx import *
+
 from qt_common import *
-from nx.common import *
-from nx.common.metadata import meta_types
 from dlg_texteditor import TextEditor
 
 
@@ -128,10 +128,6 @@ class NXE_datetime(QLineEdit):
     def __init__(self, parent, **kwargs):
         super(NXE_datetime,self).__init__(parent)
         mode = kwargs.get("mode", "datetime")
-
-#        if not self.base_date:
-#            mask = "9999-99-99 " + mask
-#            tfmt = "%Y-%m-%d " + tfmt
 
         if mode == "date":
             self.mask   = "9999-99-99"

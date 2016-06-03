@@ -3,9 +3,6 @@ from functools import partial
 from firefly_common import *
 from firefly_view import *
 
-from nx.objects import *
-
-
 
 ITEM_ROLES = {
     "studio" : [["title", "Studio"], ["duration", 300], ["article", ""]],
@@ -109,7 +106,7 @@ class RundownModel(NXViewModel):
             self.beginResetModel()
             self.object_data = []
             reset = True
-        
+
 
         row = 0
         current_bin = False
@@ -175,7 +172,7 @@ class RundownModel(NXViewModel):
 
 
         QApplication.restoreOverrideCursor()
-        self.parent().status("Rundown loaded in {:.03f}".format(time.time()-dbg_start_time))
+        logging.goodnews("Rundown loaded in {:.03f}".format(time.time()-dbg_start_time))
 
 
     def refresh_assets(self, assets):
@@ -192,7 +189,7 @@ class RundownModel(NXViewModel):
 
 
     def handle_load(self,msg):
-        self.parent().status("Loading rundown. {:0.0%}".format(msg["progress"]))
+        logging.info("Loading rundown. {:0.0%}".format(msg["progress"]))
         QApplication.processEvents()
 
 
@@ -233,7 +230,7 @@ class RundownModel(NXViewModel):
             return True
 
         if not has_right("rundown_edit", self.id_channel):
-            QMessageBox.warning(self.parent(), "Error", "You are not allowed to modify this rundown")
+            logging.warning("You are not allowed to modify this rundown")
             return False
 
         if row < 1:
@@ -327,9 +324,9 @@ class RundownModel(NXViewModel):
             stat, res = query("bin_order", id_bin=to_bin, order=pre_items, sender=self.parent().parent().objectName())
             QApplication.restoreOverrideCursor()
             if success(stat):
-                self.parent().status("Bin order changed")
+                logging.info("Bin order changed")
             else:
-                QMessageBox.critical(self.parent(), "Error {}".format(stat), res)
+                logging.warning( "Error {} : {}".format(stat, res))
             self.load(self.id_channel, self.start_time)
         return True
 
