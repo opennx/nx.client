@@ -64,6 +64,7 @@ def query(method, target="hive", handler=False, **kwargs):
     except:
         log_traceback("Query failed")
 
+    response = None
     for line in readlines(request):
         if config.get("debug", False):
             print (line)
@@ -77,6 +78,9 @@ def query(method, target="hive", handler=False, **kwargs):
                 handler(result)
         else:
             break
+
+    if not response:
+        response, result = 500, "No response"
 
     if success(response):
         logging.info("Query {} completed in {:0.2f} seconds".format(method, time.time() - start_time))
