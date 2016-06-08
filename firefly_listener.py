@@ -48,7 +48,6 @@ class SeismicListener(QThread):
         self.halted = True
 
     def listen_http(self):
-        logging.info("Switching to http listener")
         host = config.get("hive_host", None)
         port = config.get("hive_port", DEFAULT_PORT)
         ssl = config.get("hive_ssl", DEFAULT_SSL)
@@ -72,7 +71,8 @@ class SeismicListener(QThread):
         for line in readlines(request):
             if self._halt:
                 return
-            self.parse_message(line)
+            if line:
+                self.parse_message(line)
 
 
     def parse_message(self, data, addr=False):
