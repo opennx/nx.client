@@ -62,9 +62,14 @@ def query(method, target="hive", handler=False, **kwargs):
                 stream=True,
             )
     except:
+        request = None
         log_traceback("Query failed")
 
+    if not request:
+        return (500, "Unable to create connection to {}".format(url))
+
     response = None
+    
     for line in readlines(request):
         if config.get("debug", False):
             print (line)
