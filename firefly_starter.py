@@ -137,8 +137,14 @@ class Firestarter(QApplication):
         stat, res = query("meta_types")
         if not success(stat):
             critical_error("Unable to load meta types")
-        for t in res:
-            m = MetaType(t["title"])
+        for row in res:
+            if type(res) == dict:
+                key = row
+                t = res[row]
+            else:
+                t = row
+                key = row["title"]
+            m = MetaType(key)
             m.namespace   = t["namespace"]
             m.editable    = t["editable"]
             m.searchable  = t["searchable"]
