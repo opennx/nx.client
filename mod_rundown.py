@@ -560,14 +560,17 @@ class Rundown(BaseWidget):
                 return
 
             if data.data["current_item"] != self.current_item:
+                to_refresh = [data.data["current_item"], self.current_item, self.cued_item]
                 self.current_item = data.data["current_item"]
                 self.model.refresh_items([self.current_item])
-
-            if data.data["cued_item"] != self.cued_item:
-                self.cued_item = data.data["cued_item"]
                 self.refresh(reset=True)
 
-            if self.mcr:
+            elif data.data["cued_item"] != self.cued_item:
+                to_refresh = [data.data["cued_item"], self.cued_item]
+                self.cued_item = data.data["cued_item"]
+                self.model.refresh_items([self.current_item])
+
+            if self.mcr and self.mcr.isVisible():
                 self.mcr.seismic_handler(data)
 
         elif data.method == "job_progress":
@@ -585,7 +588,7 @@ class Rundown(BaseWidget):
         elif data.method == "objects_changed" and data.data["object_type"] == "event":
             my_name = self.parent().objectName()
 
-            for id_event in data.data["objects"]:#
+            for id_event in data.data["objects"]:
                 if data.data.get("sender", False) != my_name and id_event in self.model.event_ids :
                     self.refresh()
                     break

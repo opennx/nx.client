@@ -89,7 +89,6 @@ class RundownModel(NXViewModel):
 
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.WaitCursor)
-
         self.event_ids = [] # helper for auto refresh
 
         res, data = query("rundown", handler=self.handle_load, id_channel=id_channel, start_time=start_time)
@@ -106,7 +105,6 @@ class RundownModel(NXViewModel):
             self.beginResetModel()
             self.object_data = []
             reset = True
-
 
         row = 0
         current_bin = False
@@ -139,7 +137,6 @@ class RundownModel(NXViewModel):
                     changed_rows.append(row)
                 row += 1
 
-
             for i_data in edata["items"]:
                 item = Item(from_data=i_data)
                 id_asset = item["id_asset"]
@@ -170,7 +167,6 @@ class RundownModel(NXViewModel):
         elif changed_rows:
             self.dataChanged.emit(self.index(min(changed_rows), 0), self.index(max(changed_rows), len(self.header_data)-1))
 
-
         QApplication.restoreOverrideCursor()
         logging.goodnews("Rundown loaded in {:.03f}".format(time.time()-dbg_start_time))
 
@@ -187,12 +183,9 @@ class RundownModel(NXViewModel):
                 self.dataChanged.emit(self.index(row, 0), self.index(row, len(self.header_data)-1))
                 break
 
-
     def handle_load(self,msg):
-        logging.info("Loading rundown. {:0.0%}".format(msg["progress"]))
+        logging.debug("Loading rundown. {:0.0%}".format(msg["progress"]))
         QApplication.processEvents()
-
-
 
     def flags(self,index):
         flags = super(RundownModel, self).flags(index)
@@ -204,7 +197,6 @@ class RundownModel(NXViewModel):
             flags = Qt.ItemIsDropEnabled # Dropovat se da jen mezi rowy
         return flags
 
-
     def mimeTypes(self):
         return ["application/nx.asset", "application/nx.item"]
 
@@ -213,10 +205,10 @@ class RundownModel(NXViewModel):
 
         data         = [self.object_data[i] for i in set(index.row() for index in indexes if index.isValid())]
         encodedIData = json.dumps([i.meta for i in data])
-        mimeData.setData("application/nx.item", encodedIData)
+        mimeData.setData("application/nx.item", QByteArray(encodedIData.encode("ascii")))
 
         encodedAData = json.dumps([i.asset.meta for i in data])
-        mimeData.setData("application/nx.asset", encodedAData)
+        mimeData.setData("application/nx.asset", QByteArray(encodedAData.encode("ascii")))
 
         try:
             urls =[QUrl.fromLocalFile(item.asset.file_path) for item in data]
@@ -264,8 +256,6 @@ class RundownModel(NXViewModel):
                 drop_objects.append(Asset(from_data=obj))
         else:
             return False
-
-
 
         pre_items = []
         dbg = []
