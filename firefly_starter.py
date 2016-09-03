@@ -59,10 +59,10 @@ class Firestarter(QApplication):
         self.listener = SeismicListener()
 
         i = 0
-        if "available_sites" in config:
-            dlg = SiteSelect(None, config["available_sites"])
-            i = dlg.exec_()
-
+        if "available_sites" in config and config["available_sites"]:
+            if len(config["available_sites"]) > 1:
+                dlg = SiteSelect(None, config["available_sites"])
+                i = dlg.exec_()
         config.update(config["available_sites"][i])
 
         if not check_login():
