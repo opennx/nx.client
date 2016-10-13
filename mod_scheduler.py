@@ -13,7 +13,7 @@ class EmptyEventButton(QToolButton):
         mimeData = QMimeData()
         mimeData.setData(
            "application/nx.event",
-           '[{"id_object":0, "title":"Empty event"}]'  # Empty event
+           '[{"id_object":0, "title":"Empty event"}]'.encode("ascii")  # Empty event
            )
         drag.setMimeData(mimeData)
         if drag.exec_(Qt.CopyAction):
