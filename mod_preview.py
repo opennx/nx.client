@@ -231,6 +231,9 @@ class Preview(BaseWidget):
         super(Preview, self).__init__(parent)
         parent.setWindowTitle("Asset preview")
 
+        self.current_id = False
+        self.current_object = False
+
         self.ddur  = NXE_timecode(self)
         self.dpos  = NXE_timecode(self)
         self.din   = NXE_timecode(self)
@@ -251,7 +254,6 @@ class Preview(BaseWidget):
 
         self.media_player = QMediaPlayer(self, QMediaPlayer.VideoSurface or QMediaPlayer.StreamPlayback)
         self.video_widget = VideoWidget(self)
-        self.current_id = False
 
         self.region_bar = RegionBar(self)
 
