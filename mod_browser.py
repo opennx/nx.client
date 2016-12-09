@@ -34,12 +34,13 @@ class Browser(BaseWidget):
         self.view.setSortingEnabled(True)
         self.view.setItemDelegate(MetaEditItemDelegate(self.view))
         self.view.activated.connect(self.on_activate)
+        self.view.clicked.connect(self.on_click)
         self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         self.model       = BrowserModel(self)
         self.sort_model  = NXSortModel(self.model)
         self.view.setModel(self.sort_model)
-        self.view.selectionChanged = self.selectionChanged
+        #self.view.selectionChanged = self.selectionChanged
 
         action_clear = QAction(QIcon(pixlib["search_clear"]), '&Clear search query', parent)
         action_clear.triggered.connect(self.on_clear)
@@ -272,14 +273,14 @@ class Browser(BaseWidget):
         clipboard = QApplication.clipboard();
         clipboard.setText(result)
 
-    def selectionChanged(self, selected, deselected):
+    #def selectionChanged(self, selected, deselected):
+    def on_click(self, index):
         rows = []
         self.view.selected_objects = []
 
         tot_dur = 0
-
         for idx in self.view.selectionModel().selectedIndexes():
-            row      =  self.sort_model.mapToSource(idx).row()
+            row = self.sort_model.mapToSource(idx).row()
             if row in rows:
                 continue
             rows.append(row)
@@ -294,8 +295,8 @@ class Browser(BaseWidget):
         if self.view.selected_objects:
             self.parent().parent().focus(self.view.selected_objects)
             if len(self.view.selected_objects) > 1 and tot_dur:
-                self.status("{} objects selected. Total duration {}".format(len(self.view.selected_objects), durstr ))
+                logging.debug("{} objects selected. Total duration {}".format(len(self.view.selected_objects), durstr ))
 
-        super(NXView, self.view).selectionChanged(selected, deselected)
+#        super(NXView, self.view).selectionChanged(selected, deselected)
 
 
