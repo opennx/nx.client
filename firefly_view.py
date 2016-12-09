@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 from firefly_common import *
 from firefly_widgets import *
 
