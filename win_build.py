@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+#
+# Requirements:
+#  - pywin32
+#  - pyinstaller
 
 import os
 import sys
@@ -8,6 +12,7 @@ import shutil
 
 import_error_message = "'{}' module is not installed. Exiting"
 python_path = os.path.dirname(sys.executable)
+
 
 #
 # Check prerequisites
@@ -39,6 +44,9 @@ if PLATFORM != "windows":
 # Create resources
 #
 
+TARGET_DIR = "dist/firefly/"
+
+
 def build_resources():
     logging.info("Building resources")
     qrc = "<RCC>\n <qresource>\n"
@@ -49,34 +57,22 @@ def build_resources():
     f = open(".firefly.qrc","w")
     f.write(qrc)
     f.close()
-
     pyrcc_path = os.path.join(python_path, "lib", "site-packages", "PyQt5", "pyrcc5")
     proc = subprocess.Popen([pyrcc_path, ".firefly.qrc", "-o", "firefly_rc.py"])
     while proc.poll() == None:
         time.sleep(.1)
 
-
-
 def build_exe():
-    pass
-
-
+    shutil.copy("firefly.spec.template", "firefly.spec")
+    os.system("pyinstaller.exe -y firefly.spec")
 
 def copy_deps():
-    pass
-
-
+    shutil.copy("local_settings.json", TARGET_DIR)
+    shutil.copy("local_settings.default", TARGET_DIR)
+    shutil.copy("skin.css", TARGET_DIR)
 
 
 if __name__ == "__main__":
-    build_resuources()
+    #build_resources()
     build_exe()
     copy_deps()
-
-
-"""
-pyinstaller.exe firefly.py
-copy local_settings.json dist\firefly\
-copy local_settings.default dist\firefly\
-copy skin.css dist\firefly\
-"""
