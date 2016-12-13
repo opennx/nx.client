@@ -66,7 +66,7 @@ class SeismicListener(QThread):
                     stream=True,
                 )
         except:
-            log_traceback("Seismic HTTP request failed")
+            print ("Seismic http request failed")
             return
 
         for line in readlines(request):
