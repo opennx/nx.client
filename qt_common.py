@@ -3,8 +3,14 @@ from PyQt5.QtGui  import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtNetwork import *
 
-from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaPlaylist
-from PyQt5.QtMultimediaWidgets import QVideoWidget
+try:
+    from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaPlaylist
+    from PyQt5.QtMultimediaWidgets import QVideoWidget
+    has_multimedia = True
+except ImportError:
+    print ("Video playback support disabled")
+    has_multimedia = False
+
 
 Signal = pyqtSignal
 Slot = pyqtSlot

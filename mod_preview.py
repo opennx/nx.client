@@ -194,10 +194,15 @@ def navigation_toolbar(wnd):
     toolbar.addWidget(ToolBarStretcher(wnd))
     return toolbar
 
+if has_multimedia:
+    VideoWidgetBaseClass = QVideoWidget
+else:
+    VideoWidgetBaseClass = QWidget
 
-class VideoWidget(QVideoWidget):
+
+class VideoWidget(VideoWidgetBaseClass):
     def __init__(self, parent):
-        super(VideoWidget,self).__init__(parent)
+        super(VideoWidgetBaseClass,self).__init__(parent)
         #self.setMinimumWidth(512)
         #self.setMinimumHeight(288)
         self.pix = pixlib["thumb_video"]
@@ -230,6 +235,9 @@ class Preview(BaseWidget):
     def __init__(self, parent):
         super(Preview, self).__init__(parent)
         parent.setWindowTitle("Asset preview")
+
+        if not has_multimedia:
+            return
 
         self.current_id = False
         self.current_object = False
@@ -519,6 +527,8 @@ class Preview(BaseWidget):
 
 
     def focus(self, objects):
+        if not has_multimedia:
+            return
         if len(objects) == 1 and objects[0].object_type in ["asset", "item"]:
             o = objects[0]
             self.load(o)
