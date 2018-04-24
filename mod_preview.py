@@ -60,16 +60,30 @@ class RegionBar(QWidget):
 
 
 def proxy_path(id_asset):
-    host = config.get("media_host", False) or config.get("hive_host")
-    port = config.get("media_port", False) or config.get("hive_port", DEFAULT_PORT)
-    ssl  = config.get("media_ssl", False) or config.get("hive_ssl", DEFAULT_SSL)
-    url  = "{}://{}:{}/proxy/{:04d}/{:d}.mp4".format(["http", "https"][ssl], host, port, int(id_asset/1000), id_asset)
+    host = config.get("media_host", config["hive_host"])
+    port = config.get("media_port", config.get("hive_port", DEFAULT_PORT))
+    ssl  = config.get("media_ssl", config.get("hive_ssl", DEFAULT_SSL))
+    url  = "{}://{}:{}/proxy/{:04d}/{:d}.mp4".format(
+            ["http", "https"][ssl],
+            host,
+            port,
+            int(id_asset/1000),
+            id_asset
+        )
     return QUrl(url)
 
 def thumb_path(id_asset):
-    host = config.get("media_host", False) or config["hive_host"]
-    port = config.get("media_port", False) or config["hive_port"]
-    url = "http://{}:{}/thumb/{:04d}/{:d}/{:d}m0.jpg".format(host, port, int(id_asset/1000), id_asset, id_asset)
+    host = config.get("media_host", config["hive_host"])
+    port = config.get("media_port", config.get("hive_port", DEFAULT_PORT))
+    ssl  = config.get("media_ssl", config.get("hive_ssl", DEFAULT_SSL))
+    url = "{}://{}:{}/thumb/{:04d}/{:d}/{:d}m0.jpg".format(
+            ["http", "https"][ssl],
+            host,
+            port,
+            int(id_asset/1000),
+            id_asset,
+            id_asset
+        )
     return url
 
 
