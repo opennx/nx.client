@@ -4,9 +4,23 @@ import subprocess
 
 from firefly_common import *
 
+
+if PLATFORM == "windows":
+    import ctypes
+    import itertools
+    import os
+    import string
+    import platform
+
+    def get_available_drives():
+        drive_bitmask = ctypes.cdll.kernel32.GetLogicalDrives()
+        return list(itertools.compress(string.ascii_uppercase,
+            map(lambda x:ord(x) - ord('0'), bin(drive_bitmask)[:1:-1])))
+
+
 def load_filesystem(handler=False):
     if PLATFORM == "windows":
-        for letter in "abcdefghijklmnopqrstuvwxyz":
+        for letter in get_available_drives():
             if handler:
                 handler(letter)
             base_path = "{}:\\".format(letter)
@@ -29,6 +43,7 @@ def load_filesystem(handler=False):
 
                 storage = Storage()
                 storage.id_storage = id_storage
-                storage.local_path = base_path
+                storage["protocol"] = LOCAL
+                storage["path"] = base_path
 
                 storages[id_storage] = storage
